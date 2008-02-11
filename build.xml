@@ -1,0 +1,103 @@
+<?xml version="1.0"?>
+
+<project name="eSciDocCoreAdmin" default="ear" basedir=".">
+
+	<property name="build.dir" value="bin" />
+	<property name="sb.src.dir" value="sb/src" />
+	<property name="common.src.dir" value="common/src" />
+	<property name="dist.dir" value="dist" />
+	<property name="lib.dir" value="lib" />
+	<property name="war.dir" value="${build.dir}/war" />
+	<property name="war.webinf.dir" value="${war.dir}/WEB-INF" />
+	<property name="ear.metainf.dir" value="${build.dir}/META-INF" />
+	<property name="war.lib.dir" value="${war.webinf.dir}/lib" />
+	<property name="classes.dir" value="${war.dir}/classes" />
+	<property name="metadata.dir" value="metadata" />
+
+	<path id="classpath">
+		<pathelement path="${classpath}" />
+		<fileset dir="${lib.dir}" includes="**/*.jar" />
+	</path>
+
+	<!-- Cleans the output folders -->
+	<target name="clean" description="Cleans the output folders">
+		<delete includeEmptyDirs="true">
+			<fileset dir="${build.dir}">
+				<include name="**/*"/>
+			</fileset>
+		</delete>
+		<delete includeEmptyDirs="true">
+			<fileset dir="${dist.dir}">
+				<include name="**/*"/>
+			</fileset>
+		</delete>
+	</target>
+
+	<!-- Creates the output folders -->
+	<target name="prepare" depends="clean" description="Creates the output folders">
+		<mkdir dir="${classes.dir}"/>
+	</target>
+
+	<!-- Copy Properties-Files -->
+  	<target name="copy" depends="prepare" description="Copies properties-files">
+		<copy todir="${war.webinf.dir}" failonerror="false" >
+			<fileset dir="${metadata.dir}">
+				<include name="**/web.xml" />
+			</fileset>
+		</copy>
+  		
+		<copy todir="${ear.metainf.dir}" failonerror="false" >
+			<fileset dir="${metadata.dir}">
+				<include name="**/application.xml" />
+			</fileset>
+		</copy>
+  		
+  		<!-- Copy Libraries -->
+		<copy todir="${war.lib.dir}" failonerror="false" >
+			<fileset dir="${lib.dir}">
+				<include name="**/**" />
+			</fileset>
+		</copy>
+  	</target>
+
+  	<!-- Compile -->
+  	<target name="compile" depends="copy" description="Compiles source code">
+     	<javac destdir="${classes.dir}" debug="on">
+			<classpath refid="classpath"/>
+			<src path="${common.src.dir}"/>
+			<src path="${sb.src.dir}"/>
+     	</javac>
+  	</target>
+
+  	<!-- generate Archive -->
+  	<target name="jar" depends="compile" description="Generates eSciDocCoreAdmin.jar in the 'dist' directory.">
+     	<!-- Exclude unit tests from the final JAR file -->
+     	<jar jarfile="${war.lib.dir}/eSciDocCoreAdmin.jar" 
+			basedir="${classes.dir}"/>
+		<delete includeEmptyDirs="true">
+			<fileset dir="${build.dir}">
+				<include name="**/classes/**/*"/>
+				<exclude name="**/WEB-INF/classes/**/*"/>
+			</fileset>
+		</delete>
+  	</target>
+
+  	<!-- generate war-file -->
+  	<target name="war" depends="jar" description="Generates eSciDocCoreAdmin.war in the 'dist' directory.">
+     	<!-- Exclude unit tests from the final JAR file -->
+     	<jar jarfile="${war.dir}/eSciDocCoreAdmin.war" 
+			basedir="${war.dir}"/>
+  	</target>
+
+  	<!-- generate ear-file -->
+  	<target name="ear" depends="war" description="Generates eSciDocCoreAdmin.ear in the 'dist' directory.">
+     	<!-- Exclude unit tests from the final JAR file -->
+     	<jar jarfile="${dist.dir}/eSciDocCoreAdmin.ear">
+     	    <fileset dir="${war.dir}"
+     	             includes="eSciDocCoreAdmin.war"/>
+     	    <fileset dir="${build.dir}"
+     	    		includes="META-INF/*"/>
+     	</jar>
+  	</target>
+
+</project>
