@@ -18,16 +18,7 @@ public class Reindexer {
 	 *
 	 * @param args
 	 */
-	public static void main(String[] args) {
-		reindex();
-	}
-
-	/**
-	 * TODO: Describe Method
-	 *
-	 * @param args
-	 */
-	private static void reindex() {
+	public void reindex() {
 		//get all released items from om
 		EscidocCoreHandler escidocHandler = new EscidocCoreHandler();
 		try {
