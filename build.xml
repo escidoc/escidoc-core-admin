@@ -2,7 +2,7 @@
 
 <project name="eSciDocCoreAdmin" default="ear" basedir=".">
 
-	<property name="build.dir" value="bin" />
+	<property name="build.dir" value="build" />
 	<property name="sb.src.dir" value="sb/src" />
 	<property name="common.src.dir" value="common/src" />
 	<property name="dist.dir" value="dist" />
