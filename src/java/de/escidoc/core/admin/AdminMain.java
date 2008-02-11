@@ -20,7 +20,11 @@ public class AdminMain {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		reindex();
+		if (args != null && args.length > 0) {
+			if (args[0].equals("reindex")) {
+				reindex();
+			}
+		}
 	}
 	/**
 	 * TODO: Describe Method
