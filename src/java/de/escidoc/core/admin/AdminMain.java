@@ -34,28 +34,28 @@ public class AdminMain {
 	private static void reindex() {
 		System.out.println("Hello World");
 		//get all released items from om
-//		EscidocCoreHandler escidocHandler = new EscidocCoreHandler();
-//		try {
-//			String filter = "<param><filter name=\"public-status\">withdrawn</filter></param>";
-//			String result = escidocHandler.requestEscidoc("/ir/items/filter/refs", filter);
-//
-//			StaxParser sp = new StaxParser();
-//	        HashMap extractPathes = new HashMap();
-//	        extractPathes.put("/item-ref-list/item-ref", "xlink:href");
-//	        MultipleExtractor me = new MultipleExtractor(extractPathes, sp);
-//
-//	        try {
-//	            sp.parse(new ByteArrayInputStream(result.getBytes(XmlUtility.CHARACTER_ENCODING)));
-//	        }
-//	        catch (Exception e) {
-//	            e.printStackTrace();
-//	        }
-//
-//	        HashMap streams = me.getOutputStreams();
-//	        System.out.println("OK");
-//		} catch (ApplicationServerSystemException e) {
-//			e.printStackTrace();
-//		}
+		EscidocCoreHandler escidocHandler = new EscidocCoreHandler();
+		try {
+			String filter = "<param><filter name=\"public-status\">withdrawn</filter></param>";
+			String result = escidocHandler.requestEscidoc("/ir/items/filter/refs", filter);
+
+			StaxParser sp = new StaxParser();
+	        HashMap extractPathes = new HashMap();
+	        extractPathes.put("/item-ref-list/item-ref", "xlink:href");
+	        MultipleExtractor me = new MultipleExtractor(extractPathes, sp);
+
+	        try {
+	            sp.parse(new ByteArrayInputStream(result.getBytes(XmlUtility.CHARACTER_ENCODING)));
+	        }
+	        catch (Exception e) {
+	            e.printStackTrace();
+	        }
+
+	        HashMap streams = me.getOutputStreams();
+	        System.out.println("OK");
+		} catch (ApplicationServerSystemException e) {
+			e.printStackTrace();
+		}
 	}
 
 }

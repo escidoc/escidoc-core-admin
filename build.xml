@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<project name="eSciDocCoreAdmin" default="ear" basedir=".">
+<project name="eSciDocCoreAdmin" default="jarjar" basedir=".">
 
 	<property name="build.dir" value="build" />
 	<property name="main.build.dir" value="${build.dir}/main" />
@@ -119,4 +119,9 @@
      	</jar>
   	</target>
 
+    <target name="run">
+        <java jar="${dist.dir}/eSciDocCoreAdmin.jar" fork="true">
+        	<arg value="reindex" />
+        </java>
+    </target>
 </project>
