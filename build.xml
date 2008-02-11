@@ -82,12 +82,6 @@
      	<!-- Exclude unit tests from the final JAR file -->
      	<jar jarfile="${main.build.dir}/main.jar" 
 			basedir="${src.classes.dir}"/>
-		<delete includeEmptyDirs="true">
-			<fileset dir="${src.classes.dir}">
-				<include name="**/classes/**/*"/>
-				<exclude name="**/WEB-INF/classes/**/*"/>
-			</fileset>
-		</delete>
   	</target>
 
   	<!-- generate war-file -->
