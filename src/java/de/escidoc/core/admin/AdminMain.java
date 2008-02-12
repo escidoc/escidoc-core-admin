@@ -41,9 +41,9 @@ public class AdminMain {
 	 */
 	private static void reindex(String[] args) {
 		//args[1] can be om-url (eg http://escidev5:8080)
-		//args[2] can be sb-url (eg http://escidev6:8080)
+		//args[2] can be sb-url (eg jnp://escidev6:1098)
 		String escidocOmUrl = "http://localhost:8080";
-		String escidocSbUrl = "http://localhost:8080";
+		String escidocSbUrl = "jnp://localhost:1099";
 
 		if (args.length > 1 && args[1] != null) {
 			escidocOmUrl = args[1];
@@ -55,13 +55,6 @@ public class AdminMain {
 		if (!escidocOmUrl.startsWith("http://")) {
 			escidocOmUrl = "http://" + escidocOmUrl;
 		}
-
-		if (!escidocSbUrl.startsWith("http://")) {
-			escidocSbUrl = "jnp://" + escidocSbUrl;
-		} else {
-			escidocSbUrl = escidocSbUrl.replaceFirst("http://", "jnp://");
-		}
-		escidocSbUrl = escidocSbUrl.replaceFirst("(.*:).*", "$11099");
 
 		//get all released items from om
 		EscidocCoreHandler escidocHandler = new EscidocCoreHandler();
@@ -101,6 +94,7 @@ public class AdminMain {
             message.setStringProperty(Constants.INDEXER_QUEUE_ACTION_PARAMETER,
             		Constants.INDEXER_QUEUE_ACTION_PARAMETER_CREATE_EMPTY_VALUE);
             messageProducer.send(message);
+            Thread.sleep(5000);
 
         	for (String resource : hrefs) {
 	            // Send message to Queue///////////////////////////////////////////
@@ -111,8 +105,6 @@ public class AdminMain {
 	                Constants.INDEXER_QUEUE_RESOURCE_PARAMETER, resource);
 	            messageProducer.send(message);
 	        }
-	        
-	        System.out.println("OK");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
