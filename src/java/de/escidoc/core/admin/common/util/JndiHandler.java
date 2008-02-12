@@ -28,55 +28,74 @@
  */
 package de.escidoc.core.admin.common.util;
 
-import de.escidoc.core.admin.common.util.configuration.EscidocConfiguration;
+import java.util.Hashtable;
+
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+
 import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException;
 import de.escidoc.core.common.util.logger.AppLogger;
-import de.escidoc.core.common.util.service.HttpRequester;
 
 /**
- * Execute http-request to escidoc-core system.
+ * Execute jndi-operations.
  * 
  * @common
  */
-public class EscidocCoreHandler {
+public class JndiHandler {
 
     private static AppLogger log =
-        new AppLogger(EscidocCoreHandler.class.getName());
-
-    private static final String DEFAULT_HANDLE = "Shibboleth-Handle-1";
-    private static final String DEFAULT_ESCIDOC_CORE_URL = "http://localhost:8080";
+        new AppLogger(JndiHandler.class.getName());
+    
+    private InitialContext initialContext;
 
     /**
-     * requests escidoc-resource.
+     * get jndi-object with given jndiName.
      * 
      * <pre>
-     *        execute get-request.
+     *        execute lookup.
      * </pre>
      * 
-     * @param resource
-     *            String resource.
-     * @return String response
+     * @param jndiName
+     *            String jndiName.
+     * @return Object jndi-object
      * 
      * @throws ApplicationServerSystemException
      *             e
      * @common
      */
-    public String requestEscidoc(
-        final String resource, final String postParam, String escidocCoreUrl)
+    public Object getJndiObject(final String jndiName)
         throws ApplicationServerSystemException {
-    	if (escidocCoreUrl == null) {
-    		escidocCoreUrl = DEFAULT_ESCIDOC_CORE_URL;
-    	}
         try {
-            HttpRequester httpRequester = new HttpRequester(
-            		escidocCoreUrl, DEFAULT_HANDLE);
-            String result = httpRequester.doPost(resource, postParam);
-            return result;
+            Object jndiObject = initialContext.lookup(jndiName);
+            return jndiObject;
         }
-        catch (Exception e) {
+        catch (NamingException e) {
             log.error(e);
             throw new ApplicationServerSystemException(e);
         }
     }
+
+	/**
+	 * @return the context
+	 */
+	public InitialContext getInitialContext() {
+		return initialContext;
+	}
+
+	/**
+	 * @param context the context to set
+	 */
+	public void setInitialContext(final String providerUrl) throws ApplicationServerSystemException {
+        Hashtable<String, String> environment = new Hashtable<String, String>();
+        environment.put("java.naming.provider.url", providerUrl);
+        environment.put("java.naming.factory.initial", "org.jnp.interfaces.NamingContextFactory");
+        environment.put("java.naming.factory.url.pkgs", "org.jnp.interfaces:org.jboss.naming");
+        try {
+			initialContext = new InitialContext(environment);
+		} catch (NamingException e) {
+			log.error(e);
+			throw new ApplicationServerSystemException(e);
+		}
+	}
 
 }
