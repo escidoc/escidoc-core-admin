@@ -28,7 +28,6 @@
  */
 package de.escidoc.core.admin.common.util;
 
-import de.escidoc.core.admin.common.util.configuration.EscidocConfiguration;
 import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException;
 import de.escidoc.core.common.util.logger.AppLogger;
 import de.escidoc.core.common.util.service.HttpRequester;

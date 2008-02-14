@@ -1,6 +1,0 @@
-escidoc.core.url = http://localhost:8080
-gsearch.url = http://localhost:8080/fedoragsearch/rest
-fedora.url = http://localhost:8082/fedora
-fedora.user = fedoraAdmin
-fedora.password = fedoraAdmin
-#
