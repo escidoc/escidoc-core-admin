@@ -60,7 +60,7 @@ public class AdminMain {
 		EscidocCoreHandler escidocHandler = new EscidocCoreHandler();
 		
 		try {
-			String filter = "<param><filter name=\"public-status\">released</filter></param>";
+			String filter = "<param><filter name=\"http://escidoc.de/core/01/properties/public-status\">released</filter></param>";
 			String result = escidocHandler.requestEscidoc("/ir/items/filter/refs", filter, escidocOmUrl);
 
 			StaxParser sp = new StaxParser();
