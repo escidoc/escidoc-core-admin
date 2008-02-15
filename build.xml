@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<project name="eSciDoc infrastructure - admin tool build file" default="dist" basedir=".">
+<project name="eSciDoc infrastructure admin tool - main build file" default="dist" basedir=".">
 
 	<property file="etc/${user.name}.properties" />
 	<property file="etc/project.properties" />
