@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<project name="eSciDoc infrastructure - admin tool build file" default="admin-jar" basedir=".">
+<project name="eSciDoc infrastructure - admin tool build file" default="dist" basedir=".">
 
 	<property file="etc/${user.name}.properties" />
 	<property file="etc/project.properties" />
@@ -9,6 +9,14 @@
 		<pathelement path="${classpath}" />
 		<fileset dir="${lib.dir}" includes="**/*.jar" />
 	</path>
+
+	<target name="dist" depends="admin-jar">
+		<copy todir="${dist.build.dir}" failonerror="false">
+			<fileset dir="${bin.src.dir}" includes="**/*" />
+			<fileset dir="${doc.src.dir}" includes="**/*" />
+			<fileset dir="${etc.dir}" includes="admin-tool.properties" />
+		</copy>
+	</target>
 
 	<!-- Cleans the output folders -->
 	<target name="clean" description="Cleans the output folders">
@@ -40,7 +48,7 @@
 			<src path="${java.src.dir}" />
 		</javac>
 	</target>
-	
+
 	<target name="main-jar" depends="build">
 		<copy todir="${main.jar.build.dir}">
 			<fileset dir="${java.build.dir}" excludes="**/*.class" />
@@ -48,7 +56,7 @@
 		</copy>
 		<delete dir="${main.jar.build.dir}/com" failonerror="false" />
 
-		<jar jarfile="${admin.jar.main.dir}/${main.jar.name}.jar" basedir="${main.jar.build.dir}" />
+		<jar jarfile="${admin.jar.main.dir}/${main.jar.name}" basedir="${main.jar.build.dir}" />
 	</target>
 
 	<target name="admin-jar" depends="main-jar">
@@ -60,14 +68,14 @@
 		<copy todir="${admin.jar.lib.dir}">
 			<fileset dir="${lib.dir}" includes="**/*" />
 		</copy>
-		<jar jarfile="${dist.build.dir}/${admin.jar.name}.jar" manifest="${metadata.src.dir}/Manifest.mf">
+		<jar jarfile="${dist.build.dir}/${admin.jar.name}" manifest="${metadata.src.dir}/Manifest.mf">
 			<fileset dir="${admin.jar.build.dir}" includes="**/*" />
 		</jar>
 	</target>
 
 
 
-	
+
 	<target name="run">
 		<java jar="${dist.dir}/eSciDocCoreAdmin.jar" fork="true">
 			<arg value="reindex" />

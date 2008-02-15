@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<project name="eSciDocCoreAdminTest" default="reindex" basedir=".">
+
+	<property file="admin-tool.properties" />
+
+	<target name="test">
+		<java jar="eSciDocCoreAdmin.jar" fork="true">
+			<arg value="test" />
+			<arg value="${escidocOmUrl}" />
+			<arg value="${escidocSbUrl}" />
+		</java>
+	</target>
+
+	<target name="reindex">
+		<java jar="eSciDocCoreAdmin.jar" fork="true">
+			<arg value="reindex" />
+			<arg value="${escidocOmUrl}" />
+			<arg value="${escidocSbUrl}" />
+		</java>
+	</target>
+</project>
