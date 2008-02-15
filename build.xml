@@ -1,121 +1,76 @@
 <?xml version="1.0"?>
 
-<project name="eSciDocCoreAdmin" default="jarjar" basedir=".">
+<project name="eSciDoc infrastructure - admin tool build file" default="admin-jar" basedir=".">
 
-	<property name="build.dir" value="build" />
-	<property name="main.build.dir" value="${build.dir}/main" />
-	<property name="src.dir" value="src/java" />
-	<property name="onejar.src.dir" value="src/onejar" />
-	<property name="dist.dir" value="dist" />
-	<property name="lib.dir" value="lib" />
-	<property name="war.dir" value="${build.dir}/war" />
-	<property name="war.webinf.dir" value="${war.dir}/WEB-INF" />
-	<property name="ear.metainf.dir" value="${build.dir}/META-INF" />
-	<property name="jar.lib.dir" value="${build.dir}/lib" />
-	<property name="classes.dir" value="${war.dir}/classes" />
-	<property name="onejar.classes.dir" value="${build.dir}/onejar/classes" />
-	<property name="src.classes.dir" value="${build.dir}/src/classes" />
-	<property name="metadata.dir" value="metadata" />
+	<property file="etc/${user.name}.properties" />
+	<property file="etc/project.properties" />
 
-	<path id="classpath">
+	<path id="build.classpath">
 		<pathelement path="${classpath}" />
 		<fileset dir="${lib.dir}" includes="**/*.jar" />
 	</path>
 
 	<!-- Cleans the output folders -->
 	<target name="clean" description="Cleans the output folders">
-		<delete includeEmptyDirs="true">
-			<fileset dir="${build.dir}">
-				<include name="**/*"/>
-			</fileset>
-		</delete>
-		<delete includeEmptyDirs="true">
-			<fileset dir="${dist.dir}">
-				<include name="**/*"/>
-			</fileset>
+		<delete includeEmptyDirs="true" failonerror="false">
+			<fileset dir="${java.build.dir}" includes="**/*" />
+			<fileset dir="${dist.build.dir}" includes="**/*" />
+			<fileset dir="${admin.jar.build.dir}" includes="**/*" />
+			<fileset dir="${main.jar.build.dir}" includes="**/*" />
 		</delete>
 	</target>
 
 	<!-- Creates the output folders -->
 	<target name="prepare" depends="clean" description="Creates the output folders">
-		<mkdir dir="${onejar.classes.dir}"/>
-		<mkdir dir="${src.classes.dir}"/>
-		<mkdir dir="${main.build.dir}"/>
+		<mkdir dir="${java.build.dir}" />
+		<mkdir dir="${dist.build.dir}" />
+		<mkdir dir="${main.jar.build.dir}" />
+		<mkdir dir="${admin.jar.build.dir}" />
+		<mkdir dir="${admin.jar.main.dir}" />
+		<mkdir dir="${admin.jar.lib.dir}" />
 	</target>
 
-	<!-- Copy Properties-Files -->
-  	<target name="copy" depends="prepare" description="Copies properties-files">
-		<!-- copy todir="${war.webinf.dir}" failonerror="false" >
-			<fileset dir="${metadata.dir}">
-				<include name="**/web.xml" />
-			</fileset>
+	<target name="build" depends="clean, prepare, compile">
+	</target>
+
+	<!-- Compile -->
+	<target name="compile" description="Compile java classes">
+		<javac destdir="${java.build.dir}" debug="on">
+			<classpath refid="build.classpath" />
+			<src path="${java.src.dir}" />
+		</javac>
+	</target>
+	
+	<target name="main-jar" depends="build">
+		<copy todir="${main.jar.build.dir}">
+			<fileset dir="${java.build.dir}" excludes="**/*.class" />
+			<fileset dir="${java.build.dir}" includes="de/**/*.class" />
 		</copy>
-  		
-		<copy todir="${ear.metainf.dir}" failonerror="false" >
-			<fileset dir="${metadata.dir}">
-				<include name="**/application.xml" />
-			</fileset>
-		</copy -->
-  		
-  		<!-- Copy Libraries -->
-		<copy todir="${jar.lib.dir}" failonerror="false" >
-			<fileset dir="${lib.dir}">
-				<include name="**/**" />
-			</fileset>
+		<delete dir="${main.jar.build.dir}/com" failonerror="false" />
+
+		<jar jarfile="${admin.jar.main.dir}/${main.jar.name}.jar" basedir="${main.jar.build.dir}" />
+	</target>
+
+	<target name="admin-jar" depends="main-jar">
+		<copy todir="${admin.jar.build.dir}">
+			<fileset dir="${java.build.dir}" excludes="**/*.class" />
+			<fileset dir="${java.build.dir}" includes="**/*.class" />
 		</copy>
-  	</target>
+		<delete dir="${admin.jar.build.dir}/de" failonerror="false" />
+		<copy todir="${admin.jar.lib.dir}">
+			<fileset dir="${lib.dir}" includes="**/*" />
+		</copy>
+		<jar jarfile="${dist.build.dir}/${admin.jar.name}.jar" manifest="${metadata.src.dir}/Manifest.mf">
+			<fileset dir="${admin.jar.build.dir}" includes="**/*" />
+		</jar>
+	</target>
 
-  	<!-- Compile -->
-  	<target name="compile" depends="copy" description="Compiles source code">
-     	<javac destdir="${src.classes.dir}" debug="on">
-			<classpath refid="classpath"/>
-			<src path="${src.dir}"/>
-     	</javac>
-     	<javac destdir="${onejar.classes.dir}" debug="on">
-			<classpath refid="classpath"/>
-			<src path="${onejar.src.dir}"/>
-     	</javac>
-  	</target>
 
-  	<!-- generate Archive -->
-  	<target name="jar" depends="compile" description="Generates eSciDocCoreAdmin.jar in the 'dist' directory.">
-     	<!-- Exclude unit tests from the final JAR file -->
-     	<jar jarfile="${main.build.dir}/main.jar" 
-			basedir="${src.classes.dir}"/>
-  	</target>
 
-  	<!-- generate war-file -->
-  	<target name="jarjar" depends="jar" description="Generates eSciDocCoreAdmin.war in the 'dist' directory.">
-     	<!-- Exclude unit tests from the final JAR file -->
-     	<jar jarfile="${dist.dir}/eSciDocCoreAdmin.jar" manifest="${metadata.dir}/Manifest.mf">
-     	    <fileset dir="${build.dir}"
-     	             excludes="**/*.class"/>
-     	    <fileset dir="${onejar.classes.dir}"
-     	    		includes="**/*.class"/>
-     	</jar>
-  	</target>
-
-  	<!-- generate war-file -->
-  	<target name="war" depends="jar" description="Generates eSciDocCoreAdmin.war in the 'dist' directory.">
-     	<!-- Exclude unit tests from the final JAR file -->
-     	<jar jarfile="${war.dir}/eSciDocCoreAdmin.war" 
-			basedir="${war.dir}"/>
-  	</target>
-
-  	<!-- generate ear-file -->
-  	<target name="ear" depends="war" description="Generates eSciDocCoreAdmin.ear in the 'dist' directory.">
-     	<!-- Exclude unit tests from the final JAR file -->
-     	<jar jarfile="${dist.dir}/eSciDocCoreAdmin.ear">
-     	    <fileset dir="${war.dir}"
-     	             includes="eSciDocCoreAdmin.war"/>
-     	    <fileset dir="${build.dir}"
-     	    		includes="META-INF/*"/>
-     	</jar>
-  	</target>
-
-    <target name="run">
-        <java jar="${dist.dir}/eSciDocCoreAdmin.jar" fork="true">
-        	<arg value="reindex" />
-        </java>
-    </target>
+	
+	<target name="run">
+		<java jar="${dist.dir}/eSciDocCoreAdmin.jar" fork="true">
+			<arg value="reindex" />
+		</java>
+	</target>
 </project>
