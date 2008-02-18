@@ -52,7 +52,7 @@ import de.escidoc.core.common.util.xml.XmlUtility;
 /**
  * Provides Methods used for Reindexing.
  * 
- * @common
+ * @admin
  */
 public class Reindexer {
 
