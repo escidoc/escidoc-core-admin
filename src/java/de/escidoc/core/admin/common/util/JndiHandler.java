@@ -48,6 +48,19 @@ public class JndiHandler {
     
     private InitialContext initialContext;
 
+    public JndiHandler(String providerUrl) 
+    		throws ApplicationServerSystemException {
+    	if (providerUrl == null) {
+    		throw new ApplicationServerSystemException(
+    						"providerUrl may not be null");
+    	}
+    	setInitialContext(providerUrl);
+    }
+    
+    private JndiHandler() {
+    	
+    }
+    
     /**
      * get jndi-object with given jndiName.
      * 
@@ -76,16 +89,9 @@ public class JndiHandler {
     }
 
 	/**
-	 * @return the context
-	 */
-	public InitialContext getInitialContext() {
-		return initialContext;
-	}
-
-	/**
 	 * @param context the context to set
 	 */
-	public void setInitialContext(final String providerUrl) throws ApplicationServerSystemException {
+	private void setInitialContext(final String providerUrl) throws ApplicationServerSystemException {
         Hashtable<String, String> environment = new Hashtable<String, String>();
         environment.put("java.naming.provider.url", providerUrl);
         environment.put("java.naming.factory.initial", "org.jnp.interfaces.NamingContextFactory");
