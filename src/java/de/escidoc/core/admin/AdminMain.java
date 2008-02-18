@@ -8,9 +8,6 @@ import de.escidoc.core.common.util.logger.AppLogger;
 
 public class AdminMain {
 
-    private static AppLogger log =
-        new AppLogger(AdminMain.class.getName());
-    
     String escidocOmUrl = "http://localhost:8080";
     String escidocSbUrl = "jnp://localhost:1099";
 
@@ -89,7 +86,7 @@ public class AdminMain {
 //            }
 
         } catch (ApplicationServerSystemException e) {
-        	log.error(e);
+        	System.out.println(e);
         } finally {
         	if (reindexer != null) {
             	reindexer.close();
