@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src/java"/>
+	<classpathentry kind="src" path="src/test"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/common.jar" sourcepath="/eSciDocCore/common/src"/>
 	<classpathentry kind="lib" path="lib/commons/commons-logging.jar"/>
@@ -10,5 +11,6 @@
 	<classpathentry kind="lib" path="lib/woodstox/stax2.jar"/>
 	<classpathentry kind="lib" path="lib/woodstox/wstx-asl-3.1.2.jar"/>
 	<classpathentry kind="lib" path="lib/jboss/jbossall-client.jar"/>
+	<classpathentry kind="lib" path="lib/junit/junit.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>
