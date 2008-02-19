@@ -183,7 +183,7 @@ public class Reindexer {
                     .getBytes(XmlUtility.CHARACTER_ENCODING)));
             }
             catch (Exception e) {
-                e.printStackTrace();
+                log.error(e);
             }
 
             return handler.getHrefs();

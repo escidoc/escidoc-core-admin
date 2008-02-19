@@ -4,19 +4,23 @@ import java.util.Vector;
 
 import de.escidoc.core.admin.business.Reindexer;
 import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException;
+import de.escidoc.core.common.util.logger.AppLogger;
 
 public class AdminMain {
 
-    String escidocOmUrl = "http://localhost:8080";
-    String escidocSbUrl = "jnp://localhost:1099";
+    private String escidocOmUrl = "http://localhost:8080";
+    private String escidocSbUrl = "jnp://localhost:1099";
 
+	private static AppLogger log =
+        new AppLogger(AdminMain.class.getName());
+    
     /**
      * TODO: Describe Method
      * 
      * @param args
      */
     public static void main(String[] args) {
-        AdminMain admin = new AdminMain();
+    	AdminMain admin = new AdminMain();
         if (args != null && args.length > 0) {
             System.out.println(args[0]);
             if (args[0].equals("reindex")) {
@@ -27,12 +31,12 @@ public class AdminMain {
             }
         }
         else {
-            System.out.println("please provide method-argument");
+        	log.error("please provide method-argument");
         }
     }
 
     private void test(String[] args) {
-        System.out.println("Test method invoked!");
+    	log.info("Test method invoked!");
         if (args.length > 1 && args[1] != null) {
             escidocOmUrl = args[1];
         }
@@ -40,8 +44,8 @@ public class AdminMain {
             escidocSbUrl = args[2];
         }
 
-        System.out.println("escidocOmUrl=" + getEscidocOmUrl());
-        System.out.println("escidocSbUrl=" + getEscidocSbUrl());
+        log.info("escidocOmUrl=" + getEscidocOmUrl());
+        log.info("escidocSbUrl=" + getEscidocSbUrl());
     }
 
     /**
@@ -85,7 +89,7 @@ public class AdminMain {
             }
 
         } catch (ApplicationServerSystemException e) {
-        	System.out.println(e);
+        	log.error(e);
         } finally {
         	if (reindexer != null) {
             	reindexer.close();

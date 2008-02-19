@@ -47,6 +47,9 @@
 			<classpath refid="build.classpath" />
 			<src path="${java.src.dir}" />
 		</javac>
+		<copy todir="${java.build.dir}">
+			<fileset dir="${etc.dir}" includes="**/log4j.*" />
+		</copy>
 	</target>
 
 	<target name="main-jar" depends="build">
@@ -63,7 +66,7 @@
 		<copy todir="${admin.jar.build.dir}">
 			<fileset dir="${java.build.dir}" excludes="**/*.class" />
 			<fileset dir="${java.build.dir}" includes="**/*.class" />
-			<fileset dir="${etc.dir}" includes="**/log4j.properties" />
+			<fileset dir="${etc.dir}" includes="**/log4j.*" />
 		</copy>
 		<delete dir="${admin.jar.build.dir}/de" failonerror="false" />
 		<copy todir="${admin.jar.lib.dir}">
@@ -78,7 +81,7 @@
 
 
 	<target name="run">
-		<java jar="${dist.dir}/eSciDocCoreAdmin.jar" fork="true">
+		<java jar="${dist.build.dir}/eSciDocCoreAdmin.jar" fork="true">
 			<arg value="reindex" />
 		</java>
 	</target>
