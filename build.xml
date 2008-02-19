@@ -63,6 +63,7 @@
 		<copy todir="${admin.jar.build.dir}">
 			<fileset dir="${java.build.dir}" excludes="**/*.class" />
 			<fileset dir="${java.build.dir}" includes="**/*.class" />
+			<fileset dir="${etc.dir}" includes="**/log4j.properties" />
 		</copy>
 		<delete dir="${admin.jar.build.dir}/de" failonerror="false" />
 		<copy todir="${admin.jar.lib.dir}">

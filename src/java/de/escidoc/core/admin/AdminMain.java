@@ -4,7 +4,6 @@ import java.util.Vector;
 
 import de.escidoc.core.admin.business.Reindexer;
 import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException;
-import de.escidoc.core.common.util.logger.AppLogger;
 
 public class AdminMain {
 
@@ -70,7 +69,7 @@ public class AdminMain {
             //Get all released Items
             Vector<String> itemHrefs = reindexer.getReleasedItems();
             //Get all released Containers
-            //Vector<String> containerHrefs = reindexer.getReleasedContainers();
+            Vector<String> containerHrefs = reindexer.getReleasedContainers();
             
             //Delete index
             reindexer.sendDeleteIndexMessage();
@@ -81,9 +80,9 @@ public class AdminMain {
             }
 
             //reindex released containers
-//            for (String containerHref : containerHrefs) {
-//            	reindexer.sendUpdateIndexMessage(containerHref);
-//            }
+            for (String containerHref : containerHrefs) {
+            	reindexer.sendUpdateIndexMessage(containerHref);
+            }
 
         } catch (ApplicationServerSystemException e) {
         	System.out.println(e);
