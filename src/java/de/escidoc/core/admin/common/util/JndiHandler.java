@@ -39,26 +39,46 @@ import de.escidoc.core.common.util.logger.AppLogger;
 /**
  * Execute jndi-operations.
  * 
- * @common
+ * @admin
  */
 public class JndiHandler {
 
     private static AppLogger log =
         new AppLogger(JndiHandler.class.getName());
     
-    private InitialContext initialContext;
+	private static final String DEFAULT_ESCIDOC_PROVIDER_URL = 
+											"jnp://localhost:1099";
 
-    public JndiHandler(String providerUrl) 
-    		throws ApplicationServerSystemException {
-    	if (providerUrl == null) {
-    		throw new ApplicationServerSystemException(
-    						"providerUrl may not be null");
-    	}
-    	setInitialContext(providerUrl);
+	private InitialContext initialContext;
+
+    /**
+     * initialize JndiHandler.
+     * provider-url is set to default.
+     * 
+     * @throws ApplicationServerSystemException
+     *             e
+     * @admin
+     */
+    public JndiHandler() {
+    	setInitialContext(DEFAULT_ESCIDOC_PROVIDER_URL);
     }
     
-    private JndiHandler() {
-    	
+    /**
+     * initialize JndiHandler 
+     * with providerUrl to JBoss-Naming-Service.
+     * 
+     * @param providerUrl
+     *            String providerUrl.
+     * 
+     * @throws ApplicationServerSystemException
+     *             e
+     * @admin
+     */
+    public JndiHandler(String providerUrl) {
+    	if (providerUrl == null) {
+    		providerUrl = DEFAULT_ESCIDOC_PROVIDER_URL;
+    	}
+    	setInitialContext(providerUrl);
     }
     
     /**
@@ -74,7 +94,7 @@ public class JndiHandler {
      * 
      * @throws ApplicationServerSystemException
      *             e
-     * @common
+     * @admin
      */
     public Object getJndiObject(final String jndiName)
         throws ApplicationServerSystemException {
@@ -89,9 +109,11 @@ public class JndiHandler {
     }
 
 	/**
+	 * set initial context.
+	 * 
 	 * @param context the context to set
 	 */
-	private void setInitialContext(final String providerUrl) throws ApplicationServerSystemException {
+	private void setInitialContext(final String providerUrl) {
         Hashtable<String, String> environment = new Hashtable<String, String>();
         environment.put("java.naming.provider.url", providerUrl);
         environment.put("java.naming.factory.initial", "org.jnp.interfaces.NamingContextFactory");
@@ -100,7 +122,6 @@ public class JndiHandler {
 			initialContext = new InitialContext(environment);
 		} catch (NamingException e) {
 			log.error(e);
-			throw new ApplicationServerSystemException(e);
 		}
 	}
 

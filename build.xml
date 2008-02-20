@@ -38,7 +38,7 @@
 		<mkdir dir="${admin.jar.lib.dir}" />
 	</target>
 
-	<target name="build" depends="clean, prepare, compile">
+	<target name="build" depends="clean, prepare, compile, copy">
 	</target>
 
 	<!-- Compile -->
@@ -47,15 +47,27 @@
 			<classpath refid="build.classpath" />
 			<src path="${java.src.dir}" />
 		</javac>
+		<javac destdir="${java.build.dir}" debug="on">
+			<classpath refid="build.classpath" />
+			<src path="${test.src.dir}" />
+		</javac>
+	</target>
+
+	<!-- Copy -->
+	<target name="copy" description="copy metadata-files">
 		<copy todir="${java.build.dir}">
 			<fileset dir="${etc.dir}" includes="**/log4j.*" />
 		</copy>
+		<copy todir="${java.build.dir}">
+			<fileset dir="${test.src.dir}" includes="**/*.xml" />
+		</copy>
 	</target>
 
+	
+	
 	<target name="main-jar" depends="build">
 		<copy todir="${main.jar.build.dir}">
-			<fileset dir="${java.build.dir}" excludes="**/*.class" />
-			<fileset dir="${java.build.dir}" includes="de/**/*.class" />
+			<fileset dir="${java.build.dir}" includes="de/**/*.class" excludes="**/test/**/*.class"/>
 		</copy>
 		<delete dir="${main.jar.build.dir}/com" failonerror="false" />
 
@@ -64,13 +76,12 @@
 
 	<target name="admin-jar" depends="main-jar">
 		<copy todir="${admin.jar.build.dir}">
-			<fileset dir="${java.build.dir}" excludes="**/*.class" />
-			<fileset dir="${java.build.dir}" includes="**/*.class" />
+			<fileset dir="${java.build.dir}" includes="**/*.class"  excludes="**/test/**/*.class"/>
 			<fileset dir="${etc.dir}" includes="**/log4j.*" />
 		</copy>
 		<delete dir="${admin.jar.build.dir}/de" failonerror="false" />
 		<copy todir="${admin.jar.lib.dir}">
-			<fileset dir="${lib.dir}" includes="**/*" />
+			<fileset dir="${lib.dir}" includes="**/*"  excludes="**/test/**/*"/>
 		</copy>
 		<jar jarfile="${dist.build.dir}/${admin.jar.name}" manifest="${metadata.src.dir}/Manifest.mf">
 			<fileset dir="${admin.jar.build.dir}" includes="**/*" />

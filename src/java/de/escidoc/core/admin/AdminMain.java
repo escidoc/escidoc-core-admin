@@ -36,8 +36,8 @@ import de.escidoc.core.common.util.logger.AppLogger;
 
 public class AdminMain {
 
-    private String escidocOmUrl = "http://localhost:8080";
-    private String escidocSbUrl = "jnp://localhost:1099";
+    private String escidocOmUrl = null;
+    private String escidocSbUrl = null;
 
 	private static AppLogger log =
         new AppLogger(AdminMain.class.getName());
@@ -50,7 +50,7 @@ public class AdminMain {
     public static void main(String[] args) {
     	AdminMain admin = new AdminMain();
         if (args != null && args.length > 0) {
-            System.out.println(args[0]);
+            log.info(args[0]);
             if (args[0].equals("reindex")) {
                 admin.reindex(args);
             }
@@ -72,8 +72,8 @@ public class AdminMain {
             escidocSbUrl = args[2];
         }
 
-        log.info("escidocOmUrl=" + getEscidocOmUrl());
-        log.info("escidocSbUrl=" + getEscidocSbUrl());
+        log.info("escidocOmUrl=" + escidocOmUrl);
+        log.info("escidocSbUrl=" + escidocSbUrl);
     }
 
     /**
@@ -89,10 +89,6 @@ public class AdminMain {
             escidocSbUrl = args[2];
         }
 
-        if (!escidocOmUrl.startsWith("http://")) {
-            escidocOmUrl = "http://" + escidocOmUrl;
-        }
-        
         Reindexer reindexer = null;
         try {
         	//initialize Reindexer
@@ -123,36 +119,6 @@ public class AdminMain {
             	reindexer.close();
         	}
         }
-    }
-
-    /**
-     * @return the escidocOmUrl
-     */
-    public String getEscidocOmUrl() {
-        return escidocOmUrl;
-    }
-
-    /**
-     * @param escidocOmUrl
-     *            the escidocOmUrl to set
-     */
-    public void setEscidocOmUrl(String escidocOmUrl) {
-        this.escidocOmUrl = escidocOmUrl;
-    }
-
-    /**
-     * @return the escidocSbUrl
-     */
-    public String getEscidocSbUrl() {
-        return escidocSbUrl;
-    }
-
-    /**
-     * @param escidocSbUrl
-     *            the escidocSbUrl to set
-     */
-    public void setEscidocSbUrl(String escidocSbUrl) {
-        this.escidocSbUrl = escidocSbUrl;
     }
 
 }
