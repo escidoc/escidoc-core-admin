@@ -3,6 +3,7 @@ package de.escidoc.core.admin.test;
 import java.io.ByteArrayInputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -27,7 +28,17 @@ public class EscidocAdminTestBase extends TestCase {
 
     public static final String ITEM_BASE_URL = "/ir/item";
 
-    public static final String TEMPLATE_BASE_PATH = "/de/escidoc/core/admin/test";
+    public static final String ITEM_SUBMIT_PATH = 
+    					ITEM_BASE_URL + "/${ITEM_ID}/submit";
+
+    public static final String ITEM_RELEASE_PATH = 
+    					ITEM_BASE_URL + "/${ITEM_ID}/release";
+
+    public static final Pattern ITEM_REPLACEMENT_PATTERN = 
+    						Pattern.compile("\\$\\{ITEM_ID\\}");
+
+    public static final String TEMPLATE_BASE_PATH = 
+    						"/de/escidoc/core/admin/test";
 
     public static final String TEMPLATE_REINDEXER_PATH =
         TEMPLATE_BASE_PATH + "/reindexer/templates";
@@ -38,6 +49,12 @@ public class EscidocAdminTestBase extends TestCase {
     public static final String TEMPLATE_REINDEXER_ITEM_PATH =
     	TEMPLATE_REINDEXER_PATH + "/item";
 
+    public static final String ITEM_SEARCH_REQUEST = 
+		"/srw/search/escidoc_all?query=escidoc.objecttype%3Ditem";
+
+    public static final String CONTAINER_SEARCH_REQUEST = 
+		"/srw/search/escidoc_all?query=escidoc.objecttype%3Dcontainer";
+	
 	/**
      * Retrieve a Template as a String.
      * 

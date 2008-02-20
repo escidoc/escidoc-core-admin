@@ -63,9 +63,9 @@ public class ReindexingTest extends ReindexingTestBase {
 	}
 
 	/**
-	 * test to delete index.
+	 * test to recreate index.
 	 * 
-	 * @test.name testDeleteIndex (1)
+	 * @test.name testRecreateIndex (1)
 	 * @test.id ADRI_1
 	 * @test.input
 	 * @test.inputDescription
@@ -77,6 +77,8 @@ public class ReindexingTest extends ReindexingTestBase {
 	 *             If anything fails.
 	 */
 	public void testADRI_1() throws Exception {
+		//Create and release one item, 
+		//so we get at least 1 hit when searching for items
 		String item = getTemplateAsString(TEMPLATE_REINDEXER_ITEM_PATH,
 				"escidoc_search_item0_rest.xml");
 		String xml = createItem(item);
@@ -92,32 +94,40 @@ public class ReindexingTest extends ReindexingTestBase {
 		releaseItem(id, "<param last-modification-date=\""
 				+ lastModificationDate + "\" />");
 		
+		//Wait until item is indexed
 		Thread.sleep(10000);
 
+		//search all items an store number of hits for later comparison
 		String searchResult = escidocCoreHandler
-				.getRequestEscidoc("/srw/search/escidoc_all?query=escidoc.objecttype%3Ditem");
+				.getRequestEscidoc(ITEM_SEARCH_REQUEST);
 		numberOfItemHits = getNumberOfHits(searchResult);
 
+		//search all containers an store number of hits for later comparison
 		searchResult = escidocCoreHandler
-				.getRequestEscidoc("/srw/search/escidoc_all?query=escidoc.objecttype%3Dcontainer");
+				.getRequestEscidoc(CONTAINER_SEARCH_REQUEST);
 		numberOfContainerHits = getNumberOfHits(searchResult);
 
+		//delete index
 		reindexer.sendDeleteIndexMessage();
 
+		//check if no items are found any longer
 		searchResult = escidocCoreHandler
-				.getRequestEscidoc("/srw/search/escidoc_all?query=escidoc.objecttype%3Ditem");
+				.getRequestEscidoc(ITEM_SEARCH_REQUEST);
 		assertEquals(0, getNumberOfHits(searchResult));
 
+		//trigger reindexing
 		String[] args = new String[1];
 		args[0] = "reindex";
 		AdminMain.main(args);
+		Thread.sleep(60000);
 
+		//check if we get as many search-results as before
 		searchResult = escidocCoreHandler
-				.getRequestEscidoc("/srw/search/escidoc_all?query=escidoc.objecttype%3Ditem");
+				.getRequestEscidoc(ITEM_SEARCH_REQUEST);
 		assertEquals(numberOfItemHits, getNumberOfHits(searchResult));
 
 		searchResult = escidocCoreHandler
-				.getRequestEscidoc("/srw/search/escidoc_all?query=escidoc.objecttype%3Dcontainer");
+				.getRequestEscidoc(CONTAINER_SEARCH_REQUEST);
 		assertEquals(numberOfContainerHits, getNumberOfHits(searchResult));
 
 	}

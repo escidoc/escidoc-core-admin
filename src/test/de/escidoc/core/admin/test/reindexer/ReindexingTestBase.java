@@ -46,7 +46,7 @@ public class ReindexingTestBase extends EscidocAdminTestBase {
 	
 	protected Reindexer reindexer = new Reindexer();
 	protected EscidocCoreHandler escidocCoreHandler = new EscidocCoreHandler();
-	
+
     /**
      * get number of hits from xml String.
      * 
@@ -135,7 +135,9 @@ public class ReindexingTestBase extends EscidocAdminTestBase {
     protected String submitItem(final String itemId, final String lastModDate) 
     				throws ApplicationServerSystemException {
     	return escidocCoreHandler.postRequestEscidoc(
-    			ITEM_BASE_URL + "/" + itemId + "/submit", lastModDate);
+    			ITEM_REPLACEMENT_PATTERN
+    				.matcher(ITEM_SUBMIT_PATH)
+    				.replaceAll(itemId), lastModDate);
     }
 
     /**
@@ -151,7 +153,9 @@ public class ReindexingTestBase extends EscidocAdminTestBase {
     protected String releaseItem(final String itemId, final String lastModDate) 
     				throws ApplicationServerSystemException {
     	return escidocCoreHandler.postRequestEscidoc(
-    			ITEM_BASE_URL + "/" + itemId + "/release", lastModDate);
+    			ITEM_REPLACEMENT_PATTERN
+    				.matcher(ITEM_RELEASE_PATH)
+    				.replaceAll(itemId), lastModDate);
     }
 
     /**
