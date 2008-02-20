@@ -88,8 +88,9 @@
 		</jar>
 	</target>
 
-
-
+	<target name="junit">
+		<ant antfile="${src.bin.dir}/build-junit.xml" target="test-fail" dir="" />
+	</target>
 
 	<target name="run">
 		<java jar="${dist.build.dir}/eSciDocCoreAdmin.jar" fork="true">
