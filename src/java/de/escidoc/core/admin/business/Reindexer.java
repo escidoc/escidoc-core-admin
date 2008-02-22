@@ -192,7 +192,7 @@ public class Reindexer {
 							Constants.INDEXER_QUEUE_ACTION_PARAMETER,
 							Constants.INDEXER_QUEUE_ACTION_PARAMETER_CREATE_EMPTY_VALUE);
 			messageProducer.send(message);
-			Thread.sleep(5000);
+			Thread.sleep(10000);
 		} catch (Exception e) {
 			log.error(e);
 			throw new ApplicationServerSystemException(e);
