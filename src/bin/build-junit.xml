@@ -2,9 +2,7 @@
 <project name="eSciDocCoreAdmin - run Junit Release Tests" basedir="../.." default="test">
 	<path id="classpath">
 		<fileset dir="${lib.dir}" includes="**/*.jar" />
-		<dirset dir=".">
-			<include name="${java.build.dir}/" />
-		</dirset>
+		<dirset dir="${java.build.dir}" />
 	</path>
 
 	<path id="sources">
