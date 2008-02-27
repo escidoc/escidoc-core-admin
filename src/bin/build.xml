@@ -18,4 +18,10 @@
 			<arg value="${escidocSbUrl}" />
 		</java>
 	</target>
+	
+	<target name="db-migration">
+	    <java jar="eSciDocCoreAdmin.jar" fork="true">
+	        <arg value="db-migration" />
+	    </java>
+	</target>
 </project>

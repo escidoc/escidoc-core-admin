@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans
+xmlns="http://www.springframework.org/schema/beans"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:aop="http://www.springframework.org/schema/aop"
+      xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.5.xsd"
+
+  default-autowire="no"
+  default-lazy-init="true"
+  default-dependency-check="none"
+>
+
+<bean id="de.escidoc.core.admin.PropertyPlaceholderConfigurer"
+    class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+    <property name="locations">
+        <list>
+            <value>file:admin-tool.properties</value>
+        </list>
+    </property>
+    <property name="ignoreResourceNotFound" value="true" />
+</bean>
+
+<bean id="de.escidoc.core.admin.DataSource"
+    class="org.apache.commons.dbcp.BasicDataSource">
+    <property name="driverClassName"
+        value="${datasource.driverClassName}" />
+    <property name="url" value="${datasource.url}" />
+    <property name="username" value="${datasource.username}" />
+    <property name="password" value="${datasource.password}" />
+</bean>
+
+<bean id="de.escidoc.core.admin.txManager"
+    class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+    <property name="dataSource">
+        <ref bean="de.escidoc.core.admin.DataSource" />
+    </property>
+</bean>
+
+<bean id="de.escidoc.core.admin.txProxyTemplate"
+    class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean"
+    abstract="true" lazy-init="true">
+    <property name="transactionManager">
+        <ref bean="de.escidoc.core.admin.txManager" />
+    </property>
+    <property name="transactionAttributes">
+        <props>
+            <prop key="*">PROPAGATION_REQUIRED</prop>
+        </props>
+    </property>
+</bean>
+
+<bean 
+     id="de.escidoc.core.admin.DataBaseMigrationTool"
+     parent="de.escidoc.core.admin.txProxyTemplate">
+    <property name="target">
+        <bean
+          class="de.escidoc.core.admin.business.DataBaseMigrationTool"
+        >
+            <property name="dataSource">
+                <ref bean="de.escidoc.core.admin.DataSource" />
+            </property>
+        </bean>
+    </property>
+</bean>
+
+</beans>
+      

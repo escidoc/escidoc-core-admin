@@ -1,19 +1,32 @@
-eSciDocCore-Admin-Tool
+eSciDoc infrastructure administration tool
 
--Tool to regenerate index for search.
+- Tool to regenerate index for search.
 	Use this when 
-	-structure/schema of items or containers changes
-	-Structure of index-database changed (new index etc.)
+	- structure/schema of items or containers changes
+	- Structure of index-database changed (new index etc.)
 	
-	-Workflow:
-		-get all items/container-hrefs from om where status = released
-		-delete index-databases
-		-put item-hrefs in SB-indexing queue -> reindex items
-		-put container-hrefs in SB-indexing queue -> reindex containers
+	- Workflow:
+		- get all items/container-hrefs from om where status = released
+		- delete index-databases
+		- put item-hrefs in SB-indexing queue -> reindex items
+		- put container-hrefs in SB-indexing queue -> reindex containers
 		
-	-Usage:
-		-modify admin-tool.properties:
-			-escidocOmUrl : URL of OM
-			-escidocSbUrl: URL of naming-service of SB
-		-execute target reindex of build.xml
+	- Usage:
+		- modify admin-tool.properties:
+			- escidocOmUrl : URL of OM
+			- escidocSbUrl: URL of naming-service of SB
+		- execute target reindex of of ant file build.xml
 		
+- Tool to migrate the escidoc-core database from build 0.9.0159 to Release 1.0
+    
+    - Usage:
+        - If the default value for the escidoc database are used, rename 
+          database escidoc to escidoc-core
+        - modify admin-tool.properties to define the database values  
+        - Execute 
+            - java -jar eSciDocCoreAdmin.jar db-migration 
+            or
+            - target db-migration of ant file build.xml
+          The admin-tool.properties must be placed in the directory from that 
+          the admin tool is executed.
+        

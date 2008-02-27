@@ -21,34 +21,43 @@
  */
 
 /*
- * Copyright 2006-2007 Fachinformationszentrum Karlsruhe Gesellschaft
+ * Copyright 2008 Fachinformationszentrum Karlsruhe Gesellschaft
  * fuer wissenschaftlich-technische Information mbH and Max-Planck-
  * Gesellschaft zur Foerderung der Wissenschaft e.V.  
  * All rights reserved.  Use is subject to license terms.
  */
 package de.escidoc.core.admin;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Vector;
 
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.access.BeanFactoryLocator;
+import org.springframework.beans.factory.access.SingletonBeanFactoryLocator;
+import org.springframework.transaction.CannotCreateTransactionException;
+
 import de.escidoc.core.admin.business.Reindexer;
+import de.escidoc.core.admin.business.interfaces.DataBaseMigrationInterface;
 import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException;
+import de.escidoc.core.common.exceptions.system.IntegritySystemException;
 import de.escidoc.core.common.util.logger.AppLogger;
+import de.escidoc.core.common.util.string.StringUtility;
 
 public class AdminMain {
 
     private String escidocOmUrl = null;
+
     private String escidocSbUrl = null;
 
-	private static AppLogger log =
-        new AppLogger(AdminMain.class.getName());
-    
+    private static AppLogger log = new AppLogger(AdminMain.class.getName());
+
     /**
      * TODO: Describe Method
      * 
      * @param args
      */
     public static void main(String[] args) {
-    	AdminMain admin = new AdminMain();
+        AdminMain admin = new AdminMain();
         if (args != null && args.length > 0) {
             log.info(args[0]);
             if (args[0].equals("reindex")) {
@@ -57,14 +66,68 @@ public class AdminMain {
             else if (args[0].equals("test")) {
                 admin.test(args);
             }
+            else if (args[0].equals("db-migration")) {
+                admin.migrateDataBase(args);
+            }
         }
         else {
-        	log.error("please provide method-argument");
+            log.error("please provide method-argument");
+        }
+    }
+
+    /**
+     * Migrate the content of the escidoc-core database.
+     * 
+     * @param args
+     *            The arguments.
+     * @see de.escidoc.core.admin.business.interfaces.DataBaseMigrationInterface#migrate()
+     */
+    private void migrateDataBase(final String[] args) {
+
+        log.info("Database migration invoked");
+
+        BeanFactoryLocator beanFactoryLocator =
+            SingletonBeanFactoryLocator.getInstance("adminBeanRefFactory.xml");
+        BeanFactory beanFactory =
+            beanFactoryLocator
+                .useBeanFactory("de.escidoc.core.admin.context").getFactory();
+        DataBaseMigrationInterface dbm =
+            (DataBaseMigrationInterface) beanFactory
+                .getBean("de.escidoc.core.admin.DataBaseMigrationTool");
+        try {
+            dbm.migrate();
+            log.info("Migration successfully completed.");
+        }
+        catch (IntegritySystemException e) {
+            log.error(e);
+        }
+        catch (CannotCreateTransactionException e) {
+            final StringBuffer errorMsg =
+                StringUtility
+                    .concatenate(
+                        "\nFailed to create transaction for database access.",
+                        "\nPlease check your database settings in your",
+                        " escidoc-core.properties file.",
+                        "\nIf you do not specify your own database settings but",
+                        " use the default values, please note that the default",
+                        "\ndatabase name has been changed to escidoc-core.",
+                        "\nIn this case, please rename your database to escidoc-core",
+                        " before calling the database migration.");
+            log.error(errorMsg, e);
+        }
+        catch (Exception e) {
+            if (e instanceof InvocationTargetException) {
+                if (e.getCause() != null) {
+                    log.error(e.getCause().getMessage(), e.getCause());
+                    return;
+                }
+            }
+            log.error(e.getMessage(), e);
         }
     }
 
     private void test(String[] args) {
-    	log.info("Test method invoked!");
+        log.info("Test method invoked!");
         if (args.length > 1 && args[1] != null) {
             escidocOmUrl = args[1];
         }
@@ -91,33 +154,35 @@ public class AdminMain {
 
         Reindexer reindexer = null;
         try {
-        	//initialize Reindexer
+            // initialize Reindexer
             reindexer = new Reindexer(escidocOmUrl, escidocSbUrl);
-            
-            //Get all released Items
+
+            // Get all released Items
             Vector<String> itemHrefs = reindexer.getReleasedItems();
-            //Get all released Containers
+            // Get all released Containers
             Vector<String> containerHrefs = reindexer.getReleasedContainers();
-            
-            //Delete index
+
+            // Delete index
             reindexer.sendDeleteIndexMessage();
-            
-            //Reindex released items
+
+            // Reindex released items
             for (String itemHref : itemHrefs) {
-            	reindexer.sendUpdateIndexMessage(itemHref);
+                reindexer.sendUpdateIndexMessage(itemHref);
             }
 
-            //reindex released containers
+            // reindex released containers
             for (String containerHref : containerHrefs) {
-            	reindexer.sendUpdateIndexMessage(containerHref);
+                reindexer.sendUpdateIndexMessage(containerHref);
             }
 
-        } catch (ApplicationServerSystemException e) {
-        	log.error(e);
-        } finally {
-        	if (reindexer != null) {
-            	reindexer.close();
-        	}
+        }
+        catch (ApplicationServerSystemException e) {
+            log.error(e);
+        }
+        finally {
+            if (reindexer != null) {
+                reindexer.close();
+            }
         }
     }
 

@@ -21,7 +21,7 @@
  */
 
 /*
- * Copyright 2006-2007 Fachinformationszentrum Karlsruhe Gesellschaft
+ * Copyright 2006-2008 Fachinformationszentrum Karlsruhe Gesellschaft
  * fuer wissenschaftlich-technische Information mbH and Max-Planck-
  * Gesellschaft zur Foerderung der Wissenschaft e.V.  
  * All rights reserved.  Use is subject to license terms.
@@ -56,232 +56,244 @@ import de.escidoc.core.common.util.xml.XmlUtility;
  */
 public class Reindexer {
 
-	private final String INDEXER_QUEUE_NAME = "queue/IndexerMessageQueue";
+    private final String INDEXER_QUEUE_NAME = "queue/IndexerMessageQueue";
 
-	private final String ITEM_FILTER_URL = "/ir/items/filter/refs";
+    private final String ITEM_FILTER_URL = "/ir/items/filter/refs";
 
-	private final String CONTAINER_FILTER_URL = "/ir/containers/filter/refs";
+    private final String CONTAINER_FILTER_URL = "/ir/containers/filter/refs";
 
-	private final String RELEASED_ITEMS_FILTER = "<param><filter name=\"http://escidoc.de/core/01/properties/public-status\">released</filter></param>";
+    private final String RELEASED_ITEMS_FILTER =
+        "<param><filter name=\"http://escidoc.de/core/01/properties/public-status\">released</filter></param>";
 
-	private final String RELEASED_CONTAINERS_FILTER = "<param><filter name=\"http://escidoc.de/core/01/properties/public-status\">released</filter></param>";
+    private final String RELEASED_CONTAINERS_FILTER =
+        "<param><filter name=\"http://escidoc.de/core/01/properties/public-status\">released</filter></param>";
 
-	private static AppLogger log = new AppLogger(Reindexer.class.getName());
+    private static AppLogger log = new AppLogger(Reindexer.class.getName());
 
-	private EscidocCoreHandler escidocHandler;
+    private final EscidocCoreHandler escidocHandler;
 
-	private JndiHandler jndiHandler;
+    private final JndiHandler jndiHandler;
 
-	private QueueConnectionFactory factory;
+    private QueueConnectionFactory factory;
 
-	private QueueConnection queueConnection;
+    private QueueConnection queueConnection;
 
-	private QueueSession queueSession;
+    private QueueSession queueSession;
 
-	private Queue queue;
+    private Queue queue;
 
-	private MessageProducer messageProducer;
+    private MessageProducer messageProducer;
 
-	/**
-	 * Constructor with no arguments.
-	 * 
-	 * @admin
-	 */
-	public Reindexer() {
-		jndiHandler = new JndiHandler();
-		escidocHandler = new EscidocCoreHandler();
-		establishQueueConnection();
-	}
+    /**
+     * Constructor with no arguments.
+     * 
+     * @admin
+     */
+    public Reindexer() {
+        jndiHandler = new JndiHandler();
+        escidocHandler = new EscidocCoreHandler();
+        establishQueueConnection();
+    }
 
-	/**
-	 * Constructor that takes url of om and url of naming-service of SB.
-	 * 
-	 * @admin
-	 */
-	public Reindexer(final String escidocOmUrl, final String escidocSbUrl) {
-		jndiHandler = new JndiHandler(escidocSbUrl);
-		escidocHandler = new EscidocCoreHandler(escidocOmUrl);
-		establishQueueConnection();
-	}
+    /**
+     * Constructor that takes url of om and url of naming-service of SB.
+     * 
+     * @admin
+     */
+    public Reindexer(final String escidocOmUrl, final String escidocSbUrl) {
+        jndiHandler = new JndiHandler(escidocSbUrl);
+        escidocHandler = new EscidocCoreHandler(escidocOmUrl);
+        establishQueueConnection();
+    }
 
-	/**
-	 * Close Connection to SB-Indexing-Queue.
-	 * 
-	 * @admin
-	 */
-	public void close() {
-		disposeQueueConnection();
-	}
+    /**
+     * Close Connection to SB-Indexing-Queue.
+     * 
+     * @admin
+     */
+    public void close() {
+        disposeQueueConnection();
+    }
 
-	/**
-	 * Get all released Items from OM and put hrefs into Vector.
-	 * 
-	 * @param resource
-	 *            String resource.
-	 * @return String response
-	 * 
-	 * @throws ApplicationServerSystemException
-	 *             e
-	 * @admin
-	 */
-	public Vector<String> getReleasedItems()
-			throws ApplicationServerSystemException {
-		try {
-			String result = escidocHandler.postRequestEscidoc(ITEM_FILTER_URL,
-					RELEASED_ITEMS_FILTER);
+    /**
+     * Get all released Items from OM and put hrefs into Vector.
+     * 
+     * @param resource
+     *            String resource.
+     * @return String response
+     * 
+     * @throws ApplicationServerSystemException
+     *             e
+     * @admin
+     */
+    public Vector<String> getReleasedItems()
+        throws ApplicationServerSystemException {
+        try {
+            String result =
+                escidocHandler.postRequestEscidoc(ITEM_FILTER_URL,
+                    RELEASED_ITEMS_FILTER);
 
-			StaxParser sp = new StaxParser();
-			ItemHrefHandler handler = new ItemHrefHandler(sp);
-			sp.addHandler(handler);
+            StaxParser sp = new StaxParser();
+            ItemHrefHandler handler = new ItemHrefHandler(sp);
+            sp.addHandler(handler);
 
-			sp.parse(new ByteArrayInputStream(result
-					.getBytes(XmlUtility.CHARACTER_ENCODING)));
+            sp.parse(new ByteArrayInputStream(result
+                .getBytes(XmlUtility.CHARACTER_ENCODING)));
 
-			return handler.getHrefs();
-		} catch (Exception e) {
-			log.error(e);
-			throw new ApplicationServerSystemException(e);
-		}
-	}
+            return handler.getHrefs();
+        }
+        catch (Exception e) {
+            log.error(e);
+            throw new ApplicationServerSystemException(e);
+        }
+    }
 
-	/**
-	 * Get all released Containers from OM and put hrefs into Vector.
-	 * 
-	 * @param resource
-	 *            String resource.
-	 * @return String response
-	 * 
-	 * @throws ApplicationServerSystemException
-	 *             e
-	 * @admin
-	 */
-	public Vector<String> getReleasedContainers()
-			throws ApplicationServerSystemException {
-		try {
-			String result = escidocHandler.postRequestEscidoc(
-					CONTAINER_FILTER_URL, RELEASED_CONTAINERS_FILTER);
+    /**
+     * Get all released Containers from OM and put hrefs into Vector.
+     * 
+     * @param resource
+     *            String resource.
+     * @return String response
+     * 
+     * @throws ApplicationServerSystemException
+     *             e
+     * @admin
+     */
+    public Vector<String> getReleasedContainers()
+        throws ApplicationServerSystemException {
+        try {
+            String result =
+                escidocHandler.postRequestEscidoc(CONTAINER_FILTER_URL,
+                    RELEASED_CONTAINERS_FILTER);
 
-			StaxParser sp = new StaxParser();
-			ContainerHrefHandler handler = new ContainerHrefHandler(sp);
-			sp.addHandler(handler);
+            StaxParser sp = new StaxParser();
+            ContainerHrefHandler handler = new ContainerHrefHandler(sp);
+            sp.addHandler(handler);
 
-			sp.parse(new ByteArrayInputStream(result
-					.getBytes(XmlUtility.CHARACTER_ENCODING)));
+            sp.parse(new ByteArrayInputStream(result
+                .getBytes(XmlUtility.CHARACTER_ENCODING)));
 
-			return handler.getHrefs();
-		} catch (Exception e) {
-			log.error(e);
-			throw new ApplicationServerSystemException(e);
-		}
-	}
+            return handler.getHrefs();
+        }
+        catch (Exception e) {
+            log.error(e);
+            throw new ApplicationServerSystemException(e);
+        }
+    }
 
-	/**
-	 * Send delete-index Message to SB.
-	 * 
-	 * @throws ApplicationServerSystemException
-	 *             e
-	 * @admin
-	 */
-	public void sendDeleteIndexMessage()
-			throws ApplicationServerSystemException {
-		try {
-			// Delete Indexes
-			ObjectMessage message = queueSession.createObjectMessage();
-			message
-					.setStringProperty(
-							Constants.INDEXER_QUEUE_ACTION_PARAMETER,
-							Constants.INDEXER_QUEUE_ACTION_PARAMETER_CREATE_EMPTY_VALUE);
-			messageProducer.send(message);
-			Thread.sleep(10000);
-		} catch (Exception e) {
-			log.error(e);
-			throw new ApplicationServerSystemException(e);
-		}
-	}
+    /**
+     * Send delete-index Message to SB.
+     * 
+     * @throws ApplicationServerSystemException
+     *             e
+     * @admin
+     */
+    public void sendDeleteIndexMessage()
+        throws ApplicationServerSystemException {
+        try {
+            // Delete Indexes
+            ObjectMessage message = queueSession.createObjectMessage();
+            message.setStringProperty(Constants.INDEXER_QUEUE_ACTION_PARAMETER,
+                Constants.INDEXER_QUEUE_ACTION_PARAMETER_CREATE_EMPTY_VALUE);
+            messageProducer.send(message);
+            Thread.sleep(10000);
+        }
+        catch (Exception e) {
+            log.error(e);
+            throw new ApplicationServerSystemException(e);
+        }
+    }
 
-	/**
-	 * Send update-index Message to SB.
-	 * 
-	 * @param resource
-	 *            String resource.
-	 * 
-	 * @throws ApplicationServerSystemException
-	 *             e
-	 * @admin
-	 */
-	public void sendUpdateIndexMessage(final String resource)
-			throws ApplicationServerSystemException {
-		try {
-			// Send message to
-			// Queue///////////////////////////////////////////
-			ObjectMessage message = queueSession.createObjectMessage();
-			message.setStringProperty(Constants.INDEXER_QUEUE_ACTION_PARAMETER,
-					Constants.INDEXER_QUEUE_ACTION_PARAMETER_UPDATE_VALUE);
-			message.setStringProperty(
-					Constants.INDEXER_QUEUE_RESOURCE_PARAMETER, resource);
-			messageProducer.send(message);
-		} catch (Exception e) {
-			log.error(e);
-			throw new ApplicationServerSystemException(e);
-		}
-	}
+    /**
+     * Send update-index Message to SB.
+     * 
+     * @param resource
+     *            String resource.
+     * 
+     * @throws ApplicationServerSystemException
+     *             e
+     * @admin
+     */
+    public void sendUpdateIndexMessage(final String resource)
+        throws ApplicationServerSystemException {
+        try {
+            // Send message to
+            // Queue///////////////////////////////////////////
+            ObjectMessage message = queueSession.createObjectMessage();
+            message.setStringProperty(Constants.INDEXER_QUEUE_ACTION_PARAMETER,
+                Constants.INDEXER_QUEUE_ACTION_PARAMETER_UPDATE_VALUE);
+            message.setStringProperty(
+                Constants.INDEXER_QUEUE_RESOURCE_PARAMETER, resource);
+            messageProducer.send(message);
+        }
+        catch (Exception e) {
+            log.error(e);
+            throw new ApplicationServerSystemException(e);
+        }
+    }
 
-	/**
-	 * establish connection to SB-indexing-queue.
-	 * 
-	 * @throws ApplicationServerSystemException
-	 *             e
-	 * @admin
-	 */
-	private void establishQueueConnection() {
-		try {
-			// Get Connection to Queue
-			factory = (QueueConnectionFactory) jndiHandler
-					.getJndiObject("ConnectionFactory");
-			queueConnection = factory.createQueueConnection();
-			queueSession = queueConnection.createQueueSession(false,
-					Session.AUTO_ACKNOWLEDGE);
-			queue = (Queue) jndiHandler.getJndiObject(INDEXER_QUEUE_NAME);
-			messageProducer = queueSession.createProducer(queue);
+    /**
+     * establish connection to SB-indexing-queue.
+     * 
+     * @throws ApplicationServerSystemException
+     *             e
+     * @admin
+     */
+    private void establishQueueConnection() {
+        try {
+            // Get Connection to Queue
+            factory =
+                (QueueConnectionFactory) jndiHandler
+                    .getJndiObject("ConnectionFactory");
+            queueConnection = factory.createQueueConnection();
+            queueSession =
+                queueConnection.createQueueSession(false,
+                    Session.AUTO_ACKNOWLEDGE);
+            queue = (Queue) jndiHandler.getJndiObject(INDEXER_QUEUE_NAME);
+            messageProducer = queueSession.createProducer(queue);
 
-		} catch (Exception e) {
-			log.error(e);
-		}
+        }
+        catch (Exception e) {
+            log.error(e);
+        }
 
-	}
+    }
 
-	/**
-	 * close connection to SB-indexing-queue.
-	 * 
-	 * @throws ApplicationServerSystemException
-	 *             e
-	 * @admin
-	 */
-	private void disposeQueueConnection() {
-		if (messageProducer != null) {
-			try {
-				messageProducer.close();
-			} catch (Exception e1) {
-				log.error(e1);
-			}
-			messageProducer = null;
-		}
-		if (queueSession != null) {
-			try {
-				queueSession.close();
-			} catch (Exception e1) {
-				log.error(e1);
-			}
-			queueSession = null;
-		}
-		if (queueConnection != null) {
-			try {
-				queueConnection.close();
-			} catch (Exception e1) {
-				log.error(e1);
-			}
-			queueConnection = null;
-		}
-	}
+    /**
+     * close connection to SB-indexing-queue.
+     * 
+     * @throws ApplicationServerSystemException
+     *             e
+     * @admin
+     */
+    private void disposeQueueConnection() {
+        if (messageProducer != null) {
+            try {
+                messageProducer.close();
+            }
+            catch (Exception e1) {
+                log.error(e1);
+            }
+            messageProducer = null;
+        }
+        if (queueSession != null) {
+            try {
+                queueSession.close();
+            }
+            catch (Exception e1) {
+                log.error(e1);
+            }
+            queueSession = null;
+        }
+        if (queueConnection != null) {
+            try {
+                queueConnection.close();
+            }
+            catch (Exception e1) {
+                log.error(e1);
+            }
+            queueConnection = null;
+        }
+    }
 
 }

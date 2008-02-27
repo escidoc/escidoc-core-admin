@@ -63,8 +63,8 @@
 		</copy>
 	</target>
 
-	
-	
+
+
 	<target name="main-jar" depends="build">
 		<copy todir="${main.jar.build.dir}">
 			<fileset dir="${java.build.dir}" includes="de/**/*.class" excludes="**/test/**/*.class"/>
@@ -78,6 +78,10 @@
 		<copy todir="${admin.jar.build.dir}">
 			<fileset dir="${java.build.dir}" includes="**/*.class"  excludes="**/test/**/*.class"/>
 			<fileset dir="${etc.dir}" includes="**/log4j.*" />
+			
+			<fileset dir="${java.src.dir}" includes="*.xml" />
+			<fileset dir="${sql.src.dir}" includes="*.sql" />
+			
 		</copy>
 		<delete dir="${admin.jar.build.dir}/de" failonerror="false" />
 		<copy todir="${admin.jar.lib.dir}">
@@ -97,4 +101,5 @@
 			<arg value="reindex" />
 		</java>
 	</target>
+
 </project>
