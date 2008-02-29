@@ -1,3 +1,31 @@
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at license/ESCIDOC.LICENSE
+ * or http://www.escidoc.de/license.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at license/ESCIDOC.LICENSE.
+ * If applicable, add the following below this CDDL HEADER, with the
+ * fields enclosed by brackets "[]" replaced with your own identifying
+ * information: Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ */
+
+/*
+ * Copyright 2008 Fachinformationszentrum Karlsruhe Gesellschaft
+ * fuer wissenschaftlich-technische Information mbH and Max-Planck-
+ * Gesellschaft zur Foerderung der Wissenschaft e.V.  
+ * All rights reserved.  Use is subject to license terms.
+ */
 package de.escidoc.core.admin.test;
 
 import java.io.ByteArrayInputStream;
@@ -23,39 +51,40 @@ import de.escidoc.core.common.util.logger.AppLogger;
 import de.escidoc.core.common.util.xml.XmlUtility;
 
 public class EscidocAdminTestBase extends TestCase {
-	
-	private static AppLogger log = new AppLogger(EscidocAdminTestBase.class.getName());
+
+    private static AppLogger log =
+        new AppLogger(EscidocAdminTestBase.class.getName());
 
     public static final String ITEM_BASE_URL = "/ir/item";
 
-    public static final String ITEM_SUBMIT_PATH = 
-    					ITEM_BASE_URL + "/${ITEM_ID}/submit";
+    public static final String ITEM_SUBMIT_PATH =
+        ITEM_BASE_URL + "/${ITEM_ID}/submit";
 
-    public static final String ITEM_RELEASE_PATH = 
-    					ITEM_BASE_URL + "/${ITEM_ID}/release";
+    public static final String ITEM_RELEASE_PATH =
+        ITEM_BASE_URL + "/${ITEM_ID}/release";
 
-    public static final Pattern ITEM_REPLACEMENT_PATTERN = 
-    						Pattern.compile("\\$\\{ITEM_ID\\}");
+    public static final Pattern ITEM_REPLACEMENT_PATTERN =
+        Pattern.compile("\\$\\{ITEM_ID\\}");
 
-    public static final String TEMPLATE_BASE_PATH = 
-    						"/de/escidoc/core/admin/test";
+    public static final String TEMPLATE_BASE_PATH =
+        "/de/escidoc/core/admin/test";
 
     public static final String TEMPLATE_REINDEXER_PATH =
         TEMPLATE_BASE_PATH + "/reindexer/templates";
 
     public static final String TEMPLATE_REINDEXER_CONTAINER_PATH =
-    	TEMPLATE_REINDEXER_PATH + "/container";
+        TEMPLATE_REINDEXER_PATH + "/container";
 
     public static final String TEMPLATE_REINDEXER_ITEM_PATH =
-    	TEMPLATE_REINDEXER_PATH + "/item";
+        TEMPLATE_REINDEXER_PATH + "/item";
 
-    public static final String ITEM_SEARCH_REQUEST = 
-		"/srw/search/escidoc_all?query=escidoc.objecttype%3Ditem";
+    public static final String ITEM_SEARCH_REQUEST =
+        "/srw/search/escidoc_all?query=escidoc.objecttype%3Ditem";
 
-    public static final String CONTAINER_SEARCH_REQUEST = 
-		"/srw/search/escidoc_all?query=escidoc.objecttype%3Dcontainer";
-	
-	/**
+    public static final String CONTAINER_SEARCH_REQUEST =
+        "/srw/search/escidoc_all?query=escidoc.objecttype%3Dcontainer";
+
+    /**
      * Retrieve a Template as a String.
      * 
      * @param path
@@ -238,8 +267,7 @@ public class EscidocAdminTestBase extends TestCase {
                 if (log.isDebugEnabled()) {
                     log.debug(errorMsg.toString());
                     log.debug(xml);
-                    log
-                        .debug("============ End of invalid xml ============");
+                    log.debug("============ End of invalid xml ============");
                     appendStackTrace(errorMsg, e);
                 }
                 fail(errorMsg.toString());

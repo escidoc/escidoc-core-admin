@@ -21,7 +21,7 @@
  */
 
 /*
- * Copyright 2006-2007 Fachinformationszentrum Karlsruhe Gesellschaft
+ * Copyright 2008 Fachinformationszentrum Karlsruhe Gesellschaft
  * fuer wissenschaftlich-technische Information mbH and Max-Planck-
  * Gesellschaft zur Foerderung der Wissenschaft e.V.  
  * All rights reserved.  Use is subject to license terms.
@@ -39,32 +39,30 @@ import de.escidoc.core.common.util.service.HttpRequester;
  */
 public class EscidocCoreHandler {
 
-	private static AppLogger log = new AppLogger(EscidocCoreHandler.class
-			.getName());
+    private static AppLogger log =
+        new AppLogger(EscidocCoreHandler.class.getName());
 
-	private static final String DEFAULT_HANDLE = "Shibboleth-Handle-1";
+    private static final String DEFAULT_HANDLE = "Shibboleth-Handle-1";
 
-	private static final String DEFAULT_ESCIDOC_CORE_URL = 
-										"http://localhost:8080";
+    private static final String DEFAULT_ESCIDOC_CORE_URL =
+        "http://localhost:8080";
 
-	private HttpRequester httpRequester;
+    private final HttpRequester httpRequester;
 
     /**
-     * initialize EscidocCoreHandler.
-     * escidocCoreUrl is set to default.
+     * initialize EscidocCoreHandler. escidocCoreUrl is set to default.
      * 
      * @throws ApplicationServerSystemException
      *             e
      * @admin
      */
-	public EscidocCoreHandler() {
-		httpRequester = new HttpRequester(DEFAULT_ESCIDOC_CORE_URL,
-				DEFAULT_HANDLE);
-	}
+    public EscidocCoreHandler() {
+        httpRequester =
+            new HttpRequester(DEFAULT_ESCIDOC_CORE_URL, DEFAULT_HANDLE);
+    }
 
     /**
-     * initialize EscidocCoreHandler 
-     * with escidocCoreUrl to eSciDocCore-System.
+     * initialize EscidocCoreHandler with escidocCoreUrl to eSciDocCore-System.
      * 
      * @param escidocCoreUrl
      *            String escidocCoreUrl.
@@ -73,93 +71,97 @@ public class EscidocCoreHandler {
      *             e
      * @admin
      */
-	public EscidocCoreHandler(String escidocCoreUrl) {
-		if (escidocCoreUrl == null) {
-			escidocCoreUrl = DEFAULT_ESCIDOC_CORE_URL;
-		}
-		httpRequester = new HttpRequester(escidocCoreUrl, DEFAULT_HANDLE);
-	}
+    public EscidocCoreHandler(String escidocCoreUrl) {
+        if (escidocCoreUrl == null) {
+            escidocCoreUrl = DEFAULT_ESCIDOC_CORE_URL;
+        }
+        httpRequester = new HttpRequester(escidocCoreUrl, DEFAULT_HANDLE);
+    }
 
-	/**
-	 * requests escidoc-resource with post-request.
-	 * 
-	 * <pre>
-	 *        execute post-request.
-	 * </pre>
-	 * 
-	 * @param resource
-	 *            String resource.
-	 * @param postParam
-	 *            String post-parameters.
-	 * @return String response
-	 * 
-	 * @throws ApplicationServerSystemException
-	 *             e
-	 * @admin
-	 */
-	public String postRequestEscidoc(final String resource, final String postParam)
-			throws ApplicationServerSystemException {
-		try {
-			String result = httpRequester.doPost(resource, postParam);
-			return result;
-		} catch (Exception e) {
-			log.error(e);
-			throw new ApplicationServerSystemException(e);
-		}
-	}
+    /**
+     * requests escidoc-resource with post-request.
+     * 
+     * <pre>
+     *        execute post-request.
+     * </pre>
+     * 
+     * @param resource
+     *            String resource.
+     * @param postParam
+     *            String post-parameters.
+     * @return String response
+     * 
+     * @throws ApplicationServerSystemException
+     *             e
+     * @admin
+     */
+    public String postRequestEscidoc(
+        final String resource, final String postParam)
+        throws ApplicationServerSystemException {
+        try {
+            String result = httpRequester.doPost(resource, postParam);
+            return result;
+        }
+        catch (Exception e) {
+            log.error(e);
+            throw new ApplicationServerSystemException(e);
+        }
+    }
 
-	/**
-	 * requests escidoc-resource with get-request.
-	 * 
-	 * <pre>
-	 *        execute get-request.
-	 * </pre>
-	 * 
-	 * @param resource
-	 *            String resource.
-	 * @return String response
-	 * 
-	 * @throws ApplicationServerSystemException
-	 *             e
-	 * @admin
-	 */
-	public String getRequestEscidoc(final String resource)
-			throws ApplicationServerSystemException {
-		try {
-			String result = httpRequester.doGet(resource);
-			return result;
-		} catch (Exception e) {
-			log.error(e);
-			throw new ApplicationServerSystemException(e);
-		}
-	}
+    /**
+     * requests escidoc-resource with get-request.
+     * 
+     * <pre>
+     *        execute get-request.
+     * </pre>
+     * 
+     * @param resource
+     *            String resource.
+     * @return String response
+     * 
+     * @throws ApplicationServerSystemException
+     *             e
+     * @admin
+     */
+    public String getRequestEscidoc(final String resource)
+        throws ApplicationServerSystemException {
+        try {
+            String result = httpRequester.doGet(resource);
+            return result;
+        }
+        catch (Exception e) {
+            log.error(e);
+            throw new ApplicationServerSystemException(e);
+        }
+    }
 
-	/**
-	 * requests escidoc-resource with put-request.
-	 * 
-	 * <pre>
-	 *        execute put-request.
-	 * </pre>
-	 * 
-	 * @param resource
-	 *            String resource.
-	 * @param postParam
-	 *            String put-parameters.
-	 * @return String response
-	 * 
-	 * @throws ApplicationServerSystemException
-	 *             e
-	 * @admin
-	 */
-	public String putRequestEscidoc(final String resource, final String putParam)
-			throws ApplicationServerSystemException {
-		try {
-			String result = httpRequester.doPut(resource, putParam);
-			return result;
-		} catch (Exception e) {
-			log.error(e);
-			throw new ApplicationServerSystemException(e);
-		}
-	}
+    /**
+     * requests escidoc-resource with put-request.
+     * 
+     * <pre>
+     *        execute put-request.
+     * </pre>
+     * 
+     * @param resource
+     *            String resource.
+     * @param postParam
+     *            String put-parameters.
+     * @return String response
+     * 
+     * @throws ApplicationServerSystemException
+     *             e
+     * @admin
+     */
+    public String putRequestEscidoc(final String resource, final String putParam)
+        throws ApplicationServerSystemException {
+        try {
+            String result = httpRequester.doPut(resource, putParam);
+            return result;
+        }
+        catch (Exception e) {
+            log.error(e);
+            throw new ApplicationServerSystemException(e);
+        }
+    }
 
 }

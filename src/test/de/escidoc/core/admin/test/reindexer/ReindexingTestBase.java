@@ -21,7 +21,7 @@
  */
 
 /*
- * Copyright 2006-2007 Fachinformationszentrum Karlsruhe Gesellschaft
+ * Copyright 2008 Fachinformationszentrum Karlsruhe Gesellschaft
  * fuer wissenschaftlich-technische Information mbH and Max-Planck-
  * Gesellschaft zur Foerderung der Wissenschaft e.V.  
  * All rights reserved.  Use is subject to license terms.
@@ -43,9 +43,10 @@ import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException
  * 
  */
 public class ReindexingTestBase extends EscidocAdminTestBase {
-	
-	protected Reindexer reindexer = new Reindexer();
-	protected EscidocCoreHandler escidocCoreHandler = new EscidocCoreHandler();
+
+    protected Reindexer reindexer = new Reindexer();
+
+    protected EscidocCoreHandler escidocCoreHandler = new EscidocCoreHandler();
 
     /**
      * get number of hits from xml String.
@@ -102,11 +103,10 @@ public class ReindexingTestBase extends EscidocAdminTestBase {
      * @throws Exception
      *             If anything fails.
      */
-    protected String getLastModificationDate(final String xml)
-        throws Exception {
+    protected String getLastModificationDate(final String xml) throws Exception {
 
-        return getRootElementAttributeValue(
-        		getDocument(xml), "last-modification-date");
+        return getRootElementAttributeValue(getDocument(xml),
+            "last-modification-date");
     }
 
     /**
@@ -117,9 +117,9 @@ public class ReindexingTestBase extends EscidocAdminTestBase {
      * @return created item as xml
      * 
      */
-    protected String createItem(final String item) 
-    				throws ApplicationServerSystemException {
-    	return escidocCoreHandler.putRequestEscidoc(ITEM_BASE_URL, item);
+    protected String createItem(final String item)
+        throws ApplicationServerSystemException {
+        return escidocCoreHandler.putRequestEscidoc(ITEM_BASE_URL, item);
     }
 
     /**
@@ -132,12 +132,10 @@ public class ReindexingTestBase extends EscidocAdminTestBase {
      * @return submitted item as xml
      * 
      */
-    protected String submitItem(final String itemId, final String lastModDate) 
-    				throws ApplicationServerSystemException {
-    	return escidocCoreHandler.postRequestEscidoc(
-    			ITEM_REPLACEMENT_PATTERN
-    				.matcher(ITEM_SUBMIT_PATH)
-    				.replaceAll(itemId), lastModDate);
+    protected String submitItem(final String itemId, final String lastModDate)
+        throws ApplicationServerSystemException {
+        return escidocCoreHandler.postRequestEscidoc(ITEM_REPLACEMENT_PATTERN
+            .matcher(ITEM_SUBMIT_PATH).replaceAll(itemId), lastModDate);
     }
 
     /**
@@ -150,12 +148,10 @@ public class ReindexingTestBase extends EscidocAdminTestBase {
      * @return released item as xml
      * 
      */
-    protected String releaseItem(final String itemId, final String lastModDate) 
-    				throws ApplicationServerSystemException {
-    	return escidocCoreHandler.postRequestEscidoc(
-    			ITEM_REPLACEMENT_PATTERN
-    				.matcher(ITEM_RELEASE_PATH)
-    				.replaceAll(itemId), lastModDate);
+    protected String releaseItem(final String itemId, final String lastModDate)
+        throws ApplicationServerSystemException {
+        return escidocCoreHandler.postRequestEscidoc(ITEM_REPLACEMENT_PATTERN
+            .matcher(ITEM_RELEASE_PATH).replaceAll(itemId), lastModDate);
     }
 
     /**
@@ -166,10 +162,10 @@ public class ReindexingTestBase extends EscidocAdminTestBase {
      * @return item as xml
      * 
      */
-    protected String retrieveItem(final String itemId) 
-    				throws ApplicationServerSystemException {
-    	return escidocCoreHandler.getRequestEscidoc(
-    			ITEM_BASE_URL + "/" + itemId);
+    protected String retrieveItem(final String itemId)
+        throws ApplicationServerSystemException {
+        return escidocCoreHandler.getRequestEscidoc(ITEM_BASE_URL + "/"
+            + itemId);
     }
 
 }

@@ -21,7 +21,7 @@
  */
 
 /*
- * Copyright 2006-2007 Fachinformationszentrum Karlsruhe Gesellschaft
+ * Copyright 2008 Fachinformationszentrum Karlsruhe Gesellschaft
  * fuer wissenschaftlich-technische Information mbH and Max-Planck-
  * Gesellschaft zur Foerderung der Wissenschaft e.V.  
  * All rights reserved.  Use is subject to license terms.
@@ -38,98 +38,101 @@ import de.escidoc.core.admin.AdminMain;
  */
 public class ReindexingTest extends ReindexingTestBase {
 
-	static int numberOfItemHits = 0;
+    static int numberOfItemHits = 0;
 
-	static int numberOfContainerHits = 0;
+    static int numberOfContainerHits = 0;
 
-	/**
-	 * Set up test.
-	 * 
-	 * @throws Exception
-	 *             If anything fails.
-	 */
-	protected void setUp() throws Exception {
-		super.setUp();
-	}
+    /**
+     * Set up test.
+     * 
+     * @throws Exception
+     *             If anything fails.
+     */
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+    }
 
-	/**
-	 * Clean up after test.
-	 * 
-	 * @throws Exception
-	 *             If anything fails.
-	 */
-	protected void tearDown() throws Exception {
-		super.tearDown();
-	}
+    /**
+     * Clean up after test.
+     * 
+     * @throws Exception
+     *             If anything fails.
+     */
+    @Override
+    protected void tearDown() throws Exception {
+        super.tearDown();
+    }
 
-	/**
-	 * test to recreate index.
-	 * 
-	 * @test.name testRecreateIndex (1)
-	 * @test.id ADRI_1
-	 * @test.input
-	 * @test.inputDescription
-	 * @test.expected index that delivers no search-results and no exception
-	 *                when searching.
-	 * @test.status Implemented
-	 * 
-	 * @throws Exception
-	 *             If anything fails.
-	 */
-	public void testADRI_1() throws Exception {
-		//Create and release one item, 
-		//so we get at least 1 hit when searching for items
-		String item = getTemplateAsString(TEMPLATE_REINDEXER_ITEM_PATH,
-				"escidoc_search_item0_rest.xml");
-		String xml = createItem(item);
-		String id = getId(xml);
-		String lastModificationDate = getLastModificationDate(xml);
+    /**
+     * test to recreate index.
+     * 
+     * @test.name testRecreateIndex (1)
+     * @test.id ADRI_1
+     * @test.input
+     * @test.inputDescription
+     * @test.expected index that delivers no search-results and no exception
+     *                when searching.
+     * @test.status Implemented
+     * 
+     * @throws Exception
+     *             If anything fails.
+     */
+    public void testADRI_1() throws Exception {
+        // Create and release one item,
+        // so we get at least 1 hit when searching for items
+        String item =
+            getTemplateAsString(TEMPLATE_REINDEXER_ITEM_PATH,
+                "escidoc_search_item0_rest.xml");
+        String xml = createItem(item);
+        String id = getId(xml);
+        String lastModificationDate = getLastModificationDate(xml);
 
-		submitItem(id, "<param last-modification-date=\""
-				+ lastModificationDate + "\" />");
+        submitItem(id, "<param last-modification-date=\""
+            + lastModificationDate + "\" />");
 
-		xml = retrieveItem(id);
-		lastModificationDate = getLastModificationDate(xml);
+        xml = retrieveItem(id);
+        lastModificationDate = getLastModificationDate(xml);
 
-		releaseItem(id, "<param last-modification-date=\""
-				+ lastModificationDate + "\" />");
-		
-		//Wait until item is indexed
-		Thread.sleep(10000);
+        releaseItem(id, "<param last-modification-date=\""
+            + lastModificationDate + "\" />");
 
-		//search all items an store number of hits for later comparison
-		String searchResult = escidocCoreHandler
-				.getRequestEscidoc(ITEM_SEARCH_REQUEST);
-		numberOfItemHits = getNumberOfHits(searchResult);
+        // Wait until item is indexed
+        Thread.sleep(10000);
 
-		//search all containers an store number of hits for later comparison
-		searchResult = escidocCoreHandler
-				.getRequestEscidoc(CONTAINER_SEARCH_REQUEST);
-		numberOfContainerHits = getNumberOfHits(searchResult);
+        // search all items an store number of hits for later comparison
+        String searchResult =
+            escidocCoreHandler.getRequestEscidoc(ITEM_SEARCH_REQUEST);
+        numberOfItemHits = getNumberOfHits(searchResult);
 
-		//delete index
-		reindexer.sendDeleteIndexMessage();
+        // search all containers an store number of hits for later comparison
+        searchResult =
+            escidocCoreHandler.getRequestEscidoc(CONTAINER_SEARCH_REQUEST);
+        numberOfContainerHits = getNumberOfHits(searchResult);
 
-		//check if no items are found any longer
-		searchResult = escidocCoreHandler
-				.getRequestEscidoc(ITEM_SEARCH_REQUEST);
-		assertEquals(0, getNumberOfHits(searchResult));
+        // delete index
+        reindexer.sendDeleteIndexMessage();
 
-		//trigger reindexing
-		String[] args = new String[1];
-		args[0] = "reindex";
-		AdminMain.main(args);
-		Thread.sleep(60000);
+        // check if no items are found any longer
+        searchResult =
+            escidocCoreHandler.getRequestEscidoc(ITEM_SEARCH_REQUEST);
+        assertEquals(0, getNumberOfHits(searchResult));
 
-		//check if we get as many search-results as before
-		searchResult = escidocCoreHandler
-				.getRequestEscidoc(ITEM_SEARCH_REQUEST);
-		assertEquals(numberOfItemHits, getNumberOfHits(searchResult));
+        // trigger reindexing
+        String[] args = new String[1];
+        args[0] = "reindex";
+        AdminMain.main(args);
+        Thread.sleep(60000);
 
-		searchResult = escidocCoreHandler
-				.getRequestEscidoc(CONTAINER_SEARCH_REQUEST);
-		assertEquals(numberOfContainerHits, getNumberOfHits(searchResult));
+        // check if we get as many search-results as before
+        searchResult =
+            escidocCoreHandler.getRequestEscidoc(ITEM_SEARCH_REQUEST);
+        assertEquals(numberOfItemHits, getNumberOfHits(searchResult));
 
-	}
+        searchResult =
+            escidocCoreHandler.getRequestEscidoc(CONTAINER_SEARCH_REQUEST);
+        assertEquals(numberOfContainerHits, getNumberOfHits(searchResult));
+
+    }
 
 }

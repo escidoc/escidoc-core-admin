@@ -21,7 +21,7 @@
  */
 
 /*
- * Copyright 2006-2007 Fachinformationszentrum Karlsruhe Gesellschaft
+ * Copyright 2008 Fachinformationszentrum Karlsruhe Gesellschaft
  * fuer wissenschaftlich-technische Information mbH and Max-Planck-
  * Gesellschaft zur Foerderung der Wissenschaft e.V.  
  * All rights reserved.  Use is subject to license terms.
@@ -46,7 +46,8 @@ public class ContainerHrefHandler extends DefaultHandler {
 
     protected Vector<String> hrefs = new Vector<String>();
 
-    private static AppLogger log = new AppLogger(ContainerHrefHandler.class.getName());
+    private static AppLogger log =
+        new AppLogger(ContainerHrefHandler.class.getName());
 
     /*
      * 
@@ -55,6 +56,7 @@ public class ContainerHrefHandler extends DefaultHandler {
 
     }
 
+    @Override
     public StartElement startElement(StartElement element)
         throws MissingAttributeValueException {
 
@@ -71,12 +73,11 @@ public class ContainerHrefHandler extends DefaultHandler {
         return element;
     }
 
-	/**
-	 * @return the hrefs
-	 */
-	public Vector<String> getHrefs() {
-		return hrefs;
-	}
-    
+    /**
+     * @return the hrefs
+     */
+    public Vector<String> getHrefs() {
+        return hrefs;
+    }
 
 }

@@ -21,7 +21,7 @@
  */
 
 /*
- * Copyright 2006-2007 Fachinformationszentrum Karlsruhe Gesellschaft
+ * Copyright 2008 Fachinformationszentrum Karlsruhe Gesellschaft
  * fuer wissenschaftlich-technische Information mbH and Max-Planck-
  * Gesellschaft zur Foerderung der Wissenschaft e.V.  
  * All rights reserved.  Use is subject to license terms.
@@ -43,29 +43,26 @@ import de.escidoc.core.common.util.logger.AppLogger;
  */
 public class JndiHandler {
 
-    private static AppLogger log =
-        new AppLogger(JndiHandler.class.getName());
-    
-	private static final String DEFAULT_ESCIDOC_PROVIDER_URL = 
-											"jnp://localhost:1099";
+    private static AppLogger log = new AppLogger(JndiHandler.class.getName());
 
-	private InitialContext initialContext;
+    private static final String DEFAULT_ESCIDOC_PROVIDER_URL =
+        "jnp://localhost:1099";
+
+    private InitialContext initialContext;
 
     /**
-     * initialize JndiHandler.
-     * provider-url is set to default.
+     * initialize JndiHandler. provider-url is set to default.
      * 
      * @throws ApplicationServerSystemException
      *             e
      * @admin
      */
     public JndiHandler() {
-    	setInitialContext(DEFAULT_ESCIDOC_PROVIDER_URL);
+        setInitialContext(DEFAULT_ESCIDOC_PROVIDER_URL);
     }
-    
+
     /**
-     * initialize JndiHandler 
-     * with providerUrl to JBoss-Naming-Service.
+     * initialize JndiHandler with providerUrl to JBoss-Naming-Service.
      * 
      * @param providerUrl
      *            String providerUrl.
@@ -75,12 +72,12 @@ public class JndiHandler {
      * @admin
      */
     public JndiHandler(String providerUrl) {
-    	if (providerUrl == null) {
-    		providerUrl = DEFAULT_ESCIDOC_PROVIDER_URL;
-    	}
-    	setInitialContext(providerUrl);
+        if (providerUrl == null) {
+            providerUrl = DEFAULT_ESCIDOC_PROVIDER_URL;
+        }
+        setInitialContext(providerUrl);
     }
-    
+
     /**
      * get jndi-object with given jndiName.
      * 
@@ -108,21 +105,25 @@ public class JndiHandler {
         }
     }
 
-	/**
-	 * set initial context.
-	 * 
-	 * @param context the context to set
-	 */
-	private void setInitialContext(final String providerUrl) {
+    /**
+     * set initial context.
+     * 
+     * @param context
+     *            the context to set
+     */
+    private void setInitialContext(final String providerUrl) {
         Hashtable<String, String> environment = new Hashtable<String, String>();
         environment.put("java.naming.provider.url", providerUrl);
-        environment.put("java.naming.factory.initial", "org.jnp.interfaces.NamingContextFactory");
-        environment.put("java.naming.factory.url.pkgs", "org.jnp.interfaces:org.jboss.naming");
+        environment.put("java.naming.factory.initial",
+            "org.jnp.interfaces.NamingContextFactory");
+        environment.put("java.naming.factory.url.pkgs",
+            "org.jnp.interfaces:org.jboss.naming");
         try {
-			initialContext = new InitialContext(environment);
-		} catch (NamingException e) {
-			log.error(e);
-		}
-	}
+            initialContext = new InitialContext(environment);
+        }
+        catch (NamingException e) {
+            log.error(e);
+        }
+    }
 
 }
