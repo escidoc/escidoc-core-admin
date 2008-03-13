@@ -15,6 +15,7 @@
 			<fileset dir="${bin.src.dir}" includes="**/*" />
 			<fileset dir="${doc.src.dir}" includes="**/*" />
 			<fileset dir="${etc.dir}" includes="admin-tool.properties" />
+			<fileset dir="${foxml-migration.src.dir}" />
 		</copy>
 	</target>
 

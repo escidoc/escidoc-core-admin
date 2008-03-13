@@ -17,13 +17,19 @@ eSciDoc infrastructure administration tool
 			- escidocSbUrl: URL of naming-service of SB
 		- execute target reindex of of ant file build.xml
 		
+- Tool to migrate the fedroa content of a eSciDoc repository from build 0.9.0159 
+  to Release 1.0 		
+	
+  - Usage:
+       - modify admin-tool.properties to define the values for properties fedora-2.home and fedora-3.home
+       - execute 		
 - Tool to migrate the escidoc-core database from build 0.9.0159 to Release 1.0
     
     - Usage:
         - If the default value for the escidoc database are used, rename 
           database escidoc to escidoc-core
         - modify admin-tool.properties to define the database values  
-        - Execute 
+        - execute 
             - java -jar eSciDocCoreAdmin.jar db-migration 
             or
             - target db-migration of ant file build.xml
