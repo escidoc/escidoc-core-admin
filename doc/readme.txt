@@ -26,10 +26,11 @@ eSciDoc infrastructure administration tool
 - Tool to migrate the escidoc-core database from build 0.9.0159 to Release 1.0
     
     - Usage:
+        - Backup the database
         - If the default value for the escidoc database are used, rename 
           database escidoc to escidoc-core
-        - modify admin-tool.properties to define the database values  
-        - execute 
+        - Modify admin-tool.properties to define the database values  
+        - Execute 
             - java -jar eSciDocCoreAdmin.jar db-migration 
             or
             - target db-migration of ant file build.xml
