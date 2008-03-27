@@ -39,8 +39,8 @@ import javax.jms.QueueConnectionFactory;
 import javax.jms.QueueSession;
 import javax.jms.Session;
 
+import de.escidoc.core.admin.business.interfaces.ReindexerInterface;
 import de.escidoc.core.admin.common.util.EscidocCoreHandler;
-import de.escidoc.core.admin.common.util.JndiHandler;
 import de.escidoc.core.admin.common.util.stax.handler.ContainerHrefHandler;
 import de.escidoc.core.admin.common.util.stax.handler.ItemHrefHandler;
 import de.escidoc.core.common.business.Constants;
@@ -52,12 +52,12 @@ import de.escidoc.core.common.util.xml.XmlUtility;
 /**
  * Provides Methods used for Reindexing.
  * 
+ * @spring.bean id="de.escidoc.core.admin.Reindexer"
+ * 
  * @admin
  */
-public class Reindexer {
-
-    private final String INDEXER_QUEUE_NAME = "queue/IndexerMessageQueue";
-
+public class Reindexer implements ReindexerInterface {
+	
     private final String ITEM_FILTER_URL = "/ir/items/filter/refs";
 
     private final String CONTAINER_FILTER_URL = "/ir/containers/filter/refs";
@@ -70,67 +70,43 @@ public class Reindexer {
 
     private static AppLogger log = new AppLogger(Reindexer.class.getName());
 
-    private final EscidocCoreHandler escidocHandler;
+    private EscidocCoreHandler escidocCoreHandler;
 
-    private final JndiHandler jndiHandler;
-
-    private QueueConnectionFactory factory;
+    private QueueConnectionFactory queueConnectionFactory;
 
     private QueueConnection queueConnection;
 
     private QueueSession queueSession;
 
-    private Queue queue;
+    private Queue indexerMessageQueue;
 
     private MessageProducer messageProducer;
 
-    /**
-     * Constructor with no arguments.
-     * 
-     * @admin
-     */
-    public Reindexer() {
-        jndiHandler = new JndiHandler();
-        escidocHandler = new EscidocCoreHandler();
-        establishQueueConnection();
-    }
-
-    /**
-     * Constructor that takes url of om and url of naming-service of SB.
-     * 
-     * @admin
-     */
-    public Reindexer(final String escidocOmUrl, final String escidocSbUrl) {
-        jndiHandler = new JndiHandler(escidocSbUrl);
-        escidocHandler = new EscidocCoreHandler(escidocOmUrl);
-        establishQueueConnection();
-    }
 
     /**
      * Close Connection to SB-Indexing-Queue.
      * 
      * @admin
+     * @see de.escidoc.core.admin.business.interfaces.ReindexerInterface#close()
      */
     public void close() {
         disposeQueueConnection();
     }
 
     /**
-     * Get all released Items from OM and put hrefs into Vector.
      * 
-     * @param resource
-     *            String resource.
-     * @return String response
+     * @return Vector<String> item-hrefs
      * 
      * @throws ApplicationServerSystemException
      *             e
      * @admin
+     * @see de.escidoc.core.admin.business.interfaces.ReindexerInterface#getReleasedItems()
      */
     public Vector<String> getReleasedItems()
         throws ApplicationServerSystemException {
         try {
             String result =
-                escidocHandler.postRequestEscidoc(ITEM_FILTER_URL,
+                escidocCoreHandler.postRequestEscidoc(ITEM_FILTER_URL,
                     RELEASED_ITEMS_FILTER);
 
             StaxParser sp = new StaxParser();
@@ -149,21 +125,19 @@ public class Reindexer {
     }
 
     /**
-     * Get all released Containers from OM and put hrefs into Vector.
      * 
-     * @param resource
-     *            String resource.
-     * @return String response
+     * @return Vector<String> container-hrefs
      * 
      * @throws ApplicationServerSystemException
      *             e
      * @admin
+     * @see de.escidoc.core.admin.business.interfaces.ReindexerInterface#getReleasedContainers()
      */
     public Vector<String> getReleasedContainers()
         throws ApplicationServerSystemException {
         try {
             String result =
-                escidocHandler.postRequestEscidoc(CONTAINER_FILTER_URL,
+                escidocCoreHandler.postRequestEscidoc(CONTAINER_FILTER_URL,
                     RELEASED_CONTAINERS_FILTER);
 
             StaxParser sp = new StaxParser();
@@ -182,11 +156,10 @@ public class Reindexer {
     }
 
     /**
-     * Send delete-index Message to SB.
-     * 
      * @throws ApplicationServerSystemException
      *             e
      * @admin
+     * @see de.escidoc.core.admin.business.interfaces.ReindexerInterface#sendDeleteIndexMessage()
      */
     public void sendDeleteIndexMessage()
         throws ApplicationServerSystemException {
@@ -205,14 +178,13 @@ public class Reindexer {
     }
 
     /**
-     * Send update-index Message to SB.
-     * 
      * @param resource
      *            String resource.
      * 
      * @throws ApplicationServerSystemException
      *             e
      * @admin
+     * @see de.escidoc.core.admin.business.interfaces.ReindexerInterface#sendUpdateIndexMessage(String)
      */
     public void sendUpdateIndexMessage(final String resource)
         throws ApplicationServerSystemException {
@@ -232,35 +204,9 @@ public class Reindexer {
         }
     }
 
-    /**
-     * establish connection to SB-indexing-queue.
-     * 
-     * @throws ApplicationServerSystemException
-     *             e
-     * @admin
-     */
-    private void establishQueueConnection() {
-        try {
-            // Get Connection to Queue
-            factory =
-                (QueueConnectionFactory) jndiHandler
-                    .getJndiObject("ConnectionFactory");
-            queueConnection = factory.createQueueConnection();
-            queueSession =
-                queueConnection.createQueueSession(false,
-                    Session.AUTO_ACKNOWLEDGE);
-            queue = (Queue) jndiHandler.getJndiObject(INDEXER_QUEUE_NAME);
-            messageProducer = queueSession.createProducer(queue);
-
-        }
-        catch (Exception e) {
-            log.error(e);
-        }
-
-    }
 
     /**
-     * close connection to SB-indexing-queue.
+     * close connection to SB-indexing-indexerMessageQueue.
      * 
      * @throws ApplicationServerSystemException
      *             e
@@ -295,5 +241,36 @@ public class Reindexer {
             queueConnection = null;
         }
     }
+
+	/**
+	 * @param escidocCoreHandler the escidocCoreHandler to set
+	 */
+	public void setEscidocCoreHandler(EscidocCoreHandler escidocCoreHandler) {
+		this.escidocCoreHandler = escidocCoreHandler;
+	}
+
+	/**
+	 * @param queueConnectionFactory the queueConnectionFactory to set
+	 */
+	public void setQueueConnectionFactory(
+			final QueueConnectionFactory queueConnectionFactory) 
+													throws Exception {
+		this.queueConnectionFactory = queueConnectionFactory;
+		this.queueConnection = 
+			this.queueConnectionFactory.createQueueConnection();
+		this.queueSession =
+			this.queueConnection.createQueueSession(false,
+                Session.AUTO_ACKNOWLEDGE);
+	}
+
+	/**
+	 * @param indexerMessageQueue the indexerMessageQueue to set
+	 */
+	public void setIndexerMessageQueue(final Queue indexerMessageQueue)
+														throws Exception {
+		this.indexerMessageQueue = indexerMessageQueue;
+        this.messageProducer = 
+        	queueSession.createProducer(this.indexerMessageQueue);
+	}
 
 }

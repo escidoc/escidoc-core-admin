@@ -28,12 +28,18 @@
  */
 package de.escidoc.core.admin.common.util;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import sun.misc.BASE64Decoder;
 import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException;
 import de.escidoc.core.common.util.logger.AppLogger;
 import de.escidoc.core.common.util.service.HttpRequester;
 
 /**
  * Execute http-request to escidoc-core system.
+ * 
+ * @spring.bean id="de.escidoc.core.admin.EscidocCoreHandler"
  * 
  * @admin
  */
@@ -42,40 +48,55 @@ public class EscidocCoreHandler {
     private static AppLogger log =
         new AppLogger(EscidocCoreHandler.class.getName());
 
-    private static final String DEFAULT_HANDLE = "Shibboleth-Handle-1";
+    private HttpRequester httpRequester;
+    
+	private final String LOGIN_PATH = 
+		"/aa/login?target="
+		+ "&shire=https%3A%2F%2Flocalhost%3A8080%2Fshibboleth%2Facs"
+		+ "&providerId=https%3A%2F%2Fwww.escidoc.de%2Fshibboleth";
 
-    private static final String DEFAULT_ESCIDOC_CORE_URL =
-        "http://localhost:8080";
+	private final Pattern userHandlePattern = 
+		Pattern.compile("(?s).*?URL=\\?eSciDocUserHandle=(.*?)\".*");
+	
+	private final BASE64Decoder decoder = new BASE64Decoder();
 
-    private final HttpRequester httpRequester;
-
-    /**
-     * initialize EscidocCoreHandler. escidocCoreUrl is set to default.
-     * 
-     * @throws ApplicationServerSystemException
-     *             e
-     * @admin
-     */
-    public EscidocCoreHandler() {
-        httpRequester =
-            new HttpRequester(DEFAULT_ESCIDOC_CORE_URL, DEFAULT_HANDLE);
-    }
-
-    /**
-     * initialize EscidocCoreHandler with escidocCoreUrl to eSciDocCore-System.
+	/**
+     * initialize EscidocCoreHandler with 
+     * escidocCoreUrl to eSciDocCore-System.
      * 
      * @param escidocCoreUrl
      *            String escidocCoreUrl.
      * 
-     * @throws ApplicationServerSystemException
-     *             e
      * @admin
      */
-    public EscidocCoreHandler(String escidocCoreUrl) {
-        if (escidocCoreUrl == null) {
-            escidocCoreUrl = DEFAULT_ESCIDOC_CORE_URL;
-        }
-        httpRequester = new HttpRequester(escidocCoreUrl, DEFAULT_HANDLE);
+    public EscidocCoreHandler(
+    		final String escidocCoreUrl) {
+        httpRequester = 
+        	new HttpRequester(escidocCoreUrl);
+    }
+
+	/**
+     * initialize EscidocCoreHandler with 
+     * escidocCoreUrl to eSciDocCore-System
+     * and securityHandle.
+     * 
+     * @param escidocCoreUrl
+     *            String escidocCoreUrl.
+     * @param login
+     *            String login.
+     * @param password
+     *            String password.
+     * @throws Exception e
+     * 
+     * @admin
+     */
+    public EscidocCoreHandler(
+    		final String escidocCoreUrl, 
+    		final String login, 
+    		final String password) throws Exception {
+    	String securityHandle = login(escidocCoreUrl, login, password);
+        httpRequester = 
+        	new HttpRequester(escidocCoreUrl, securityHandle);
     }
 
     /**
@@ -144,7 +165,7 @@ public class EscidocCoreHandler {
      * 
      * @param resource
      *            String resource.
-     * @param postParam
+     * @param putParam
      *            String put-parameters.
      * @return String response
      * 
@@ -152,7 +173,8 @@ public class EscidocCoreHandler {
      *             e
      * @admin
      */
-    public String putRequestEscidoc(final String resource, final String putParam)
+    public String putRequestEscidoc(
+    		final String resource, final String putParam)
         throws ApplicationServerSystemException {
         try {
             String result = httpRequester.doPut(resource, putParam);
@@ -163,5 +185,50 @@ public class EscidocCoreHandler {
             throw new ApplicationServerSystemException(e);
         }
     }
+    
+    /**
+     * login into escidoc and return userHandle.
+     * 
+     * @param escidocCoreUrl
+     *            String escidocCoreUrl.
+     * @param login
+     *            String login.
+     * @param password
+     *            String password.
+     * @return String userHandle
+     * 
+     * @throws Exception e
+     * @admin
+     */
+    private String login(
+    		final String escidocCoreUrl, 
+    		final String login, 
+    		final String password) throws Exception {
+        String loginUrl = escidocCoreUrl + LOGIN_PATH;
+        HttpRequester httpRequester = new HttpRequester(loginUrl);
+        httpRequester.setFollowRedirects(false);
+    	String returnXml = httpRequester.doPost(
+    			"", "login=" + login + "&password=" + password);
+    	String encodedUserHandle = getUserHandle(returnXml);
+    	String decodedUserHandle = new String(
+    			decoder.decodeBuffer(encodedUserHandle));
+    	return decodedUserHandle;
+    	
+    }
 
+    /**
+     * extract userHandle out of loginPage.
+     * 
+     * @param xml
+     *            String xml.
+     * @return String userHandle
+     * 
+     * @admin
+     */
+	private String getUserHandle(final String xml) {
+		Matcher userHandleMatcher = userHandlePattern.matcher(xml);
+		userHandleMatcher.matches();
+		return userHandleMatcher.group(1);
+	}
+	
 }

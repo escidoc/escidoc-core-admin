@@ -37,6 +37,12 @@ import de.escidoc.core.common.util.xml.stax.events.Attribute;
 import de.escidoc.core.common.util.xml.stax.events.StartElement;
 import de.escidoc.core.common.util.xml.stax.handler.DefaultHandler;
 
+/**
+ * Extracts hrefs to items out of filtered List.
+ * 
+ * @author Michael Hoppe
+ * 
+ */
 public class ItemHrefHandler extends DefaultHandler {
     public static final String XLINK_PREFIX = "xlink";
 
@@ -49,9 +55,15 @@ public class ItemHrefHandler extends DefaultHandler {
     private static AppLogger log =
         new AppLogger(ItemHrefHandler.class.getName());
 
-    /*
+    /**
+     * initialize handler with StaxParser.
      * 
-     */public ItemHrefHandler(StaxParser parser) {
+     * @param parser
+     *            StaxParser parser.
+     * 
+     * @admin
+     */
+    public ItemHrefHandler(StaxParser parser) {
         this.parser = parser;
 
     }

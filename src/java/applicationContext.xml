@@ -66,5 +66,56 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
     </property>
 </bean>
 
+<!-- REINDEXER -->
+<bean 
+     id="de.escidoc.core.admin.EscidocCoreHandler"
+          class="de.escidoc.core.admin.common.util.EscidocCoreHandler">
+            <constructor-arg value="${escidocOmUrl}"/>
+</bean>
+
+<bean 
+     id="de.escidoc.core.admin.EscidocCoreHandlerWithSecurity"
+          class="de.escidoc.core.admin.common.util.EscidocCoreHandler">
+            <constructor-arg index="0" value="${escidocOmUrl}"/>
+            <constructor-arg index="1" value="${login}"/>
+            <constructor-arg index="2" value="${password}"/>
+</bean>
+
+<bean id="de.escidoc.core.admin.QueueConnectionFactory"
+	class="de.escidoc.core.admin.common.util.spring.RemoteJndiLocator"
+	lazy-init="true">
+	<property name="jndiName">
+		<value>ConnectionFactory</value>
+	</property>
+	<property name="jndiUrl">
+		<value>${escidocSbUrl}</value>
+	</property>
+</bean>
+
+<bean id="de.escidoc.core.admin.IndexerMessageQueue"
+	class="de.escidoc.core.admin.common.util.spring.RemoteJndiLocator"
+	lazy-init="true">
+	<property name="jndiName">
+		<value>queue/IndexerMessageQueue</value>
+	</property>
+	<property name="jndiUrl">
+		<value>${escidocSbUrl}</value>
+	</property>
+</bean>
+
+<bean 
+     id="de.escidoc.core.admin.Reindexer"
+          class="de.escidoc.core.admin.business.Reindexer">
+            <property name="escidocCoreHandler">
+                <ref bean="de.escidoc.core.admin.EscidocCoreHandler" />
+            </property>
+            <property name="queueConnectionFactory">
+                <ref bean="de.escidoc.core.admin.QueueConnectionFactory" />
+            </property>
+            <property name="indexerMessageQueue">
+                <ref bean="de.escidoc.core.admin.IndexerMessageQueue" />
+            </property>
+</bean>
+
 </beans>
       

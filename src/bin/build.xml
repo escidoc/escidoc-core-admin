@@ -14,8 +14,6 @@
 	<target name="reindex">
 		<java jar="eSciDocCoreAdmin.jar" fork="true">
 			<arg value="reindex" />
-			<arg value="${escidocOmUrl}" />
-			<arg value="${escidocSbUrl}" />
 		</java>
 	</target>
 

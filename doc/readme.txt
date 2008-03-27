@@ -15,8 +15,13 @@ eSciDoc infrastructure administration tool
 		- modify admin-tool.properties:
 			- escidocOmUrl : URL of OM
 			- escidocSbUrl: URL of naming-service of SB
-		- execute target reindex of of ant file build.xml
-
+        - Execute 
+            - java -jar eSciDocCoreAdmin.jar reindex 
+            or
+            - target reindex of ant file build.xml
+          The admin-tool.properties must be placed in the directory from that 
+          the admin tool is executed.
+		
 - Tool to migrate the escidoc-core database from build 0.9.0159 to Release 1.0
     
     - Usage:
@@ -39,6 +44,4 @@ eSciDoc infrastructure administration tool
         - execute target foxml-migration of ant file build.xml
           The admin-tool.properties must be placed in the directory from that 
           the admin tool is executed.
-       		
-
         

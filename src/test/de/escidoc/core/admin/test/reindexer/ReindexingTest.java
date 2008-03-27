@@ -102,20 +102,20 @@ public class ReindexingTest extends ReindexingTestBase {
 
         // search all items an store number of hits for later comparison
         String searchResult =
-            escidocCoreHandler.getRequestEscidoc(ITEM_SEARCH_REQUEST);
+            getEscidocCoreHandler().getRequestEscidoc(ITEM_SEARCH_REQUEST);
         numberOfItemHits = getNumberOfHits(searchResult);
 
         // search all containers an store number of hits for later comparison
         searchResult =
-            escidocCoreHandler.getRequestEscidoc(CONTAINER_SEARCH_REQUEST);
+        	getEscidocCoreHandler().getRequestEscidoc(CONTAINER_SEARCH_REQUEST);
         numberOfContainerHits = getNumberOfHits(searchResult);
 
         // delete index
-        reindexer.sendDeleteIndexMessage();
+        getReindexer().sendDeleteIndexMessage();
 
         // check if no items are found any longer
         searchResult =
-            escidocCoreHandler.getRequestEscidoc(ITEM_SEARCH_REQUEST);
+        	getEscidocCoreHandler().getRequestEscidoc(ITEM_SEARCH_REQUEST);
         assertEquals(0, getNumberOfHits(searchResult));
 
         // trigger reindexing
@@ -126,11 +126,11 @@ public class ReindexingTest extends ReindexingTestBase {
 
         // check if we get as many search-results as before
         searchResult =
-            escidocCoreHandler.getRequestEscidoc(ITEM_SEARCH_REQUEST);
+        	getEscidocCoreHandler().getRequestEscidoc(ITEM_SEARCH_REQUEST);
         assertEquals(numberOfItemHits, getNumberOfHits(searchResult));
 
         searchResult =
-            escidocCoreHandler.getRequestEscidoc(CONTAINER_SEARCH_REQUEST);
+        	getEscidocCoreHandler().getRequestEscidoc(CONTAINER_SEARCH_REQUEST);
         assertEquals(numberOfContainerHits, getNumberOfHits(searchResult));
 
     }

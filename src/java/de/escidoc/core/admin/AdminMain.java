@@ -38,21 +38,30 @@ import org.springframework.transaction.CannotCreateTransactionException;
 
 import de.escidoc.core.admin.business.Reindexer;
 import de.escidoc.core.admin.business.interfaces.DataBaseMigrationInterface;
+import de.escidoc.core.admin.business.interfaces.ReindexerInterface;
 import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException;
 import de.escidoc.core.common.exceptions.system.IntegritySystemException;
 import de.escidoc.core.common.util.logger.AppLogger;
 import de.escidoc.core.common.util.string.StringUtility;
 
+/**
+ * Main Class for the Admin-Tool.
+ * 
+ * @admin
+ */
 public class AdminMain {
-
-    private String escidocOmUrl = null;
-
-    private String escidocSbUrl = null;
 
     private static AppLogger log = new AppLogger(AdminMain.class.getName());
 
+    private BeanFactoryLocator beanFactoryLocator =
+        SingletonBeanFactoryLocator.getInstance("adminBeanRefFactory.xml");
+
+    private BeanFactory beanFactory =
+        beanFactoryLocator
+            .useBeanFactory("de.escidoc.core.admin.context").getFactory();
+
     /**
-     * TODO: Describe Method
+     * Main Method, depends on args[0] which method is executed.
      * 
      * @param args
      */
@@ -86,11 +95,6 @@ public class AdminMain {
 
         log.info("Database migration invoked");
 
-        BeanFactoryLocator beanFactoryLocator =
-            SingletonBeanFactoryLocator.getInstance("adminBeanRefFactory.xml");
-        BeanFactory beanFactory =
-            beanFactoryLocator
-                .useBeanFactory("de.escidoc.core.admin.context").getFactory();
         DataBaseMigrationInterface dbm =
             (DataBaseMigrationInterface) beanFactory
                 .getBean("de.escidoc.core.admin.DataBaseMigrationTool");
@@ -128,6 +132,8 @@ public class AdminMain {
 
     private void test(String[] args) {
         log.info("Test method invoked!");
+        String escidocOmUrl = null;
+        String escidocSbUrl = null;
         if (args.length > 1 && args[1] != null) {
             escidocOmUrl = args[1];
         }
@@ -140,23 +146,17 @@ public class AdminMain {
     }
 
     /**
-     * TODO: Describe Method
+     * delete index, get all items and containers that are released 
+     * and put the resourceIds into the indexer message queue.
      * 
      * @param args
      */
-    private void reindex(String[] args) {
-        if (args.length > 1 && args[1] != null) {
-            escidocOmUrl = args[1];
-        }
-        if (args.length > 2 && args[2] != null) {
-            escidocSbUrl = args[2];
-        }
+    private void reindex(final String[] args) {
+        ReindexerInterface reindexer =
+            (ReindexerInterface) beanFactory
+                .getBean("de.escidoc.core.admin.Reindexer");
 
-        Reindexer reindexer = null;
         try {
-            // initialize Reindexer
-            reindexer = new Reindexer(escidocOmUrl, escidocSbUrl);
-
             // Get all released Items
             Vector<String> itemHrefs = reindexer.getReleasedItems();
             // Get all released Containers
@@ -185,5 +185,4 @@ public class AdminMain {
             }
         }
     }
-
 }

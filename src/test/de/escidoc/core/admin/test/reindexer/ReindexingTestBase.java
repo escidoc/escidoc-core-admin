@@ -31,7 +31,11 @@ package de.escidoc.core.admin.test.reindexer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import de.escidoc.core.admin.business.Reindexer;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.access.BeanFactoryLocator;
+import org.springframework.beans.factory.access.SingletonBeanFactoryLocator;
+
+import de.escidoc.core.admin.business.interfaces.ReindexerInterface;
 import de.escidoc.core.admin.common.util.EscidocCoreHandler;
 import de.escidoc.core.admin.test.EscidocAdminTestBase;
 import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException;
@@ -44,9 +48,18 @@ import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException
  */
 public class ReindexingTestBase extends EscidocAdminTestBase {
 
-    protected Reindexer reindexer = new Reindexer();
+    private ReindexerInterface reindexer = null;
 
-    protected EscidocCoreHandler escidocCoreHandler = new EscidocCoreHandler();
+    private EscidocCoreHandler escidocCoreHandlerWithSecurity = null;
+    
+    private EscidocCoreHandler escidocCoreHandler = null;
+    
+    private BeanFactoryLocator beanFactoryLocator =
+        SingletonBeanFactoryLocator.getInstance("adminBeanRefFactory.xml");
+
+    private BeanFactory beanFactory =
+        beanFactoryLocator
+            .useBeanFactory("de.escidoc.core.admin.context").getFactory();
 
     /**
      * get number of hits from xml String.
@@ -97,13 +110,14 @@ public class ReindexingTestBase extends EscidocAdminTestBase {
      * Gets the last-modification-date attribute of the root element from the
      * document.
      * 
-     * @param document
+     * @param xml
      *            The document to retrieve the value from.
      * @return Returns the attribute value.
      * @throws Exception
      *             If anything fails.
      */
-    protected String getLastModificationDate(final String xml) throws Exception {
+    protected String getLastModificationDate(
+    		final String xml) throws Exception {
 
         return getRootElementAttributeValue(getDocument(xml),
             "last-modification-date");
@@ -115,11 +129,13 @@ public class ReindexingTestBase extends EscidocAdminTestBase {
      * @param item
      *            String item as xml
      * @return created item as xml
+     * @throws ApplicationServerSystemException e
      * 
      */
     protected String createItem(final String item)
         throws ApplicationServerSystemException {
-        return escidocCoreHandler.putRequestEscidoc(ITEM_BASE_URL, item);
+        return getEscidocCoreHandlerWithSecurity()
+        .putRequestEscidoc(ITEM_BASE_URL, item);
     }
 
     /**
@@ -130,11 +146,13 @@ public class ReindexingTestBase extends EscidocAdminTestBase {
      * @param lastModDate
      *            String lastModDate as xml
      * @return submitted item as xml
+     * @throws ApplicationServerSystemException e
      * 
      */
     protected String submitItem(final String itemId, final String lastModDate)
         throws ApplicationServerSystemException {
-        return escidocCoreHandler.postRequestEscidoc(ITEM_REPLACEMENT_PATTERN
+        return getEscidocCoreHandlerWithSecurity()
+        .postRequestEscidoc(ITEM_REPLACEMENT_PATTERN
             .matcher(ITEM_SUBMIT_PATH).replaceAll(itemId), lastModDate);
     }
 
@@ -146,11 +164,14 @@ public class ReindexingTestBase extends EscidocAdminTestBase {
      * @param lastModDate
      *            String lastModDate as xml
      * @return released item as xml
+     * @throws ApplicationServerSystemException e
      * 
      */
-    protected String releaseItem(final String itemId, final String lastModDate)
+    protected String releaseItem(
+    		final String itemId, final String lastModDate)
         throws ApplicationServerSystemException {
-        return escidocCoreHandler.postRequestEscidoc(ITEM_REPLACEMENT_PATTERN
+        return getEscidocCoreHandlerWithSecurity()
+        .postRequestEscidoc(ITEM_REPLACEMENT_PATTERN
             .matcher(ITEM_RELEASE_PATH).replaceAll(itemId), lastModDate);
     }
 
@@ -160,12 +181,51 @@ public class ReindexingTestBase extends EscidocAdminTestBase {
      * @param itemId
      *            String itemId
      * @return item as xml
+     * @throws ApplicationServerSystemException e
      * 
      */
     protected String retrieveItem(final String itemId)
         throws ApplicationServerSystemException {
-        return escidocCoreHandler.getRequestEscidoc(ITEM_BASE_URL + "/"
+        return getEscidocCoreHandlerWithSecurity()
+        .getRequestEscidoc(ITEM_BASE_URL + "/"
             + itemId);
     }
+
+	/**
+	 * @return the reindexer
+	 */
+	public ReindexerInterface getReindexer() {
+		if (reindexer == null) {
+	        reindexer =
+	            (ReindexerInterface) beanFactory
+	                .getBean("de.escidoc.core.admin.Reindexer");
+		}
+		return reindexer;
+	}
+
+	/**
+	 * @return the escidocCoreHandler
+	 */
+	public EscidocCoreHandler getEscidocCoreHandler() {
+		if (escidocCoreHandler == null) {
+			escidocCoreHandler =
+	            (EscidocCoreHandler) beanFactory
+	                .getBean("de.escidoc.core.admin.EscidocCoreHandler");
+		}
+		return escidocCoreHandler;
+	}
+
+	/**
+	 * @return the escidocCoreHandler
+	 */
+	public EscidocCoreHandler getEscidocCoreHandlerWithSecurity() {
+		if (escidocCoreHandlerWithSecurity == null) {
+			escidocCoreHandlerWithSecurity =
+	            (EscidocCoreHandler) beanFactory
+	                .getBean(
+	           "de.escidoc.core.admin.EscidocCoreHandlerWithSecurity");
+		}
+		return escidocCoreHandlerWithSecurity;
+	}
 
 }
