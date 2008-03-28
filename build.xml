@@ -60,7 +60,13 @@
 			<fileset dir="${etc.dir}" includes="**/log4j.*" />
 		</copy>
 		<copy todir="${java.build.dir}">
+			<fileset dir="${etc.dir}" includes="**/admin-tool.properties" />
+		</copy>
+		<copy todir="${java.build.dir}">
 			<fileset dir="${test.src.dir}" includes="**/*.xml" />
+		</copy>
+		<copy todir="${java.build.dir}">
+			<fileset dir="${java.src.dir}" includes="**/*.xml" />
 		</copy>
 	</target>
 
