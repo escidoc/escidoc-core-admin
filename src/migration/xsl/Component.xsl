@@ -12,7 +12,7 @@
 	xmlns:dcterms="http://purl.org/dc/terms/"
 	exclude-result-prefixes="fedoraxsi xsl types rdf dcterms audit">
 	<xsl:output encoding="utf-8" method="xml" />
-	<!--  
+	<!--    
 	<xsl:template match="/">
 
 		<xsl:call-template name="componentTemplate" />
@@ -23,24 +23,16 @@
 				<!-- hier wird das neue XML erzeugt -->
 				<xsl:for-each select="foxml:datastream">
 					<xsl:choose>
-						<!-- falls DC, dann Inhalt kopieren -->
+						<!-- falls DC, dann nicht tun -->
 						<xsl:when
 							test="foxml:datastreamVersion/foxml:xmlContent/oai_dc:dc">
-							<xsl:copy-of select="."
-								copy-namespaces="no" />
-						</xsl:when>
-						<!-- falls Escidoc, dann Inhalt kopieren  -->
-						<xsl:when test="@ID='escidoc'">
-							<!-- escidoc data stream einfach kopieren -->
-							<xsl:copy-of select="."
-								copy-namespaces="no" />
 						</xsl:when>
 						<xsl:when test="@ID='content'">
 							<!-- escidoc data stream einfach kopieren -->
 							<xsl:copy-of select="."
 								copy-namespaces="no" />
 						</xsl:when>
-						<!-- falls RELS-EXT, dann Inhalt anpassen  -->
+						<!-- falls RELS-EXT, dann Inhalt anpassen  und DC erzeugen-->
 						<xsl:when
 							test="foxml:datastreamVersion/foxml:xmlContent/rdf:RDF">
 							<xsl:element name="foxml:datastream"
@@ -73,8 +65,6 @@
 											namespace="info:fedora/fedora-system:def/foxml#">
 											<xsl:element name="rdf:RDF"
 												namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-												<xsl:namespace
-													name="rdfs">http://www.w3.org/2000/01/rdf-schema#</xsl:namespace>
 												<xsl:element
 													name="rdf:Description"
 													namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
@@ -106,24 +96,6 @@
 															</xsl:element>
 														</xsl:if>
 														<xsl:if
-															test="$name='file-size'">
-															<xsl:element
-																name="prop:file-size"
-																namespace="http://escidoc.de/core/01/properties/">
-																<xsl:value-of
-																	select="." />
-															</xsl:element>
-														</xsl:if>
-														<xsl:if
-															test="$name='content-category'">
-															<xsl:element
-																name="prop:content-category"
-																namespace="http://escidoc.de/core/01/properties/">
-																<xsl:value-of
-																	select="." />
-															</xsl:element>
-														</xsl:if>
-														<xsl:if
 															test="$name='created-by'">
 															<xsl:element
 																name="srel:created-by"
@@ -133,24 +105,6 @@
 																	namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><xsl:value-of
 																		select="@rdf:resource" />
 																</xsl:attribute>
-															</xsl:element>
-														</xsl:if>
-														<xsl:if
-															test="$name='locator-url'">
-															<xsl:element
-																name="srel:locator-url"
-																namespace="http://escidoc.de/core/01/structural-relations/">
-																<xsl:value-of
-																	select="." />
-															</xsl:element>
-														</xsl:if>
-														<xsl:if
-															test="$name='file-name'">
-															<xsl:element
-																name="prop:file-name"
-																namespace="http://escidoc.de/core/01/properties/">
-																<xsl:value-of
-																	select="." />
 															</xsl:element>
 														</xsl:if>
 														<xsl:if
@@ -191,6 +145,58 @@
 															</xsl:element>
 														</xsl:if>
 													</xsl:for-each>
+												</xsl:element>
+											</xsl:element>
+										</xsl:element>
+									</xsl:element>
+								</xsl:for-each>
+							</xsl:element>
+							<xsl:element name="foxml:datastream" namespace="info:fedora/fedora-system:def/foxml#">
+								<xsl:for-each select="@*">
+									<xsl:variable name="name" select="local-name()"/>
+									<!-- die ID muss hier analog zum Tagging in datastreamVersion in DC geändert werden, die restlichen Attribute übernehmen -->
+									<xsl:choose>
+										<xsl:when test="$name = 'ID'">
+											<xsl:attribute name="ID">DC</xsl:attribute>
+										</xsl:when>
+										<xsl:otherwise>
+											<xsl:attribute name="{$name}"><xsl:value-of select="."/></xsl:attribute>
+										</xsl:otherwise>
+									</xsl:choose>
+								</xsl:for-each>
+								<xsl:for-each select="foxml:datastreamVersion">
+									<xsl:variable name="counter" select="position() -1"/>
+									<!-- zunächst XML umbauen -->
+									<xsl:element name="foxml:datastreamVersion" namespace="info:fedora/fedora-system:def/foxml#">
+										<xsl:attribute name="CREATED" select="@CREATED"/>
+										<xsl:attribute name="ID" select="concat('DC.',$counter)"/>
+										<xsl:attribute name="LABEL" select="''"/>
+										<xsl:attribute name="MIMETYPE" select="'text/xml'"/>
+										<xsl:element name="foxml:contentDigest" namespace="info:fedora/fedora-system:def/foxml#">
+											<xsl:for-each select="foxml:contentDigest/@*">
+												<xsl:copy/>
+											</xsl:for-each>
+										</xsl:element>
+										<xsl:element name="foxml:xmlContent" namespace="info:fedora/fedora-system:def/foxml#">
+											<xsl:element name="oai_dc:dc" namespace="http://www.openarchives.org/OAI/2.0/oai_dc/">
+												
+												<xsl:for-each select="foxml:xmlContent/rdf:RDF/rdf:Description/*">
+													<xsl:variable name="name" select="local-name()"/>
+													<xsl:choose>
+														<xsl:when test="$name = 'file-name'">
+															<xsl:element name="dc:title" namespace="http://purl.org/dc/elements/1.1/">
+																<xsl:value-of select="text()"/>
+															</xsl:element>
+														</xsl:when>
+														<xsl:when test="$name = 'description'">
+															<xsl:element name="dc:description" namespace="http://purl.org/dc/elements/1.1/">
+																<xsl:value-of select="text()"/>
+															</xsl:element>
+														</xsl:when>
+													</xsl:choose>
+												</xsl:for-each>
+												<xsl:element name="dc:identifier" namespace="http://purl.org/dc/elements/1.1/">
+													<xsl:value-of select="/foxml:digitalObject/@PID"/>
 												</xsl:element>
 											</xsl:element>
 										</xsl:element>
