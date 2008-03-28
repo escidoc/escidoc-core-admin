@@ -11,7 +11,14 @@
   
   <category name="org.springframework">
         <priority value="WARN" />
-    </category>
+   </category>
+  
+  <!-- set PropertyPlaceholderConfigurer to ERROR
+  		because we try to get properties from classpath and from file
+  		and one will always fail and write Trace with WARN-->
+  <category name="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <priority value="ERROR" />
+   </category>
   
   <root>
     <level value="INFO" />
