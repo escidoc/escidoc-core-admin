@@ -126,6 +126,15 @@
 															</xsl:element>
 														</xsl:if>
 														<xsl:if
+															test="$name='content-category'">
+															<xsl:element
+																name="prop:content-category"
+																namespace="http://escidoc.de/core/01/properties/">
+																<xsl:value-of
+																	select="." />
+															</xsl:element>
+														</xsl:if>
+														<xsl:if
 															test="$name='objectType'">
 															<xsl:element
 																name="rdf:type"
