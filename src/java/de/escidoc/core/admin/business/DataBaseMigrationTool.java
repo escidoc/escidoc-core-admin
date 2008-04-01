@@ -154,12 +154,12 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
             if (newOus.length() == 0) {
                 throw new IntegritySystemException(StringUtility
                     .concatenateWithBracketsToString(
-                        "Unexpected content in affiliations", id, ous));
+                        "Unexpected content in ous", id, ous));
             }
 
             executedSqlCommand(StringUtility.concatenateToString(
-                "UPDATE aa.user_account SET affiliations = '", newOus,
-                "' WHERE id = '", id, "';"));
+                "UPDATE aa.user_account SET ous = '", newOus, "' WHERE id = '",
+                id, "';"));
         }
     }
 
