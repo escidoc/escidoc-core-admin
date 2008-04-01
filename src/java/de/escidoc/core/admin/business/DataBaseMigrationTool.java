@@ -59,16 +59,6 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
         "de.escidoc.core.admin.DataBaseMigrationTool";
 
     /**
-     * Pattern used to change aa attributes from ...:organizational-unit to
-     * ...:affiliation.
-     */
-    private static final Pattern PATTERN_UPDATE_AFFILIATION =
-        Pattern.compile(StringUtility.concatenateToString(
-            "(info:escidoc/names:aa:1.0:",
-            "((resource:user-account:|subject:)(primary-)?))",
-            "organizational-unit"));
-
-    /**
      * Pattern used to change content-type actions to content-model.
      */
     private static final Pattern PATTERN_UPDATE_CMM_ACTIONS =
@@ -76,10 +66,12 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
             .compile("(info:escidoc/names:aa:1.0:action:([^-]+)-content-)type");
 
     /**
-     * Pattern used to convert content of old ous field to primary-affiliation
-     * and affiliation fields.
+     * Pattern used to convert content of old ous field to new ou fields with
+     * removing primary ou information (see issue 433).
+     * 
+     * @see http://www.escidoc-project.de/issueManagement/show_bug.cgi?id=443
      */
-    private static final Pattern PATTERN_UPDATE_AFFILIATIONS =
+    private static final Pattern PATTERN_UPDATE_OUS =
         Pattern.compile("[^|]+\\|([^|]+)\\|([p]?)\\|");
 
     /**
@@ -134,55 +126,39 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
         executedSqlCommand("ALTER TABLE aa.role_grant DROP COLUMN role_title;");
 
         log.info("Migrating table user_account");
-        getJdbcTemplate().execute(
-            "ALTER TABLE aa.user_account RENAME COLUMN ous TO affiliations;");
-
-        getJdbcTemplate().execute(
-            "ALTER TABLE aa.user_account ADD COLUMN primary_affiliation TEXT;");
 
         if (log.isDebugEnabled()) {
-            log.debug(StringUtility.concatenateToString(
-                "Filling primary-affiliation with data from affiliations",
-                " and updating content of affiliations"));
+            log
+                .debug(StringUtility
+                    .concatenateToString("Updating content of ous with removing primary ou information"));
         }
         final List<Map<String, Object>> results =
             getJdbcTemplate().queryForList(
-                "select id, affiliations from aa.user_account");
+                "select id, ous from aa.user_account");
         final Iterator<Map<String, Object>> iter = results.iterator();
         while (iter.hasNext()) {
             final Map<String, Object> result = iter.next();
 
             final String id = (String) result.get("id");
-            final String affiliations = (String) result.get("affiliations");
+            final String ous = (String) result.get("ous");
 
-            Matcher matcher = PATTERN_UPDATE_AFFILIATIONS.matcher(affiliations);
+            Matcher matcher = PATTERN_UPDATE_OUS.matcher(ous);
             int index = 0;
-            String primaryAffiliationId = null;
-            final StringBuffer newAffiliations = new StringBuffer();
+            final StringBuffer newOus = new StringBuffer();
             while (matcher.find(index)) {
-                final String affiliationId = matcher.group(1);
-                final String primaryFlag = matcher.group(2);
-                if (primaryFlag != null && primaryFlag.length() > 0) {
-                    primaryAffiliationId = affiliationId;
-                }
-                newAffiliations.append(affiliationId);
-                newAffiliations.append("|||");
+                final String ouId = matcher.group(1);
+                newOus.append(ouId);
+                newOus.append("|||");
                 index = matcher.end();
             }
-            if (newAffiliations.length() == 0) {
+            if (newOus.length() == 0) {
                 throw new IntegritySystemException(StringUtility
                     .concatenateWithBracketsToString(
-                        "Unexpected content in affiliations", id, affiliations));
-            }
-            if (primaryAffiliationId == null) {
-                throw new IntegritySystemException(StringUtility
-                    .concatenateWithBracketsToString(
-                        "No primary affiliation defined", id, affiliations));
+                        "Unexpected content in affiliations", id, ous));
             }
 
             executedSqlCommand(StringUtility.concatenateToString(
-                "UPDATE aa.user_account SET primary_affiliation = '",
-                primaryAffiliationId, "', affiliations = '", newAffiliations,
+                "UPDATE aa.user_account SET affiliations = '", newOus,
                 "' WHERE id = '", id, "';"));
         }
     }
@@ -266,20 +242,10 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
             final String xml = (String) policyData.get("xml");
             if (xml != null) {
                 String newXml = xml;
-                boolean changed = false;
-                final Matcher matcher =
-                    PATTERN_UPDATE_AFFILIATION.matcher(newXml);
-                if (matcher.groupCount() > 0) {
-                    newXml = matcher.replaceAll("$1affiliation");
-                    changed = true;
-                }
                 final Matcher matcher2 =
                     PATTERN_UPDATE_CMM_ACTIONS.matcher(newXml);
                 if (matcher2.groupCount() > 0) {
                     newXml = matcher2.replaceAll("$1model");
-                    changed = true;
-                }
-                if (changed) {
                     executedSqlCommand(StringUtility.concatenateToString(
                         "UPDATE aa.escidoc_policies SET xml = '", newXml,
                         "' WHERE id = '", id, "';"));
