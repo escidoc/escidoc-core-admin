@@ -185,6 +185,13 @@
 														select="foxml:xmlContent/rdf:RDF/rdf:Description/*">
 														<xsl:variable
 															name="name" select="local-name()" />
+															<xsl:variable
+															name="fullname" select="name()" />
+															<xsl:if
+															test="starts-with($fullname,'nsCR')">
+															<xsl:copy-of
+															select="." copy-namespaces="no" />
+															</xsl:if>
 														<xsl:if
 															test="$name='hasMember'">
 															<xsl:element
