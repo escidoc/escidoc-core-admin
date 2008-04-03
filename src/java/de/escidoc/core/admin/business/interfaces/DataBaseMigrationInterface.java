@@ -35,7 +35,6 @@ public interface DataBaseMigrationInterface {
      * Migrates the database from build 0.9.0159 to 1.0.<br>
      * As the database rename is not supported, this has to be done before
      * calling this method.
-     * 
      * @throws IntegritySystemException
      *             Thrown in case the content of the database is not as
      *             expected.

@@ -24,7 +24,7 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
     <property name="ignoreResourceNotFound" value="true" />
 </bean>
 
-<bean id="de.escidoc.core.admin.DataSource"
+<bean id="de.escidoc.core.admin.ReaderDataSource"
     class="org.apache.commons.dbcp.BasicDataSource">
     <property name="driverClassName"
         value="${datasource.driverClassName}" />
@@ -33,10 +33,39 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
     <property name="password" value="${datasource.password}" />
 </bean>
 
+<bean id="de.escidoc.core.admin.DataSource"
+    class="org.apache.commons.dbcp.BasicDataSource">
+    <property name="driverClassName"
+        value="${datasource.driverClassName}" />
+    <property name="url" value="${datasource.url}-core" />
+    <property name="username" value="${datasource.username}" />
+    <property name="password" value="${datasource.password}" />
+</bean>
+
+<bean id="de.escidoc.core.admin.ReadertxManager"
+    class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+    <property name="dataSource">
+        <ref bean="de.escidoc.core.admin.ReaderDataSource" />
+    </property>
+</bean>
+
 <bean id="de.escidoc.core.admin.txManager"
     class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
     <property name="dataSource">
         <ref bean="de.escidoc.core.admin.DataSource" />
+    </property>
+</bean>
+
+<bean id="de.escidoc.core.admin.ReadertxProxyTemplate"
+    class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean"
+    abstract="true" lazy-init="true">
+    <property name="transactionManager">
+        <ref bean="de.escidoc.core.admin.ReadertxManager" />
+    </property>
+    <property name="transactionAttributes">
+        <props>
+            <prop key="*">PROPAGATION_REQUIRED</prop>
+        </props>
     </property>
 </bean>
 
@@ -53,6 +82,19 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
     </property>
 </bean>
 
+<bean
+    id="de.escidoc.core.admin.Reader"
+    parent="de.escidoc.core.admin.ReadertxProxyTemplate">
+    <property name="target">
+        <bean
+          class="de.escidoc.core.admin.business.Reader">
+          <property name="dataSource">
+                <ref bean="de.escidoc.core.admin.ReaderDataSource" />
+            </property>
+        </bean>
+    </property>
+</bean>
+
 <bean 
      id="de.escidoc.core.admin.DataBaseMigrationTool"
      parent="de.escidoc.core.admin.txProxyTemplate">
@@ -62,6 +104,10 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
         >
             <property name="dataSource">
                 <ref bean="de.escidoc.core.admin.DataSource" />
+            </property>
+            
+            <property name="reader">
+                <ref bean="de.escidoc.core.admin.Reader"/>
             </property>
         </bean>
     </property>

@@ -30,6 +30,8 @@ package de.escidoc.core.admin.business;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -75,10 +77,18 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
         Pattern.compile("[^|]+\\|([^|]+)\\|([p]?)\\|");
 
     /**
+     * Pattern used to escape SQL forbidden characters.
+     */
+    private static final Pattern PATTERN_SQL_SPECIAL_CHARS =
+        Pattern.compile("['´`]");
+
+    /**
      * The logger.
      */
     private static AppLogger log =
         new AppLogger(DataBaseMigrationTool.class.getName());
+
+    private SourceDbReaderInterface reader;
 
     // CHECKSTYLE:JAVADOC-OFF
 
@@ -88,113 +98,306 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
      * @throws IntegritySystemException
      * @see de.escidoc.core.admin.business.interfaces.DataBaseMigrationInterface#migrate()
      */
-    public void migrate() throws IntegritySystemException {
+    public void migrate()
+        throws IntegritySystemException {
 
-        log.info("Adding table unsecured_actions");
-        executedSqlCommand(StringUtility.concatenateToString(
-            "CREATE TABLE aa.unsecured_action_list (",
-            "id VARCHAR(255) NOT NULL, context_id VARCHAR(255) NOT NULL,",
-            "action_ids TEXT NOT NULL, primary key (id) );"));
+        log.info("Migrating data from original database to new database");
+        try {
 
-        migrateActionsAndMethodMappings();
-        migrateRolesAndPolicies();
-        migrateUserAccountsAndGrants();
-        migrateSmTables();
+            // <antcall target="create">
+            // <param name="script" value="aa.init.user-accounts.common.sql"
+            // />
+            // </antcall>
+            // <antcall target="create">
+            // <param name="script" value="aa.init.user-accounts.MPDL.sql" />
+            // </antcall>
+            // <antcall target="create">
+            // <param name="script" value="aa.init.roles.administrator.sql"
+            // />
+            // </antcall>
+            // <antcall target="create">
+            // <param name="script" value="aa.init.roles.default-user.sql" />
+            // </antcall>
+            // <antcall target="create">
+            // <param name="script" value="aa.init.roles.author.sql" />
+            // </antcall>
+            // <antcall target="create">
+            // <param name="script" value="aa.init.roles.depositor.sql" />
+            // </antcall>
+            // <antcall target="create">
+            // <param name="script" value="aa.init.roles.md-editor.sql" />
+            // </antcall>
+            // <antcall target="create">
+            // <param name="script" value="aa.init.roles.moderator.sql" />
+            // </antcall>
+            // <antcall target="create">
+            // <param name="script"
+            // value="aa.init.roles.system-administrator.sql" />
+            // </antcall>
+            // <antcall target="create">
+            // <param name="script"
+            // value="aa.init.roles.system-inspector.sql"
+            // />
+            // </antcall>
+            // <antcall target="create">
+            // <param name="script"
+            // value="aa.init.roles.workflow-manager.sql"
+            // />
+            // </antcall>
+            // <antcall target="create">
+            // <param name="script" value="aa.init.grants.common.sql" />
+            // </antcall>
+            // <antcall target="create">
+            // <param name="script" value="aa.init.grants.MPDL.sql" />
+            // </antcall>
+            // <antcall target="create">
+            // <param name="script" value="aa.init.handles.MPDL.sql" />
+            // </antcall>
+
+            // Create Database for Workflow Manager
+            executeSqlScript("jbpm.create.sql");
+
+            // copy aa data
+            executeSqlScript("aa.create.sql");
+            migrateActionsAndMethodMappings();
+            migrateUserAccounts();
+            migrateRolesAndPolicies();
+            migrateGrants();
+            copyTableData("aa.user_login_data", null);
+
+            // copy om data
+            executeSqlScript("om.lockstatus.create.sql");
+            copyTableData("om.lockstatus", null);
+
+            // migrate sm data
+            executeSqlScript("sm.create.sql");
+            copyTableData("sm.scopes", null);
+            copyTableData("sm.statistic_data", null);
+            copyTableData("sm.aggregation_definitions", null);
+            copyTableData("sm.report_definitions", null);
+            migrateSmTables();
+
+            // copy st data
+            executeSqlScript("st.create.sql");
+            copyTableData("st.staging_file", null);
+
+            // FIXME: remove
+            // throw new RuntimeException("SUCCESS ;-)");
+            // end
+
+        }
+        catch (IOException e) {
+            // FIXME: Exception handling
+            throw new RuntimeException(e);
+        }
+
     }
 
     /**
-     * Migrates the role_grant and user_account tables.
+     * Copies data from an original table to the new table without changing
+     * them.
+     * 
+     * @param tableName
+     *            The name of the table, including the schema name, e.g.
+     *            aa.user_account.
+     * @param dropColumns
+     *            {@link List} containing the name of the columns that shall be
+     *            dropped, i.e. will not be copied. This parameter may be
+     *            <code>null</code>.
+     */
+    private void copyTableData(final String tableName, List<String> dropColumns) {
+
+        if (log.isInfoEnabled()) {
+            log.info("Copying data from table " + tableName);
+        }
+        List<Map<String, Object>> tableData =
+            reader.retrieveTableData(tableName);
+        insertTableData(tableName, dropColumns, tableData);
+    }
+
+    /**
+     * Inserts the provided table data into the new table.
+     * 
+     * @param tableName
+     *            The name of the table, including the schema name, e.g.
+     *            aa.user_account.
+     * @param dropColumns
+     *            {@link List} containing the name of the columns that shall be
+     *            dropped, i.e. will not be copied. This parameter may be
+     *            <code>null</code>.
+     * @param tableData
+     *            The table data.
+     */
+    private void insertTableData(
+        final String tableName, final List<String> dropColumns,
+        final List<Map<String, Object>> tableData) {
+
+        List<String> toBeDropped = dropColumns;
+        if (toBeDropped == null) {
+            toBeDropped = new ArrayList<String>(0);
+        }
+
+        Iterator<Map<String, Object>> iter = tableData.iterator();
+        while (iter.hasNext()) {
+            Map<String, Object> rowData = iter.next();
+            Iterator<String> columnIter = rowData.keySet().iterator();
+            StringBuffer cmd = new StringBuffer("INSERT INTO ");
+            cmd.append(tableName);
+            cmd.append(" VALUES (");
+            boolean isNotFirst = false;
+            while (columnIter.hasNext()) {
+                String name = columnIter.next();
+                if (!toBeDropped.contains(name)) {
+                    Object value = rowData.get(name);
+                    if (isNotFirst) {
+                        cmd.append(", ");
+                    }
+                    if (value instanceof String) {
+                        cmd.append("'");
+                        cmd.append(PATTERN_SQL_SPECIAL_CHARS.matcher(
+                            (String) value).replaceAll("\\\\'"));
+                        cmd.append("'");
+                    }
+                    else if (value instanceof Date
+                        || value instanceof java.sql.Date) {
+                        cmd.append("'");
+                        cmd.append(value);
+                        cmd.append("'");
+                    }
+                    else {
+                        cmd.append(value);
+                    }
+                    isNotFirst = true;
+                }
+            }
+            cmd.append(");");
+            executeSqlCommand(cmd.toString());
+        }
+    }
+
+    /**
+     * Migrates the user_account table.
      * 
      * @throws IntegritySystemException
      *             Thrown in case of an integrity error found in the database.
      */
-    private void migrateUserAccountsAndGrants() throws IntegritySystemException {
-
-        log.info("Migrating table role_grant");
-        // there was an error in the database setup, in role_grants the id
-        // escidoc:role6 was used for the work flow manager
-        executedSqlCommand(StringUtility.concatenateToString(
-            "UPDATE aa.role_grant",
-            " SET role_id = 'escidoc:role-workflow-manager'",
-            " WHERE role_id = 'escidoc:role6'"));
-        // new foreign key has been added
-        executedSqlCommand(StringUtility.concatenateToString(
-            "ALTER TABLE aa.role_grant",
-            " ADD CONSTRAINT FK_ROLE_GRANT FOREIGN KEY (role_id)",
-            " REFERENCES aa.escidoc_role"));
-        // roleTitle has been removed from table
-        executedSqlCommand("ALTER TABLE aa.role_grant DROP COLUMN role_title;");
+    private void migrateUserAccounts() throws IntegritySystemException {
 
         log.info("Migrating table user_account");
 
         if (log.isDebugEnabled()) {
             log
                 .debug(StringUtility
-                    .concatenateToString("Updating content of ous with removing primary ou information"));
+                    .concatenateToString("Updating ou information with removing primary ou information"));
         }
-        final List<Map<String, Object>> results =
-            getJdbcTemplate().queryForList(
-                "select id, ous from aa.user_account");
-        final Iterator<Map<String, Object>> iter = results.iterator();
-        while (iter.hasNext()) {
-            final Map<String, Object> result = iter.next();
+        final List<Map<String, Object>> tableData =
+            reader.retrieveTableData("aa.user_account");
+        // copy data to table user_account without ous column
+        List<String> droppedColumns = new ArrayList<String>(1);
+        droppedColumns.add("ous");
+        insertTableData("aa.user_account", droppedColumns, tableData);
 
-            final String id = (String) result.get("id");
-            final String ous = (String) result.get("ous");
+        // copy data to new table user_account_ous
+        final Iterator<Map<String, Object>> iter = tableData.iterator();
+        while (iter.hasNext()) {
+            final Map<String, Object> columnData = iter.next();
+            final String ous = (String) columnData.get("ous");
 
             Matcher matcher = PATTERN_UPDATE_OUS.matcher(ous);
-            int index = 0;
-            final StringBuffer newOus = new StringBuffer();
-            while (matcher.find(index)) {
-                final String ouId = matcher.group(1);
-                newOus.append(ouId);
-                newOus.append("|||");
-                index = matcher.end();
+            int matcherIndex = 0;
+            int tableIndex = 0;
+            // first, search the ou that previously has been marked as the
+            // primary one. This ou will be the first one in the new list.
+            while (matcher.find(matcherIndex)) {
+                final String primaryFlag = matcher.group(2);
+                if (primaryFlag != null && primaryFlag.length() > 0) {
+                    final String ouId = matcher.group(1);
+                    executeSqlCommand(StringUtility.concatenateToString(
+                        "INSERT INTO aa.user_account_ous VALUES (",
+                        tableIndex++, ", '", columnData.get("id"), "', '",
+                        ouId, "');"));
+                    matcherIndex = 0;
+                    matcher.reset();
+                    break;
+                }
+                matcherIndex = matcher.end();
             }
-            if (newOus.length() == 0) {
-                throw new IntegritySystemException(StringUtility
-                    .concatenateWithBracketsToString(
-                        "Unexpected content in ous", id, ous));
+            // insert other ous
+            while (matcher.find(matcherIndex)) {
+                final String primaryFlag = matcher.group(2);
+                if (primaryFlag == null || primaryFlag.length() == 0) {
+                    final String ouId = matcher.group(1);
+                    executeSqlCommand(StringUtility.concatenateToString(
+                        "INSERT INTO aa.user_account_ous VALUES (",
+                        tableIndex++, ", '", columnData.get("id"), "', '",
+                        ouId, "');"));
+                }
+                matcherIndex = matcher.end();
             }
 
-            executedSqlCommand(StringUtility.concatenateToString(
-                "UPDATE aa.user_account SET ous = '", newOus, "' WHERE id = '",
-                id, "';"));
         }
     }
 
     /**
-     * Migrates report_definitiona table.
+     * Migrates the role_grant tables.
+     * 
+     * @throws IntegritySystemException
+     *             Thrown in case of an integrity error found in the database.
+     */
+    private void migrateGrants() {
+        log.info("Migrating table role_grant");
+        // role title has been removed from table
+        final List<String> droppedColumns = new ArrayList<String>(1);
+        droppedColumns.add("role_title");
+
+        // FIXME: drop grants for roles that have been removed (
+        // use insertTableData after removing the grants form the table data)
+        // link to role:workflowmanager was wrong in build.159, escidoc:role6
+        // instead of escidoc:role workflowmanager. Needs to be fixed.
+        final List<Map<String, Object>> tableData =
+            reader.retrieveTableData("aa.role_grant");
+        final Iterator<Map<String, Object>> tableIter = tableData.iterator();
+        while (tableIter.hasNext()) {
+            Map<String, Object> rowData = tableIter.next();
+            if ("escidoc:role6".equals(rowData.get("role_id"))) {
+                rowData.put("role_id", "escidoc:role-workflow-manager");
+            }
+        }
+        insertTableData("aa.role_grant", droppedColumns, tableData);
+    }
+
+    /**
+     * Migrates report_definitions table.
      */
     private void migrateSmTables() {
 
         log.info("Migrating table report_definitions");
-        executedSqlCommand(StringUtility
+        executeSqlCommand(StringUtility
             .concatenateToString(
                 "UPDATE sm.report_definitions",
                 " SET id=4, xml='<?xml version=\"1.0\" encoding=\"UTF-8\"?><report-definition xmlns=\"http://www.escidoc.de/schemas/reportdefinition/0.3\" objid=\"4\">    <name>Item retrievals, all users</name>  <scope objid=\"2\" />    <sql>       select object_id as itemId, sum(requests) as itemRequests       from _1_object_statistics       where object_id = {object_id} and handler=''ItemHandler'' and request=''retrieve'' group by object_id;  </sql> </report-definition>',",
                 " scope_id=2 WHERE id=4;"));
-        executedSqlCommand(StringUtility
+        executeSqlCommand(StringUtility
             .concatenateToString(
                 "UPDATE sm.report_definitions",
                 " SET id=5, xml='<?xml version=\"1.0\" encoding=\"UTF-8\"?><report-definition xmlns=\"http://www.escidoc.de/schemas/reportdefinition/0.3\" objid=\"5\">    <name>File downloads per Item, all users</name>  <scope objid=\"2\" />    <sql>       select parent_object_id as itemId, sum(requests)    as fileRequests from _1_object_statistics       where parent_object_id = {object_id} and handler=''ItemHandler'' and request=''retrieveContent'' group by parent_object_id; </sql> </report-definition>',",
                 " scope_id=2  WHERE id=5;"));
-        executedSqlCommand(StringUtility
+        executeSqlCommand(StringUtility
             .concatenateToString(
                 "UPDATE sm.report_definitions",
                 " SET id=6, xml='<?xml version=\"1.0\" encoding=\"UTF-8\"?><report-definition xmlns=\"http://www.escidoc.de/schemas/reportdefinition/0.3\" objid=\"6\">    <name>File downloads, all users</name>  <scope objid=\"2\" /> <sql>       select object_id as fileId, sum(requests) as fileRequests       from _1_object_statistics       where object_id = {object_id} and handler=''ItemHandler'' and request=''retrieveContent'' group by object_id;   </sql> </report-definition>',",
                 " scope_id=2 WHERE id=6;"));
-        executedSqlCommand(StringUtility
+        executeSqlCommand(StringUtility
             .concatenateToString(
                 "INSERT INTO sm.report_definitions",
                 " (id, xml, scope_id) VALUES (7, '<?xml version=\"1.0\" encoding=\"UTF-8\"?><report-definition xmlns=\"http://www.escidoc.de/schemas/reportdefinition/0.3\" objid=\"7\">    <name>Item retrievals, anonymous users</name>  <scope objid=\"2\" />  <sql>       select object_id as itemId, sum(requests) as itemRequests       from _1_object_statistics       where object_id = {object_id} and handler=''ItemHandler'' and request=''retrieve'' and user_id='''' group by object_id; </sql> </report-definition>',",
                 " 2);"));
-        executedSqlCommand(StringUtility
+        executeSqlCommand(StringUtility
             .concatenateToString(
                 "INSERT INTO sm.report_definitions",
                 " (id, xml, scope_id) VALUES (8, '<?xml version=\"1.0\" encoding=\"UTF-8\"?><report-definition xmlns=\"http://www.escidoc.de/schemas/reportdefinition/0.3\" objid=\"8\">    <name>File downloads per Item, anonymous users</name>  <scope objid=\"2\" />  <sql>       select parent_object_id as itemId, sum(requests)    as fileRequests from _1_object_statistics       where parent_object_id = {object_id} and handler=''ItemHandler'' and request=''retrieveContent'' and user_id='''' group by parent_object_id;    </sql> </report-definition>',",
                 " 2);"));
-        executedSqlCommand(StringUtility
+        executeSqlCommand(StringUtility
             .concatenateToString(
                 "INSERT INTO sm.report_definitions",
                 " (id, xml, scope_id) VALUES (9, '<?xml version=\"1.0\" encoding=\"UTF-8\"?><report-definition xmlns=\"http://www.escidoc.de/schemas/reportdefinition/0.3\" objid=\"9\">    <name>File downloads, anonymous users</name>  <scope objid=\"2\" />   <sql>       select object_id as fileId, sum(requests) as fileRequests       from _1_object_statistics       where object_id = {object_id} and handler=''ItemHandler'' and request=''retrieveContent'' and user_id='''' group by object_id;  </sql> </report-definition>',",
@@ -208,27 +411,24 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
     private void migrateRolesAndPolicies() {
 
         log.info("Migrating table escidoc_role");
-        executedSqlCommand(StringUtility.concatenateToString(
-            "ALTER TABLE aa.escidoc_role", " DROP COLUMN creator_title"));
-        executedSqlCommand(StringUtility.concatenateToString(
-            "ALTER TABLE aa.escidoc_role", " DROP COLUMN modified_by_title"));
-        executedSqlCommand(StringUtility.concatenateToString(
-            "ALTER TABLE aa.escidoc_role",
-            " ADD CONSTRAINT FK_ROLE_CREATED_BY FOREIGN KEY (creator_id)",
-            " REFERENCES aa.user_account"));
-        executedSqlCommand(StringUtility.concatenateToString(
-            "ALTER TABLE aa.escidoc_role",
-            " ADD CONSTRAINT FK_ROLE_MODIFIED_BY FOREIGN KEY (modified_by_id)",
-            " REFERENCES aa.user_account"));
+        // creator_title and modified_by_title have been dropped from table
+        final List<String> toBeDropped = new ArrayList<String>(2);
+        toBeDropped.add("creator_title");
+        toBeDropped.add("modified_by_title");
+        copyTableData("aa.escidoc_role", toBeDropped);
 
         log.info("Migrating table escidoc_policies");
         try {
+            copyTableData("aa.escidoc_policies", null);
             executeSqlScript("aa.update.policies-xml.sql");
         }
         catch (IOException e) {
             // FIXME: Exception handling
             throw new RuntimeException(e);
         }
+
+        copyTableData("aa.scope_def", null);
+
         // some attributes have been renamed, xml of policies have to be changed
         // FIXME: action ids have been changed, too.
         final List<Map<String, Object>> policiesData =
@@ -246,7 +446,7 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
                     PATTERN_UPDATE_CMM_ACTIONS.matcher(newXml);
                 if (matcher2.groupCount() > 0) {
                     newXml = matcher2.replaceAll("$1model");
-                    executedSqlCommand(StringUtility.concatenateToString(
+                    executeSqlCommand(StringUtility.concatenateToString(
                         "UPDATE aa.escidoc_policies SET xml = '", newXml,
                         "' WHERE id = '", id, "';"));
                 }
@@ -259,58 +459,21 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
      */
     private void migrateActionsAndMethodMappings() {
 
-        log.info("Dropping table policy_actions");
-        executedSqlCommand("DROP TABLE aa.policy_actions;");
-
-        log.info("Migrating table action");
         // action ids have been renamed from ...-content-type to
         // ...-content-model
         // FIXME: changes needed?
 
-        executedSqlCommand("DROP TABLE aa.actions;");
-        executedSqlCommand(StringUtility.concatenateToString(
-            "CREATE TABLE aa.actions ( id VARCHAR(255) NOT NULL,",
-            "name VARCHAR(255) NOT NULL,",
-            "CONSTRAINT actions_pkey PRIMARY KEY(id)) WITH OIDS;"));
-        try {
-            executeSqlScript("aa.init.actions.sql");
-        }
-        catch (IOException e) {
-            // FIXME: Exception handling
-            throw new RuntimeException(e);
-        }
-
-        log.info("Migrating tables method-mappings and invocation_mappings");
+        log
+            .info("Migrating tables action, method-mappings and invocation_mappings");
         // These tables should not be changed by anyone as action is no
         // resource.
-        // Therefore, the tables are dropped and new created and initialized.
-        executedSqlCommand("DROP TABLE aa.invocation_mappings;");
-        executedSqlCommand("DROP TABLE aa.method_mappings;");
-        executedSqlCommand(StringUtility.concatenateToString(
-            "CREATE TABLE aa.method_mappings (", "id VARCHAR(255) NOT NULL,",
-            "class_name VARCHAR(255) NOT NULL,",
-            "method_name VARCHAR(255) NOT NULL,",
-            "action_name VARCHAR(255) NOT NULL,", "before BOOLEAN NOT NULL,",
-            "single_resource BOOLEAN NOT NULL,",
-            "resource_not_found_exception TEXT,",
-            "CONSTRAINT method_mappings_pkey PRIMARY KEY(id)) WITH OIDS;", "",
-            "CREATE TABLE aa.invocation_mappings (",
-            "id VARCHAR(255) NOT NULL,", "attribute_id TEXT NOT NULL,",
-            "path VARCHAR(100) NOT NULL,", "position NUMERIC(2,0) NOT NULL,",
-            "attribute_type VARCHAR(255) NOT NULL,",
-            "mapping_type NUMERIC(2,0) NOT NULL,",
-            "multi_value boolean NOT NULL,", "value VARCHAR(100) NULL,",
-            "method_mapping VARCHAR(255) NULL,",
-            "CONSTRAINT invocation_mappings_pkey PRIMARY KEY(id),",
-            "CONSTRAINT invocation_mappings_fkey FOREIGN KEY",
-            " (method_mapping) REFERENCES aa.method_mappings) WITH OIDS;"));
-
+        // Therefore, the tables are initialized from a script.
         try {
+            executeSqlScript("aa.init.actions.sql");
             executeSqlScript("aa.init.method-mappings.aa.sql");
             executeSqlScript("aa.init.method-mappings.cmm.sql");
             executeSqlScript("aa.init.method-mappings.om.container.sql");
             executeSqlScript("aa.init.method-mappings.om.context.sql");
-            executeSqlScript("aa.init.method-mappings.om.indexer.sql");
             executeSqlScript("aa.init.method-mappings.om.item.sql");
             executeSqlScript("aa.init.method-mappings.om.semantic-store.sql");
             executeSqlScript("aa.init.method-mappings.oum.sql");
@@ -349,7 +512,7 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
         while (c != -1) {
             cmd.append((char) c);
             if (c == ';') {
-                executedSqlCommand(cmd.toString());
+                executeSqlCommand(cmd.toString());
                 cmd = new StringBuffer();
             }
             c = resource.read();
@@ -362,9 +525,19 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
      * @param command
      *            The command to execute.
      */
-    private void executedSqlCommand(final String command) {
+    private void executeSqlCommand(final String command) {
 
         log.debug(command);
         getJdbcTemplate().execute(command);
+    }
+
+    /**
+     * Injects the reader of the original database.
+     * 
+     * @param reader
+     *            the reader to inject.
+     */
+    public void setReader(final SourceDbReaderInterface reader) {
+        this.reader = reader;
     }
 }
