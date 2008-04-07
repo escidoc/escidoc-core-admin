@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" fedoraxsi:schemaLocation="info:fedora/fedora-system:def/foxml# http://www.fedora.info/definitions/1/0/foxml1-0.xsd" xmlns:audit="info:fedora/fedora-system:def/audit#" xmlns:fedoraxsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:foxml="info:fedora/fedora-system:def/foxml#" xmlns:organizational-unit="http://www.escidoc.de/schemas/organizationalunit/0.3" xmlns:escidocRelations="http://www.nsdl.org/ontologies/relationships/" xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" 
 xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" exclude-result-prefixes="fedoraxsi xsl rdf audit">
+	<xsl:import href="contentDigest.xsl" />
 	<xsl:output encoding="utf-8" method="xml"/>
 	<!-- <xsl:template match="/">
 		<xsl:call-template name="ouTemplate" />
@@ -35,11 +36,7 @@ xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" exclude-result-prefixes=
 										<xsl:attribute name="ID" select="concat('escidoc.',$counter)"/>
 										<xsl:attribute name="LABEL" select="''"/>
 										<xsl:attribute name="MIMETYPE" select="'text/xml'"/>
-										<xsl:element name="foxml:contentDigest" namespace="info:fedora/fedora-system:def/foxml#">
-											<xsl:for-each select="foxml:contentDigest/@*">
-												<xsl:copy/>
-											</xsl:for-each>
-										</xsl:element>
+										<xsl:call-template name="contentDigestTemplate" />
 										<xsl:element name="foxml:xmlContent" namespace="info:fedora/fedora-system:def/foxml#">
 											<xsl:element name="ou:ou" namespace="http://www.escidoc.de/metadata/organizational-unit">
 												<xsl:for-each select="foxml:xmlContent/organizational-unit:organization-details/*">
@@ -113,11 +110,7 @@ xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" exclude-result-prefixes=
 										<xsl:attribute name="ID" select="concat('DC.',$counter)"/>
 										<xsl:attribute name="LABEL" select="''"/>
 										<xsl:attribute name="MIMETYPE" select="'text/xml'"/>
-										<xsl:element name="foxml:contentDigest" namespace="info:fedora/fedora-system:def/foxml#">
-											<xsl:for-each select="foxml:contentDigest/@*">
-												<xsl:copy/>
-											</xsl:for-each>
-										</xsl:element>
+										<xsl:import href="contentDigest.xsl" />
 										<xsl:element name="foxml:xmlContent" namespace="info:fedora/fedora-system:def/foxml#">
 											<xsl:element name="oai_dc:dc" namespace="http://www.openarchives.org/OAI/2.0/oai_dc/">
 												
@@ -167,11 +160,7 @@ xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" exclude-result-prefixes=
 											<xsl:copy/>
 										</xsl:for-each>
 										<!-- diesen Tag original übernehmen -->
-										<xsl:element name="foxml:contentDigest" namespace="info:fedora/fedora-system:def/foxml#">
-											<xsl:for-each select="foxml:contentDigest/@*">
-												<xsl:copy/>
-											</xsl:for-each>
-										</xsl:element>
+										<xsl:import href="contentDigest.xsl" />
 										<xsl:element name="foxml:xmlContent" namespace="info:fedora/fedora-system:def/foxml#">
 											<xsl:element name="rdf:RDF" namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
 												<xsl:namespace name="rdfs">http://www.w3.org/2000/01/rdf-schema#</xsl:namespace>
