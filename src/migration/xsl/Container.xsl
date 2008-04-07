@@ -192,9 +192,6 @@
 									namespace="info:fedora/fedora-system:def/foxml#">
 									<xsl:element name="rdf:RDF"
 										namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-										<xsl:namespace name="rdfs">
-											http://www.w3.org/2000/01/rdf-schema#
-										</xsl:namespace>
 										<xsl:element
 											name="rdf:Description"
 											namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
