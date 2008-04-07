@@ -96,7 +96,7 @@
 									<xsl:choose>
 										<xsl:when test="$name = 'ID'">
 											<xsl:attribute
-												name="TYPE">version-history.1</xsl:attribute>
+												name="ID">version-history.1</xsl:attribute>
 										</xsl:when>
 										<xsl:otherwise>
 											<xsl:attribute
