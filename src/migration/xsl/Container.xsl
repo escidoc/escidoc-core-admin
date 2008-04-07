@@ -11,31 +11,145 @@
 	xmlns:types="http://escidoc.mpg.de/metadataprofile/schema/0.1/types"
 	xmlns:dcterms="http://purl.org/dc/terms/"
 	exclude-result-prefixes="fedoraxsi xsl types rdf dcterms audit">
+	<xsl:import href="ElementWithCorrectContentDigest.xsl" />
+	<xsl:import href="contentDigest.xsl" />
 	<xsl:output encoding="utf-8" method="xml" />
 	<!--  
-	<xsl:template match="/">
-
+		<xsl:template match="/">
+		
 		<xsl:call-template name="containerTemplate" />
-	</xsl:template>
+		</xsl:template>
 	-->
 	<xsl:template name="containerTemplate">
-		
-				<!-- hier wird das neue XML erzeugt -->
-				<xsl:for-each select="foxml:datastream">
-					<xsl:choose>
-						<!-- bereits im Ausgangsdokument enthaltene Ergebnis-Tags ignorieren -->
-						<xsl:when
-							test="foxml:datastreamVersion/foxml:xmlContent/oai_dc:dc" />
-						<xsl:when test="@ID='escidoc'">
-							<xsl:element name="foxml:datastream"
+
+		<!-- hier wird das neue XML erzeugt -->
+		<xsl:for-each select="foxml:datastream">
+			<xsl:choose>
+				<!-- bereits im Ausgangsdokument enthaltene Ergebnis-Tags ignorieren -->
+				<xsl:when
+					test="foxml:datastreamVersion/foxml:xmlContent/oai_dc:dc" />
+				<xsl:when test="@ID='escidoc'">
+					<xsl:element name="foxml:datastream"
+						namespace="info:fedora/fedora-system:def/foxml#">
+						<xsl:for-each select="@*">
+							<xsl:variable name="name"
+								select="local-name()" />
+							<!-- die ID muss hier analog zum Tagging in datastreamVersion in DC geändert werden, die restlichen Attribute übernehmen -->
+							<xsl:choose>
+								<xsl:when test="$name = 'ID'">
+									<xsl:attribute name="ID">DC</xsl:attribute>
+								</xsl:when>
+								<xsl:otherwise>
+									<xsl:attribute name="{$name}"><xsl:value-of
+											select="." />
+											</xsl:attribute>
+								</xsl:otherwise>
+							</xsl:choose>
+						</xsl:for-each>
+						<xsl:for-each
+							select="foxml:datastreamVersion">
+							<xsl:variable name="counter"
+								select="position() -1" />
+							<!-- zunächst XML umbauen -->
+							<xsl:element name="foxml:datastreamVersion"
 								namespace="info:fedora/fedora-system:def/foxml#">
+								<xsl:attribute name="CREATED"
+									select="@CREATED" />
+								<xsl:attribute name="ID"
+									select="concat('DC.',$counter)" />
+								<xsl:attribute name="LABEL" select="''" />
+								<xsl:attribute name="MIMETYPE"
+									select="'text/xml'" />
+								<xsl:call-template name="contentDigestTemplate" />
+								<xsl:element name="foxml:xmlContent"
+									namespace="info:fedora/fedora-system:def/foxml#">
+
+									<xsl:for-each
+										select="foxml:xmlContent">
+										<xsl:choose>
+											<xsl:when
+												test="*[namespace-uri() = 'http://escidoc.mpg.de/metadataprofile/schema/0.1/']">
+												<xsl:call-template
+													name="mpdlMapping" />
+											</xsl:when>
+											<xsl:otherwise>
+												<xsl:call-template
+													name="genericMapping" />
+											</xsl:otherwise>
+										</xsl:choose>
+									</xsl:for-each>
+								</xsl:element>
+							</xsl:element>
+						</xsl:for-each>
+					</xsl:element>
+					<!-- escidoc data stream einfach kopieren -->
+					<xsl:call-template name="elementWithCorrectContentDigestTemplate" />
+				</xsl:when>
+				<xsl:when test="@ID='content-model-specific'">
+					<xsl:copy copy-namespaces="no">
+						<xsl:for-each select="@*">
+							<xsl:copy />
+						</xsl:for-each>
+						<xsl:for-each
+							select="foxml:datastreamVersion">
+							<xsl:copy copy-namespaces="no">
+								<xsl:for-each select="@*">
+									<xsl:copy />
+								</xsl:for-each>
+								<xsl:call-template name="contentDigestTemplate" />
+								<xsl:element name="foxml:xmlContent"
+									namespace="info:fedora/fedora-system:def/foxml#">
+									<xsl:for-each
+										select="foxml:xmlContent/*">
+										<xsl:element
+											name="prop:content-model-specific"
+											namespace="http://escidoc.de/core/01/properties/">
+											<xsl:for-each select="@*">
+												<xsl:copy />
+											</xsl:for-each>
+											<xsl:copy-of select="*"
+												copy-namespaces="no" />
+										</xsl:element>
+
+									</xsl:for-each>
+								</xsl:element>
+
+
+							</xsl:copy>
+						</xsl:for-each>
+					</xsl:copy>
+
+
+				</xsl:when>
+				<xsl:when test="@ID='version-history'">
+					<xsl:copy copy-namespaces="no">
+						<xsl:for-each select="@*">
+							<xsl:variable name="name"
+								select="local-name()" />
+							<!-- das Attribute "TYPE" muss auf dem Wert "DISABLED" gesetzt werden -->
+							<xsl:choose>
+								<xsl:when
+									test="$name = 'VERSIONABLE'">
+									<xsl:attribute name="VERSIONABLE">false</xsl:attribute>
+								</xsl:when>
+								<xsl:otherwise>
+									<xsl:attribute name="{$name}"><xsl:value-of
+											select="." />
+											</xsl:attribute>
+								</xsl:otherwise>
+							</xsl:choose>
+						</xsl:for-each>
+						<xsl:for-each
+							select="foxml:datastreamVersion[position()= last()]">
+							<xsl:copy copy-namespaces="no">
 								<xsl:for-each select="@*">
 									<xsl:variable name="name"
 										select="local-name()" />
-									<!-- die ID muss hier analog zum Tagging in datastreamVersion in DC geändert werden, die restlichen Attribute übernehmen -->
+									<!-- das Attribute "TYPE" muss auf dem Wert "DISABLED" gesetzt werden -->
 									<xsl:choose>
 										<xsl:when test="$name = 'ID'">
-											<xsl:attribute name="ID">DC</xsl:attribute>
+											<xsl:attribute
+												name="TYPE">version-history.1</xsl:attribute>
 										</xsl:when>
 										<xsl:otherwise>
 											<xsl:attribute
@@ -45,350 +159,258 @@
 										</xsl:otherwise>
 									</xsl:choose>
 								</xsl:for-each>
+								<xsl:call-template name="contentDigestTemplate" />
 								<xsl:for-each
-									select="foxml:datastreamVersion">
-									<xsl:variable name="counter"
-										select="position() -1" />
-									<!-- zunächst XML umbauen -->
-									<xsl:element
-										name="foxml:datastreamVersion"
-										namespace="info:fedora/fedora-system:def/foxml#">
-										<xsl:attribute name="CREATED"
-											select="@CREATED" />
-										<xsl:attribute name="ID"
-											select="concat('DC.',$counter)" />
-										<xsl:attribute name="LABEL"
-											select="''" />
-										<xsl:attribute name="MIMETYPE"
-											select="'text/xml'" />
-										<xsl:element
-											name="foxml:contentDigest"
-											namespace="info:fedora/fedora-system:def/foxml#">
-											<xsl:for-each
-												select="foxml:contentDigest/@*">
-												<xsl:copy />
-											</xsl:for-each>
-										</xsl:element>
-										<xsl:element
-											name="foxml:xmlContent"
-											namespace="info:fedora/fedora-system:def/foxml#">
-
-											<xsl:for-each
-												select="foxml:xmlContent">
-												<xsl:choose>
-													<xsl:when
-														test="*[namespace-uri() = 'http://escidoc.mpg.de/metadataprofile/schema/0.1/']">
-														<xsl:call-template
-															name="mpdlMapping" />
-													</xsl:when>
-													<xsl:otherwise>
-														<xsl:call-template
-															name="genericMapping" />
-													</xsl:otherwise>
-												</xsl:choose>
-											</xsl:for-each>
-										</xsl:element>
-									</xsl:element>
-								</xsl:for-each>
-							</xsl:element>
-							<!-- escidoc data stream einfach kopieren -->
-							<xsl:copy-of select="."
-								copy-namespaces="no" />
-						</xsl:when>
-						<xsl:when test="@ID='content-model-specific'">
-							<xsl:copy copy-namespaces="no">
-								<xsl:for-each select="@*">
-									<xsl:copy />
-								</xsl:for-each>
-								<xsl:for-each
-									select="foxml:datastreamVersion">
-									<xsl:copy copy-namespaces="no">
-										<xsl:for-each select="@*">
-											<xsl:copy />
-										</xsl:for-each>
-										<xsl:copy-of
-											select="foxml:contentDigest" copy-namespaces="no" />
-										
-											<xsl:element
-												name="foxml:xmlContent"
-												namespace="info:fedora/fedora-system:def/foxml#">
-												<xsl:for-each
-													select="foxml:xmlContent/*">
-													<xsl:element
-														name="prop:content-model-specific"
-														namespace="http://escidoc.de/core/01/properties/">
-														<xsl:for-each
-															select="@*">
-															<xsl:copy />
-														</xsl:for-each>
-														<xsl:copy-of
-															select="*" copy-namespaces="no" />
-													</xsl:element>
-
-												</xsl:for-each>
-											</xsl:element>
-										
-
-									</xsl:copy>
+									select="*[local-name() != 'contentDigest']">
+									<xsl:copy-of select="."
+										copy-namespaces="no" />
 								</xsl:for-each>
 							</xsl:copy>
+						</xsl:for-each>
+					</xsl:copy>
 
-
-						</xsl:when>
-						<xsl:when test="@ID='version-history'">
-							<xsl:copy-of select="."
-								copy-namespaces="no" />
-						</xsl:when>
-						<xsl:when
-							test="foxml:datastreamVersion/foxml:xmlContent/rdf:RDF">
-							<xsl:element name="foxml:datastream"
+				</xsl:when>
+				<xsl:when
+					test="foxml:datastreamVersion/foxml:xmlContent/rdf:RDF">
+					<xsl:element name="foxml:datastream"
+						namespace="info:fedora/fedora-system:def/foxml#">
+						<!-- Attribute übernehmen -->
+						<xsl:for-each select="@*">
+							<xsl:copy />
+						</xsl:for-each>
+						<xsl:for-each
+							select="foxml:datastreamVersion">
+							<!--  dann das Tagging teilweise original übernehmen -->
+							<xsl:element name="foxml:datastreamVersion"
 								namespace="info:fedora/fedora-system:def/foxml#">
 								<!-- Attribute übernehmen -->
 								<xsl:for-each select="@*">
 									<xsl:copy />
 								</xsl:for-each>
-								<xsl:for-each
-									select="foxml:datastreamVersion">
-									<!--  dann das Tagging teilweise original übernehmen -->
-									<xsl:element
-										name="foxml:datastreamVersion"
-										namespace="info:fedora/fedora-system:def/foxml#">
-										<!-- Attribute übernehmen -->
-										<xsl:for-each select="@*">
-											<xsl:copy />
-										</xsl:for-each>
-										<!-- diesen Tag original übernehmen -->
+								<xsl:call-template name="contentDigestTemplate" />
+								<xsl:element name="foxml:xmlContent"
+									namespace="info:fedora/fedora-system:def/foxml#">
+									<xsl:element name="rdf:RDF"
+										namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+										<xsl:namespace name="rdfs">
+											http://www.w3.org/2000/01/rdf-schema#
+										</xsl:namespace>
 										<xsl:element
-											name="foxml:contentDigest"
-											namespace="info:fedora/fedora-system:def/foxml#">
+											name="rdf:Description"
+											namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+											<xsl:attribute
+												name="rdf:about"
+												namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><xsl:value-of
+													select="foxml:xmlContent/rdf:RDF/rdf:Description/@rdf:about" />
+													</xsl:attribute>
 											<xsl:for-each
-												select="foxml:contentDigest/@*">
-												<xsl:copy />
+												select="foxml:xmlContent/rdf:RDF/rdf:Description/*">
+												<xsl:variable
+													name="name" select="local-name()" />
+												<xsl:variable
+													name="fullname" select="name()" />
+												<xsl:if
+													test="starts-with($fullname,'nsCR')">
+													<xsl:copy-of
+														select="." copy-namespaces="no" />
+												</xsl:if>
+												<xsl:if
+													test="$name='hasMember'">
+													<xsl:element
+														name="srel:member"
+														namespace="http://escidoc.de/core/01/structural-relations/">
+														<xsl:attribute
+															name="rdf:resource"
+															namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><xsl:value-of
+																select="@rdf:resource" />
+																</xsl:attribute>
+													</xsl:element>
+												</xsl:if>
+												<xsl:if
+													test="$name='public-status'">
+													<xsl:element
+														name="prop:public-status"
+														namespace="http://escidoc.de/core/01/properties/">
+														<xsl:value-of
+															select="." />
+													</xsl:element>
+												</xsl:if>
+												<xsl:if
+													test="$name='context-title'">
+													<xsl:element
+														name="prop:context-title"
+														namespace="http://escidoc.de/core/01/properties/">
+														<xsl:value-of
+															select="." />
+													</xsl:element>
+												</xsl:if>
+												<xsl:if
+													test="$name='context'">
+													<xsl:element
+														name="srel:context"
+														namespace="http://escidoc.de/core/01/structural-relations/">
+														<xsl:attribute
+															name="rdf:resource"
+															namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><xsl:value-of
+																select="@rdf:resource" />
+																</xsl:attribute>
+													</xsl:element>
+												</xsl:if>
+												<xsl:if
+													test="$name='content-model-title'">
+													<xsl:element
+														name="prop:content-model-title"
+														namespace="http://escidoc.de/core/01/properties/">
+														<xsl:value-of
+															select="." />
+													</xsl:element>
+												</xsl:if>
+												<xsl:if
+													test="$name='content-model'">
+													<xsl:element
+														name="srel:content-model"
+														namespace="http://escidoc.de/core/01/structural-relations/">
+														<xsl:attribute
+															name="rdf:resource"
+															namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><xsl:value-of
+																select="@rdf:resource" />
+																</xsl:attribute>
+													</xsl:element>
+												</xsl:if>
+												<xsl:if
+													test="$name='created-by'">
+													<xsl:element
+														name="srel:created-by"
+														namespace="http://escidoc.de/core/01/structural-relations/">
+														<xsl:attribute
+															name="rdf:resource"
+															namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><xsl:value-of
+																select="@rdf:resource" />
+																</xsl:attribute>
+													</xsl:element>
+												</xsl:if>
+												<xsl:if
+													test="$name='latest-version.user'">
+													<xsl:element
+														name="srel:modified-by"
+														namespace="http://escidoc.de/core/01/structural-relations/">
+														<xsl:attribute
+															name="rdf:resource"
+															namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#">info:fedora/<xsl:value-of
+																select="." />
+																</xsl:attribute>
+													</xsl:element>
+												</xsl:if>
+												<xsl:if
+													test="$name='latest-version.user.title'">
+													<xsl:element
+														name="prop:modified-by-title"
+														namespace="http://escidoc.de/core/01/properties/">
+														<xsl:value-of
+															select="." />
+													</xsl:element>
+												</xsl:if>
+												<xsl:if
+													test="$name='created-by-title'">
+													<xsl:element
+														name="prop:created-by-title"
+														namespace="http://escidoc.de/core/01/properties/">
+														<xsl:value-of
+															select="." />
+													</xsl:element>
+												</xsl:if>
+												<xsl:if
+													test="$name='objectType'">
+													<xsl:element
+														name="rdf:type"
+														namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+														<xsl:attribute
+															name="rdf:resource"
+															namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#">http://escidoc.de/core/01/resources/Container</xsl:attribute>
+													</xsl:element>
+												</xsl:if>
+												<xsl:if
+													test="$name='latest-version.date'">
+													<xsl:element
+														name="version:date"
+														namespace="http://escidoc.de/core/01/properties/version/">
+														<xsl:value-of
+															select="." />
+													</xsl:element>
+												</xsl:if>
+												<xsl:if
+													test="$name='latest-version.number'">
+													<xsl:element
+														name="version:number"
+														namespace="http://escidoc.de/core/01/properties/version/">
+														<xsl:value-of
+															select="." />
+													</xsl:element>
+												</xsl:if>
+												<xsl:if
+													test="$name='latest-version.status'">
+													<xsl:element
+														name="version:status"
+														namespace="http://escidoc.de/core/01/properties/version/">
+														<xsl:value-of
+															select="." />
+													</xsl:element>
+												</xsl:if>
+												<xsl:if
+													test="$name='latest-version.comment'">
+													<xsl:element
+														name="version:comment"
+														namespace="http://escidoc.de/core/01/properties/version/">
+														<xsl:value-of
+															select="." />
+													</xsl:element>
+												</xsl:if>
+												<xsl:if
+													test="$name='latest-release.pid'">
+													<xsl:element
+														name="release:pid"
+														namespace="http://escidoc.de/core/01/properties/release/">
+														<xsl:value-of
+															select="." />
+													</xsl:element>
+												</xsl:if>
+												<xsl:if
+													test="$name='latest-release.number'">
+													<xsl:element
+														name="release:number"
+														namespace="http://escidoc.de/core/01/properties/release/">
+														<xsl:value-of
+															select="." />
+													</xsl:element>
+												</xsl:if>
+												<xsl:if
+													test="$name='latest-release.date'">
+													<xsl:element
+														name="release:date"
+														namespace="http://escidoc.de/core/01/properties/release/">
+														<xsl:value-of
+															select="." />
+													</xsl:element>
+												</xsl:if>
+												<xsl:if
+													test="$name='pid'">
+													<xsl:element
+														name="prop:pid"
+														namespace="http://escidoc.de/core/01/properties/">
+														<xsl:value-of
+															select="." />
+													</xsl:element>
+												</xsl:if>
 											</xsl:for-each>
 										</xsl:element>
-										<xsl:element
-											name="foxml:xmlContent"
-											namespace="info:fedora/fedora-system:def/foxml#">
-											<xsl:element name="rdf:RDF"
-												namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-												<xsl:namespace
-													name="rdfs">http://www.w3.org/2000/01/rdf-schema#</xsl:namespace>
-												<xsl:element
-													name="rdf:Description"
-													namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-													<xsl:attribute
-														name="rdf:about"
-														namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><xsl:value-of
-															select="foxml:xmlContent/rdf:RDF/rdf:Description/@rdf:about" />
-													</xsl:attribute>
-													<xsl:for-each
-														select="foxml:xmlContent/rdf:RDF/rdf:Description/*">
-														<xsl:variable
-															name="name" select="local-name()" />
-															<xsl:variable
-															name="fullname" select="name()" />
-															<xsl:if
-															test="starts-with($fullname,'nsCR')">
-															<xsl:copy-of
-															select="." copy-namespaces="no" />
-															</xsl:if>
-														<xsl:if
-															test="$name='hasMember'">
-															<xsl:element
-																name="srel:member"
-																namespace="http://escidoc.de/core/01/structural-relations/">
-																<xsl:attribute
-																	name="rdf:resource"
-																	namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><xsl:value-of
-																		select="@rdf:resource" />
-																</xsl:attribute>
-															</xsl:element>
-														</xsl:if>
-														<xsl:if
-															test="$name='public-status'">
-															<xsl:element
-																name="prop:public-status"
-																namespace="http://escidoc.de/core/01/properties/">
-																<xsl:value-of
-																	select="." />
-															</xsl:element>
-														</xsl:if>
-														<xsl:if
-															test="$name='context-title'">
-															<xsl:element
-																name="prop:context-title"
-																namespace="http://escidoc.de/core/01/properties/">
-																<xsl:value-of
-																	select="." />
-															</xsl:element>
-														</xsl:if>
-														<xsl:if
-															test="$name='context'">
-															<xsl:element
-																name="srel:context"
-																namespace="http://escidoc.de/core/01/structural-relations/">
-																<xsl:attribute
-																	name="rdf:resource"
-																	namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><xsl:value-of
-																		select="@rdf:resource" />
-																</xsl:attribute>
-															</xsl:element>
-														</xsl:if>
-														<xsl:if
-															test="$name='content-model-title'">
-															<xsl:element
-																name="prop:content-model-title"
-																namespace="http://escidoc.de/core/01/properties/">
-																<xsl:value-of
-																	select="." />
-															</xsl:element>
-														</xsl:if>
-														<xsl:if
-															test="$name='content-model'">
-															<xsl:element
-																name="srel:content-model"
-																namespace="http://escidoc.de/core/01/structural-relations/">
-																<xsl:attribute
-																	name="rdf:resource"
-																	namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><xsl:value-of
-																		select="@rdf:resource" />
-																</xsl:attribute>
-															</xsl:element>
-														</xsl:if>
-														<xsl:if
-															test="$name='created-by'">
-															<xsl:element
-																name="srel:created-by"
-																namespace="http://escidoc.de/core/01/structural-relations/">
-																<xsl:attribute
-																	name="rdf:resource"
-																	namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><xsl:value-of
-																		select="@rdf:resource" />
-																</xsl:attribute>
-															</xsl:element>
-														</xsl:if>
-														<xsl:if
-															test="$name='latest-version.user'">
-															<xsl:element
-																name="srel:modified-by"
-																namespace="http://escidoc.de/core/01/structural-relations/">
-																<xsl:attribute
-																	name="rdf:resource"
-																	namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#">info:fedora/<xsl:value-of
-																		select="." />
-																</xsl:attribute>
-															</xsl:element>
-														</xsl:if>
-														<xsl:if
-															test="$name='latest-version.user.title'">
-															<xsl:element
-																name="prop:modified-by-title"
-																namespace="http://escidoc.de/core/01/properties/">
-																<xsl:value-of
-																	select="." />
-															</xsl:element>
-														</xsl:if>
-														<xsl:if
-															test="$name='created-by-title'">
-															<xsl:element
-																name="prop:created-by-title"
-																namespace="http://escidoc.de/core/01/properties/">
-																<xsl:value-of
-																	select="." />
-															</xsl:element>
-														</xsl:if>
-														<xsl:if
-															test="$name='objectType'">
-															<xsl:element
-																name="rdf:type"
-																namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-																<xsl:attribute
-																	name="rdf:resource"
-																	namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#">http://escidoc.de/core/01/resources/Container</xsl:attribute>
-															</xsl:element>
-														</xsl:if>
-														<xsl:if
-															test="$name='latest-version.date'">
-															<xsl:element
-																name="version:date"
-																namespace="http://escidoc.de/core/01/properties/version/">
-																<xsl:value-of
-																	select="." />
-															</xsl:element>
-														</xsl:if>
-														<xsl:if
-															test="$name='latest-version.number'">
-															<xsl:element
-																name="version:number"
-																namespace="http://escidoc.de/core/01/properties/version/">
-																<xsl:value-of
-																	select="." />
-															</xsl:element>
-														</xsl:if>
-														<xsl:if
-															test="$name='latest-version.status'">
-															<xsl:element
-																name="version:status"
-																namespace="http://escidoc.de/core/01/properties/version/">
-																<xsl:value-of
-																	select="." />
-															</xsl:element>
-														</xsl:if>
-														<xsl:if
-															test="$name='latest-version.comment'">
-															<xsl:element
-																name="version:comment"
-																namespace="http://escidoc.de/core/01/properties/version/">
-																<xsl:value-of
-																	select="." />
-															</xsl:element>
-														</xsl:if>
-														<xsl:if
-															test="$name='latest-release.pid'">
-															<xsl:element
-																name="release:pid"
-																namespace="http://escidoc.de/core/01/properties/release/">
-																<xsl:value-of
-																	select="." />
-															</xsl:element>
-														</xsl:if>
-														<xsl:if
-															test="$name='latest-release.number'">
-															<xsl:element
-																name="release:number"
-																namespace="http://escidoc.de/core/01/properties/release/">
-																<xsl:value-of
-																	select="." />
-															</xsl:element>
-														</xsl:if>
-														<xsl:if
-															test="$name='latest-release.date'">
-															<xsl:element
-																name="release:date"
-																namespace="http://escidoc.de/core/01/properties/release/">
-																<xsl:value-of
-																	select="." />
-															</xsl:element>
-														</xsl:if>
-														<xsl:if
-															test="$name='pid'">
-															<xsl:element
-																name="prop:pid"
-																namespace="http://escidoc.de/core/01/properties/">
-																<xsl:value-of
-																	select="." />
-															</xsl:element>
-														</xsl:if>
-													</xsl:for-each>
-												</xsl:element>
-											</xsl:element>
-										</xsl:element>
 									</xsl:element>
-								</xsl:for-each>
+								</xsl:element>
 							</xsl:element>
-						</xsl:when>
-					</xsl:choose>
-				</xsl:for-each>
+						</xsl:for-each>
+					</xsl:element>
+				</xsl:when>
+			</xsl:choose>
+		</xsl:for-each>
 	</xsl:template>
 	<xsl:template name="mpdlMapping">
 		<xsl:element name="oai_dc:dc"
@@ -578,6 +600,6 @@
 			</oai_dc:dc>
 		</xsl:if>
 	</xsl:template>
-	
+
 </xsl:stylesheet>
 
