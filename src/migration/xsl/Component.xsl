@@ -11,6 +11,8 @@
 	xmlns:types="http://escidoc.mpg.de/metadataprofile/schema/0.1/types"
 	xmlns:dcterms="http://purl.org/dc/terms/"
 	exclude-result-prefixes="fedoraxsi xsl types rdf dcterms audit">
+	<xsl:import href="contentDigest.xsl" />
+	<xsl:import href="ElementWithCorrectContentDigest.xsl" />
 	<xsl:output encoding="utf-8" method="xml" />
 	<!--    
 	<xsl:template match="/">
@@ -29,8 +31,7 @@
 						</xsl:when>
 						<xsl:when test="@ID='content'">
 							<!-- escidoc data stream einfach kopieren -->
-							<xsl:copy-of select="."
-								copy-namespaces="no" />
+							<xsl:call-template name="elementWithCorrectContentDigestTemplate" />
 						</xsl:when>
 						<!-- falls RELS-EXT, dann Inhalt anpassen  und DC erzeugen-->
 						<xsl:when
@@ -52,14 +53,7 @@
 											<xsl:copy />
 										</xsl:for-each>
 										<!-- diesen Tag original übernehmen -->
-										<xsl:element
-											name="foxml:contentDigest"
-											namespace="info:fedora/fedora-system:def/foxml#">
-											<xsl:for-each
-												select="foxml:contentDigest/@*">
-												<xsl:copy />
-											</xsl:for-each>
-										</xsl:element>
+										<xsl:call-template name="contentDigestTemplate" />
 										<xsl:element
 											name="foxml:xmlContent"
 											namespace="info:fedora/fedora-system:def/foxml#">
@@ -181,11 +175,7 @@
 										<xsl:attribute name="ID" select="concat('DC.',$counter)"/>
 										<xsl:attribute name="LABEL" select="''"/>
 										<xsl:attribute name="MIMETYPE" select="'text/xml'"/>
-										<xsl:element name="foxml:contentDigest" namespace="info:fedora/fedora-system:def/foxml#">
-											<xsl:for-each select="foxml:contentDigest/@*">
-												<xsl:copy/>
-											</xsl:for-each>
-										</xsl:element>
+											<xsl:call-template name="contentDigestTemplate" />
 										<xsl:element name="foxml:xmlContent" namespace="info:fedora/fedora-system:def/foxml#">
 											<xsl:element name="oai_dc:dc" namespace="http://www.openarchives.org/OAI/2.0/oai_dc/">
 												
