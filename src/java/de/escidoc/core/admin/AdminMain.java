@@ -36,7 +36,6 @@ import org.springframework.beans.factory.access.BeanFactoryLocator;
 import org.springframework.beans.factory.access.SingletonBeanFactoryLocator;
 import org.springframework.transaction.CannotCreateTransactionException;
 
-import de.escidoc.core.admin.business.Reindexer;
 import de.escidoc.core.admin.business.interfaces.DataBaseMigrationInterface;
 import de.escidoc.core.admin.business.interfaces.ReindexerInterface;
 import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException;
@@ -53,10 +52,10 @@ public class AdminMain {
 
     private static AppLogger log = new AppLogger(AdminMain.class.getName());
 
-    private BeanFactoryLocator beanFactoryLocator =
+    private final BeanFactoryLocator beanFactoryLocator =
         SingletonBeanFactoryLocator.getInstance("adminBeanRefFactory.xml");
 
-    private BeanFactory beanFactory =
+    private final BeanFactory beanFactory =
         beanFactoryLocator
             .useBeanFactory("de.escidoc.core.admin.context").getFactory();
 
@@ -107,16 +106,10 @@ public class AdminMain {
         }
         catch (CannotCreateTransactionException e) {
             final StringBuffer errorMsg =
-                StringUtility
-                    .concatenate(
-                        "\nFailed to create transaction for database access.",
-                        "\nPlease check your database settings in your",
-                        " escidoc-core.properties file.",
-                        "\nIf you do not specify your own database settings but",
-                        " use the default values, please note that the default",
-                        "\ndatabase name has been changed to escidoc-core.",
-                        "\nIn this case, please rename your database to escidoc-core",
-                        " before calling the database migration.");
+                StringUtility.concatenate(
+                    "\nFailed to create transaction for database access.",
+                    "\nPlease check your database settings in your",
+                    " admin-tool.properties file.");
             log.error(errorMsg, e);
         }
         catch (Exception e) {
@@ -146,8 +139,8 @@ public class AdminMain {
     }
 
     /**
-     * delete index, get all items and containers that are released 
-     * and put the resourceIds into the indexer message queue.
+     * delete index, get all items and containers that are released and put the
+     * resourceIds into the indexer message queue.
      * 
      * @param args
      */
