@@ -98,62 +98,10 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
      * @throws IntegritySystemException
      * @see de.escidoc.core.admin.business.interfaces.DataBaseMigrationInterface#migrate()
      */
-    public void migrate()
-        throws IntegritySystemException {
+    public void migrate() throws IntegritySystemException {
 
         log.info("Migrating data from original database to new database");
         try {
-
-            // <antcall target="create">
-            // <param name="script" value="aa.init.user-accounts.common.sql"
-            // />
-            // </antcall>
-            // <antcall target="create">
-            // <param name="script" value="aa.init.user-accounts.MPDL.sql" />
-            // </antcall>
-            // <antcall target="create">
-            // <param name="script" value="aa.init.roles.administrator.sql"
-            // />
-            // </antcall>
-            // <antcall target="create">
-            // <param name="script" value="aa.init.roles.default-user.sql" />
-            // </antcall>
-            // <antcall target="create">
-            // <param name="script" value="aa.init.roles.author.sql" />
-            // </antcall>
-            // <antcall target="create">
-            // <param name="script" value="aa.init.roles.depositor.sql" />
-            // </antcall>
-            // <antcall target="create">
-            // <param name="script" value="aa.init.roles.md-editor.sql" />
-            // </antcall>
-            // <antcall target="create">
-            // <param name="script" value="aa.init.roles.moderator.sql" />
-            // </antcall>
-            // <antcall target="create">
-            // <param name="script"
-            // value="aa.init.roles.system-administrator.sql" />
-            // </antcall>
-            // <antcall target="create">
-            // <param name="script"
-            // value="aa.init.roles.system-inspector.sql"
-            // />
-            // </antcall>
-            // <antcall target="create">
-            // <param name="script"
-            // value="aa.init.roles.workflow-manager.sql"
-            // />
-            // </antcall>
-            // <antcall target="create">
-            // <param name="script" value="aa.init.grants.common.sql" />
-            // </antcall>
-            // <antcall target="create">
-            // <param name="script" value="aa.init.grants.MPDL.sql" />
-            // </antcall>
-            // <antcall target="create">
-            // <param name="script" value="aa.init.handles.MPDL.sql" />
-            // </antcall>
-
             // Create Database for Workflow Manager
             executeSqlScript("jbpm.create.sql");
 
@@ -180,10 +128,6 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
             // copy st data
             executeSqlScript("st.create.sql");
             copyTableData("st.staging_file", null);
-
-            // FIXME: remove
-            // throw new RuntimeException("SUCCESS ;-)");
-            // end
 
         }
         catch (IOException e) {

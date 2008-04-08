@@ -36,10 +36,10 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
 <bean id="de.escidoc.core.admin.DataSource"
     class="org.apache.commons.dbcp.BasicDataSource">
     <property name="driverClassName"
-        value="${datasource.driverClassName}" />
-    <property name="url" value="${datasource.url}-core" />
-    <property name="username" value="${datasource.username}" />
-    <property name="password" value="${datasource.password}" />
+        value="${new.datasource.driverClassName}" />
+    <property name="url" value="${new.datasource.url}" />
+    <property name="username" value="${new.datasource.username}" />
+    <property name="password" value="${new.datasource.password}" />
 </bean>
 
 <bean id="de.escidoc.core.admin.ReadertxManager"
@@ -83,11 +83,11 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
 </bean>
 
 <bean
-    id="de.escidoc.core.admin.Reader"
+    id="de.escidoc.core.admin.SourceDbReader"
     parent="de.escidoc.core.admin.ReadertxProxyTemplate">
     <property name="target">
         <bean
-          class="de.escidoc.core.admin.business.Reader">
+          class="de.escidoc.core.admin.business.SourceDbReader">
           <property name="dataSource">
                 <ref bean="de.escidoc.core.admin.ReaderDataSource" />
             </property>
@@ -107,7 +107,7 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
             </property>
             
             <property name="reader">
-                <ref bean="de.escidoc.core.admin.Reader"/>
+                <ref bean="de.escidoc.core.admin.SourceDbReader"/>
             </property>
         </bean>
     </property>
