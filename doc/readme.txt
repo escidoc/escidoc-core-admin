@@ -22,7 +22,8 @@ eSciDoc infrastructure administration tool
           The admin-tool.properties must be placed in the directory from that 
           the admin tool is executed.
 		
-- Tool to migrate the escidoc-core database from build 0.9.0159 to Release 1.0
+- Tool to migrate the escidoc-core database from build 0.9.0159 / 0.9.1.x 
+  to Release 1.0
     
     - Usage:
         - Create new (empty) database as the target of the migration.
