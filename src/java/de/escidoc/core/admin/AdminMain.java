@@ -38,6 +38,7 @@ import org.springframework.transaction.CannotCreateTransactionException;
 
 import de.escidoc.core.admin.business.interfaces.DataBaseMigrationInterface;
 import de.escidoc.core.admin.business.interfaces.ReindexerInterface;
+import de.escidoc.core.admin.common.util.spring.SpringConstants;
 import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException;
 import de.escidoc.core.common.exceptions.system.IntegritySystemException;
 import de.escidoc.core.common.util.logger.AppLogger;
@@ -53,11 +54,11 @@ public class AdminMain {
     private static AppLogger log = new AppLogger(AdminMain.class.getName());
 
     private final BeanFactoryLocator beanFactoryLocator =
-        SingletonBeanFactoryLocator.getInstance("adminBeanRefFactory.xml");
+        SingletonBeanFactoryLocator.getInstance(SpringConstants.BEAN_REF_FACTORY);
 
     private final BeanFactory beanFactory =
         beanFactoryLocator
-            .useBeanFactory("de.escidoc.core.admin.context").getFactory();
+            .useBeanFactory(SpringConstants.ID_APPLICATION_CONTEXT).getFactory();
 
     /**
      * Main Method, depends on args[0] which method is executed.
@@ -96,7 +97,7 @@ public class AdminMain {
 
         DataBaseMigrationInterface dbm =
             (DataBaseMigrationInterface) beanFactory
-                .getBean("de.escidoc.core.admin.DataBaseMigrationTool");
+                .getBean(SpringConstants.ID_DATA_BASE_MIGRATION_TOOL);
         try {
             dbm.migrate();
             log.info("Migration successfully completed.");
@@ -146,8 +147,7 @@ public class AdminMain {
      */
     private void reindex(final String[] args) {
         ReindexerInterface reindexer =
-            (ReindexerInterface) beanFactory
-                .getBean("de.escidoc.core.admin.Reindexer");
+            (ReindexerInterface) beanFactory.getBean(SpringConstants.ID_REINDEXER);
 
         try {
             // Get all released Items

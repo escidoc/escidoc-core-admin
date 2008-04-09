@@ -34,7 +34,8 @@ import java.util.Map;
 import org.springframework.jdbc.core.support.JdbcDaoSupport;
 
 /**
- * This class encapsulates the reading operations on the original database.
+ * This class encapsulates the reading operations on the original (source)
+ * database.
  * 
  * @spring.bean id="de.escidoc.core.admin.Reader"
  * @author TTE
@@ -50,12 +51,18 @@ public class SourceDbReader extends JdbcDaoSupport
      * 
      * @param tableName
      * @return
-     * @see de.escidoc.core.admin.business.SourceDbReaderInterface#retrieveTableData(java.lang.String)
+     * @see de.escidoc.core.admin.business.SourceDbReaderInterface#retrieveTableData(java.lang.String,
+     *      String)
      */
-    public List<Map<String, Object>> retrieveTableData(final String tableName) {
+    public List<Map<String, Object>> retrieveTableData(
+        final String tableName, final String whereClause) {
 
         final StringBuffer cmd = new StringBuffer("select * from ");
         cmd.append(tableName);
+        if (whereClause != null) {
+            cmd.append(" ");
+            cmd.append(whereClause);
+        }
         cmd.append(";");
         return getJdbcTemplate().queryForList(cmd.toString());
     }

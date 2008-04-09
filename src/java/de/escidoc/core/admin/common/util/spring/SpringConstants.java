@@ -26,31 +26,18 @@
  * Gesellschaft zur Foerderung der Wissenschaft e.V.  
  * All rights reserved.  Use is subject to license terms.
  */
-package de.escidoc.core.admin.business;
+package de.escidoc.core.admin.common.util.spring;
 
-import java.util.List;
-import java.util.Map;
+public class SpringConstants {
 
-/**
- * Interface providing read access to tables of the source database, i.e. the
- * database that shall be migrated.
- * 
- * @author TTE
- * 
- */
-public interface SourceDbReaderInterface {
+    public static final String ID_REINDEXER = "de.escidoc.core.admin.Reindexer";
 
-    /**
-     * Gets the content of the specified table.
-     * 
-     * @param tableName
-     *            The name of the table including the schema name, e.g.
-     *            aa.user_account.
-     * @param whereClause
-     *            Optional where clause to restrict the result, e.g. 'where id <>
-     *            someid'
-     * @return Returns the values of a table.
-     */
-    public List<Map<String, Object>> retrieveTableData(
-        final String tableName, String whereClause);
+    public static final String ID_DATA_BASE_MIGRATION_TOOL =
+        "de.escidoc.core.admin.DataBaseMigrationTool";
+
+    public static final String ID_APPLICATION_CONTEXT =
+        "de.escidoc.core.admin.context";
+
+    public static final String BEAN_REF_FACTORY = "adminBeanRefFactory.xml";
+
 }

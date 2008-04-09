@@ -68,8 +68,9 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
             .compile("(info:escidoc/names:aa:1.0:action:([^-]+)-content-)type");
 
     /**
-     * Pattern used to convert content of old ous field to new ou fields with
-     * removing primary ou information (see issue 433).
+     * Pattern used to convert content of old ous/affiliation column to new
+     * table user_account_ous with removing primary ou information (see issue
+     * 443).
      * 
      * @see http://www.escidoc-project.de/issueManagement/show_bug.cgi?id=443
      */
@@ -111,23 +112,22 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
             migrateUserAccounts();
             migrateRolesAndPolicies();
             migrateGrants();
-            copyTableData("aa.user_login_data", null);
 
             // copy om data
             executeSqlScript("om.lockstatus.create.sql");
-            copyTableData("om.lockstatus", null);
+            copyTableData("om.lockstatus", null, null);
 
             // migrate sm data
             executeSqlScript("sm.create.sql");
-            copyTableData("sm.scopes", null);
-            copyTableData("sm.statistic_data", null);
-            copyTableData("sm.aggregation_definitions", null);
-            copyTableData("sm.report_definitions", null);
+            copyTableData("sm.scopes", null, null);
+            copyTableData("sm.statistic_data", null, null);
+            copyTableData("sm.aggregation_definitions", null, null);
+            copyTableData("sm.report_definitions", null, null);
             migrateSmTables();
 
             // copy st data
             executeSqlScript("st.create.sql");
-            copyTableData("st.staging_file", null);
+            copyTableData("st.staging_file", null, null);
 
         }
         catch (IOException e) {
@@ -148,14 +148,19 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
      *            {@link List} containing the name of the columns that shall be
      *            dropped, i.e. will not be copied. This parameter may be
      *            <code>null</code>.
+     * @param whereClause
+     *            Optional where clause to restrict the rows that shall be
+     *            copied, e.g. 'where id <> someid'
      */
-    private void copyTableData(final String tableName, List<String> dropColumns) {
+    private void copyTableData(
+        final String tableName, final List<String> dropColumns,
+        final String whereClause) {
 
         if (log.isInfoEnabled()) {
             log.info("Copying data from table " + tableName);
         }
         List<Map<String, Object>> tableData =
-            reader.retrieveTableData(tableName);
+            reader.retrieveTableData(tableName, whereClause);
         insertTableData(tableName, dropColumns, tableData);
     }
 
@@ -220,7 +225,7 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
     }
 
     /**
-     * Migrates the user_account table.
+     * Migrates the user_account and login_data tables.
      * 
      * @throws IntegritySystemException
      *             Thrown in case of an integrity error found in the database.
@@ -234,11 +239,20 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
                 .debug(StringUtility
                     .concatenateToString("Updating ou information with removing primary ou information"));
         }
-        final List<Map<String, Object>> tableData =
-            reader.retrieveTableData("aa.user_account");
-        // copy data to table user_account without ous column
+        // copy data to table user_account without ous/affiliations columns and
+        // removed users
         List<String> droppedColumns = new ArrayList<String>(1);
+        // migrate build 159 to build 0.9.2.421:the ous column is replaced by
+        // the
+        // new table
         droppedColumns.add("ous");
+        // migrate build 0.9.1.x to build 0.9.2.421: the affiliations and
+        // primary affiliation columns are replaced by the new table
+        droppedColumns.add("affiliations");
+        droppedColumns.add("primary-affiliation");
+        final List<Map<String, Object>> tableData =
+            reader.retrieveTableData("aa.user_account",
+                "WHERE id<>'escidoc:user43' AND id<>'escidoc:exuser3'");
         insertTableData("aa.user_account", droppedColumns, tableData);
 
         // copy data to new table user_account_ous
@@ -252,25 +266,38 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
             int tableIndex = 0;
             // first, search the ou that previously has been marked as the
             // primary one. This ou will be the first one in the new list.
-            while (matcher.find(matcherIndex)) {
-                final String primaryFlag = matcher.group(2);
-                if (primaryFlag != null && primaryFlag.length() > 0) {
-                    final String ouId = matcher.group(1);
+            String primaryOuId = null;
+            if (ous != null) {
+                // migrate from build 0159
+                while (matcher.find(matcherIndex)) {
+                    final String primaryFlag = matcher.group(2);
+                    if (primaryFlag != null && primaryFlag.length() > 0) {
+                        executeSqlCommand(StringUtility.concatenateToString(
+                            "INSERT INTO aa.user_account_ous VALUES (",
+                            tableIndex++, ", '", columnData.get("id"), "', '",
+                            primaryOuId, "');"));
+                        matcherIndex = 0;
+                        matcher.reset();
+                        break;
+                    }
+                    matcherIndex = matcher.end();
+                }
+            }
+            else {
+                // migrate from 0.9.1.x
+                primaryOuId = (String) columnData.get("primary_affiliation");
+                if (primaryOuId != null) {
                     executeSqlCommand(StringUtility.concatenateToString(
                         "INSERT INTO aa.user_account_ous VALUES (",
                         tableIndex++, ", '", columnData.get("id"), "', '",
-                        ouId, "');"));
-                    matcherIndex = 0;
-                    matcher.reset();
-                    break;
+                        primaryOuId, "');"));
                 }
-                matcherIndex = matcher.end();
             }
+
             // insert other ous
             while (matcher.find(matcherIndex)) {
-                final String primaryFlag = matcher.group(2);
-                if (primaryFlag == null || primaryFlag.length() == 0) {
-                    final String ouId = matcher.group(1);
+                final String ouId = matcher.group(1);
+                if (!ouId.equals(primaryOuId)) {
                     executeSqlCommand(StringUtility.concatenateToString(
                         "INSERT INTO aa.user_account_ous VALUES (",
                         tableIndex++, ", '", columnData.get("id"), "', '",
@@ -280,6 +307,9 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
             }
 
         }
+
+        copyTableData("aa.user_login_data", null,
+            "WHERE user_id<>'escidoc:user43' AND user_id<>'escidoc:exuser3'");
     }
 
     /**
@@ -294,16 +324,18 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
         final List<String> droppedColumns = new ArrayList<String>(1);
         droppedColumns.add("role_title");
 
-        // FIXME: drop grants for roles that have been removed (
+        // drop grants for roles (and users) that have been removed (
         // use insertTableData after removing the grants form the table data)
         // link to role:workflowmanager was wrong in build.159, escidoc:role6
         // instead of escidoc:role workflowmanager. Needs to be fixed.
         final List<Map<String, Object>> tableData =
-            reader.retrieveTableData("aa.role_grant");
+            reader.retrieveTableData("aa.role_grant",
+                "WHERE role_id <>'escidoc:role-indexer'");
         final Iterator<Map<String, Object>> tableIter = tableData.iterator();
         while (tableIter.hasNext()) {
             Map<String, Object> rowData = tableIter.next();
-            if ("escidoc:role6".equals(rowData.get("role_id"))) {
+            final Object roleId = rowData.get("role_id");
+            if ("escidoc:role6".equals(roleId)) {
                 rowData.put("role_id", "escidoc:role-workflow-manager");
             }
         }
@@ -349,21 +381,24 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
     }
 
     /**
-     * Drops policy_Actions table, migrates escidoc_role and escidoc_policies
-     * tables.
+     * Drops policy_Actions table, migrates escidoc_role, scope_def and
+     * escidoc_policies tables.
      */
     private void migrateRolesAndPolicies() {
 
         log.info("Migrating table escidoc_role");
         // creator_title and modified_by_title have been dropped from table
+        // indexer user has been removed
         final List<String> toBeDropped = new ArrayList<String>(2);
         toBeDropped.add("creator_title");
         toBeDropped.add("modified_by_title");
-        copyTableData("aa.escidoc_role", toBeDropped);
+        copyTableData("aa.escidoc_role", toBeDropped,
+            "WHERE id<>'escidoc:role-indexer'");
 
         log.info("Migrating table escidoc_policies");
         try {
-            copyTableData("aa.escidoc_policies", null);
+            copyTableData("aa.escidoc_policies", null,
+                "WHERE role_id<>'escidoc:role-indexer'");
             executeSqlScript("aa.update.policies-xml.sql");
         }
         catch (IOException e) {
@@ -371,7 +406,8 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
             throw new RuntimeException(e);
         }
 
-        copyTableData("aa.scope_def", null);
+        copyTableData("aa.scope_def", null,
+            "WHERE role_id<>'escidoc:role-indexer'");
 
         // some attributes have been renamed, xml of policies have to be changed
         // FIXME: action ids have been changed, too.
