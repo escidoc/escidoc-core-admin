@@ -38,7 +38,7 @@ public interface ReindexerInterface {
      * 
      * @admin
      */
-    public void close();
+    void close();
 
     /**
      * Get all released Items from OM and put hrefs into Vector.
@@ -49,7 +49,7 @@ public interface ReindexerInterface {
      *             e
      * @admin
      */
-    public Vector<String> getReleasedItems()
+    Vector<String> getReleasedItems()
         throws ApplicationServerSystemException;
 
     /**
@@ -61,7 +61,20 @@ public interface ReindexerInterface {
      *             e
      * @admin
      */
-    public Vector<String> getReleasedContainers()
+    Vector<String> getReleasedContainers()
+        throws ApplicationServerSystemException;
+
+    /**
+     * retrieve resource.
+     * 
+     * @param resource String resourceIdentifier
+     * @return String resource as xml.
+     * 
+     * @throws ApplicationServerSystemException
+     *             e
+     * @admin
+     */
+    String retrieveResource(String resource)
         throws ApplicationServerSystemException;
 
     /**
@@ -71,7 +84,7 @@ public interface ReindexerInterface {
      *             e
      * @admin
      */
-    public void sendDeleteIndexMessage()
+    void sendDeleteIndexMessage()
         throws ApplicationServerSystemException;
 
     /**
@@ -84,7 +97,7 @@ public interface ReindexerInterface {
      *             e
      * @admin
      */
-    public void sendUpdateIndexMessage(final String resource)
+    void sendUpdateIndexMessage(final String resource)
         throws ApplicationServerSystemException;
 
 }

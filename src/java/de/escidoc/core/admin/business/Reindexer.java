@@ -159,6 +159,25 @@ public class Reindexer implements ReindexerInterface {
      * @throws ApplicationServerSystemException
      *             e
      * @admin
+     * @see de.escidoc.core.admin.business.interfaces.ReindexerInterface#retrieveResource(String resource)
+     */
+    public String retrieveResource(String resource)
+        throws ApplicationServerSystemException {
+        try {
+            String result =
+                escidocCoreHandler.getRequestEscidoc(resource);
+            return result;
+        }
+        catch (Exception e) {
+            log.error(e);
+            throw new ApplicationServerSystemException(e);
+        }
+    }
+
+    /**
+     * @throws ApplicationServerSystemException
+     *             e
+     * @admin
      * @see de.escidoc.core.admin.business.interfaces.ReindexerInterface#sendDeleteIndexMessage()
      */
     public void sendDeleteIndexMessage()

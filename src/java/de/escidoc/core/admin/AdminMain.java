@@ -38,7 +38,6 @@ import org.springframework.transaction.CannotCreateTransactionException;
 
 import de.escidoc.core.admin.business.interfaces.DataBaseMigrationInterface;
 import de.escidoc.core.admin.business.interfaces.ReindexerInterface;
-import de.escidoc.core.admin.common.util.spring.SpringConstants;
 import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException;
 import de.escidoc.core.common.exceptions.system.IntegritySystemException;
 import de.escidoc.core.common.util.logger.AppLogger;
@@ -154,6 +153,15 @@ public class AdminMain {
             Vector<String> itemHrefs = reindexer.getReleasedItems();
             // Get all released Containers
             Vector<String> containerHrefs = reindexer.getReleasedContainers();
+            
+            //As Workaround for initializing server:
+            //retrieve one item and one container
+            if (itemHrefs != null && !itemHrefs.isEmpty()) {
+                reindexer.retrieveResource(itemHrefs.get(0));
+            }
+            if (containerHrefs != null && !containerHrefs.isEmpty()) {
+                reindexer.retrieveResource(containerHrefs.get(0));
+            }
 
             // Delete index
             reindexer.sendDeleteIndexMessage();
