@@ -45,10 +45,19 @@
 
 	<target name="foxml-migration" depends="prepare-foxml-migration">
 		<echo>Starting migration of fedora repository</echo>
-		<xslt basedir="${foxml.src.dir}" destdir="${foxml.target.dir}" style="xsl/General.xsl" force="true">
+		<xslt basedir="${foxml.src.dir}" destdir="${foxml.target.dir}" style="xsl/GeneralNew.xsl" force="true">
 			<classpath location="lib/saxon8.jar" />
 			<mapper type="identity" />
 		</xslt>
+		<!-- delete all FOXML files with 0 bytes length -->
+		<delete>
+			<restrict>
+				<fileset dir="${foxml.target.dir}" includes="**/*">
+					<size when="eq" value="0">
+					</size>
+				</fileset>
+			</restrict>
+		</delete>
 		<echo>Finished</echo>
 	</target>
 

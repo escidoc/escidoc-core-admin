@@ -1,5 +1,7 @@
 eSciDoc infrastructure administration tool
 
+
+
 - Tool to regenerate index for search.
 	Use this when 
 	- structure/schema of items or containers changes
@@ -24,6 +26,8 @@ eSciDoc infrastructure administration tool
 		
 - Tool to migrate the escidoc-core database from build 0.9.0159 / 0.9.1.x 
   to Release 1.0
+
+   Prerequisites for migration: Ant in version 1.7.0 
     
     - Usage:
         - Create new (empty) database as the target of the migration.
