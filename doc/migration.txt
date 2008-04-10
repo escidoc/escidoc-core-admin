@@ -3,6 +3,8 @@ eSciDoc infrastructure migration
 This version of the eSciDocCoreAmin contains a tool to migrate eSciDoc infrastructure 
 in version build 0.9.0159 to Release 1.0.
 
+As a prerequisite you need Ant 1.7.0 to be installed.
+
 In detail the tool does the following:
 Step 1: Database migration
 A new database containing the expected schemas and tables is created. The data from 
