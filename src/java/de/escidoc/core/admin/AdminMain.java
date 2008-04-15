@@ -28,6 +28,7 @@
  */
 package de.escidoc.core.admin;
 
+import java.io.ByteArrayInputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Vector;
 
@@ -39,10 +40,14 @@ import org.springframework.transaction.CannotCreateTransactionException;
 import de.escidoc.core.admin.business.interfaces.DataBaseMigrationInterface;
 import de.escidoc.core.admin.business.interfaces.ReindexerInterface;
 import de.escidoc.core.admin.common.util.spring.SpringConstants;
+import de.escidoc.core.admin.common.util.stax.handler.ComponentContentHrefHandler;
+import de.escidoc.core.admin.common.util.stax.handler.ContainerHrefHandler;
 import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException;
 import de.escidoc.core.common.exceptions.system.IntegritySystemException;
 import de.escidoc.core.common.util.logger.AppLogger;
+import de.escidoc.core.common.util.stax.StaxParser;
 import de.escidoc.core.common.util.string.StringUtility;
+import de.escidoc.core.common.util.xml.XmlUtility;
 
 /**
  * Main Class for the Admin-Tool.
@@ -145,6 +150,7 @@ public class AdminMain {
      * resourceIds into the indexer message queue.
      * 
      * @param args
+     *            The arguments.
      */
     private void reindex(final String[] args) {
         ReindexerInterface reindexer =
@@ -156,15 +162,6 @@ public class AdminMain {
             Vector<String> itemHrefs = reindexer.getReleasedItems();
             // Get all released Containers
             Vector<String> containerHrefs = reindexer.getReleasedContainers();
-
-            // As Workaround for initializing server:
-            // retrieve one item and one container
-            if (itemHrefs != null && !itemHrefs.isEmpty()) {
-                reindexer.retrieveResource(itemHrefs.get(0));
-            }
-            if (containerHrefs != null && !containerHrefs.isEmpty()) {
-                reindexer.retrieveResource(containerHrefs.get(0));
-            }
 
             // Delete index
             reindexer.sendDeleteIndexMessage();

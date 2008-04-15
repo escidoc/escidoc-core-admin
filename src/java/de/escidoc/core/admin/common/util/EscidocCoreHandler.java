@@ -28,8 +28,27 @@
  */
 package de.escidoc.core.admin.common.util;
 
+import java.net.URL;
+import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.xml.namespace.QName;
+import javax.xml.rpc.Stub;
+
+import org.apache.axis.EngineConfiguration;
+import org.apache.axis.Handler;
+import org.apache.axis.SimpleChain;
+import org.apache.axis.SimpleTargetedChain;
+import org.apache.axis.client.Call;
+import org.apache.axis.client.Service;
+import org.apache.axis.configuration.SimpleProvider;
+import org.apache.axis.encoding.ser.BeanDeserializerFactory;
+import org.apache.axis.encoding.ser.BeanSerializerFactory;
+import org.apache.axis.transport.http.HTTPSender;
+import org.apache.axis.transport.http.HTTPTransport;
+import org.apache.ws.axis.security.WSDoAllSender;
+import org.apache.ws.security.handler.WSHandlerConstants;
 
 import sun.misc.BASE64Decoder;
 import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException;
@@ -58,6 +77,15 @@ public class EscidocCoreHandler {
 	private final Pattern userHandlePattern = 
 		Pattern.compile("(?s).*?URL=\\?eSciDocUserHandle=(.*?)\".*");
 	
+	private String login = null;
+	
+	private String password = null;
+	
+	private String securityHandle = null;
+	
+    private HashMap<String, Object> wsSecurityHash 
+	= new HashMap<String, Object>();
+
 	private final BASE64Decoder decoder = new BASE64Decoder();
 
 	/**
@@ -94,7 +122,9 @@ public class EscidocCoreHandler {
     		final String escidocCoreUrl, 
     		final String login, 
     		final String password) throws Exception {
-    	String securityHandle = login(escidocCoreUrl, login, password);
+    	this.login = login;
+    	this.password = password;
+    	securityHandle = login(escidocCoreUrl, login, password);
         httpRequester = 
         	new HttpRequester(escidocCoreUrl, securityHandle);
     }
@@ -187,6 +217,65 @@ public class EscidocCoreHandler {
     }
     
     /**
+     * requests escidoc-resource with put-request.
+     * 
+     * <pre>
+     *        execute put-request.
+     * </pre>
+     * 
+     * @param targetNamespace
+     *            String targetNamespace.
+     * @param methodName
+     *            String methodName.
+     * @param arguments
+     *            Object[] arguments.
+     * @return Object response
+     * 
+     * @throws ApplicationServerSystemException
+     *             e
+     * @admin
+     */
+    public Object soapRequestEscidoc(
+    		final String targetNamespace, 
+    		final String methodName, 
+    		final Object[] arguments)
+        throws ApplicationServerSystemException {
+		try {
+	        URL url = new URL(targetNamespace);
+	        Service service = new Service(createClientConfig());
+	        Call call = (Call) service.createCall();
+	        call.setTargetEndpointAddress(url);
+	        call.setOperationName(new QName(targetNamespace, methodName));
+	        
+	        //write type-mappings
+            QName poqn =
+                new QName("http://result.interfaces.service.om.core.escidoc.de",
+                    "MIMETypedStream");
+            Class mappingClass = Class.forName("de.escidoc.core.om.service.interfaces.result.MIMETypedStream");
+            call.registerTypeMapping(mappingClass, poqn,
+                new BeanSerializerFactory(mappingClass, poqn),
+                new BeanDeserializerFactory(mappingClass, poqn));
+
+	        //write security
+	    	if (securityHandle != null) {
+	    		fillWsSecurityHash();
+	    	}
+			if (wsSecurityHash != null) {
+				for (String key : wsSecurityHash.keySet()) {
+					call.setProperty(key, wsSecurityHash.get(key));
+				}
+			}
+			
+			call.setTimeout(120000);
+	        Object ret = call.invoke(arguments);
+	        return ret;
+		} catch (Exception e) {
+            log.error(e);
+            throw new ApplicationServerSystemException(e);
+		}
+    }
+    
+    /**
      * login into escidoc and return userHandle.
      * 
      * @param escidocCoreUrl
@@ -231,4 +320,53 @@ public class EscidocCoreHandler {
 		return userHandleMatcher.group(1);
 	}
 	
+    /**
+     * fill WS security parameters.
+     * 
+     * @admin
+     */
+    private void fillWsSecurityHash() {
+    	wsSecurityHash.put(WSHandlerConstants.MUST_UNDERSTAND, "false");
+    	wsSecurityHash.put(WSHandlerConstants.ACTION, "UsernameToken");
+    	wsSecurityHash.put(WSHandlerConstants.PASSWORD_TYPE, "PasswordText");
+		wsSecurityHash.put(WSHandlerConstants.USER, login);
+		wsSecurityHash.put(WSHandlerConstants.PW_CALLBACK_REF
+				, new PWCallback(login, securityHandle));
+
+    }
+
+    /**
+     * create configuration for WS-Call.
+     * 
+     * @return EngineConfiguration EngineConfiguration
+     * 
+     * @admin
+     */
+    private EngineConfiguration createClientConfig() { 
+		try {
+			SimpleProvider clientConfig = new SimpleProvider(); 
+			Handler securityHandler = (Handler) new WSDoAllSender();
+			if (wsSecurityHash != null) {
+				for (String key : wsSecurityHash.keySet()) {
+					securityHandler.setOption(key, wsSecurityHash.get(key));
+				}
+			}
+			SimpleChain reqHandler = new SimpleChain(); 
+			SimpleChain respHandler = new SimpleChain(); 
+			// add the handler to the request
+			reqHandler.addHandler(securityHandler); 
+			// add the handler to the response
+			respHandler.addHandler(securityHandler); 
+			Handler pivot =(Handler) new HTTPSender(); 
+			Handler transport = new SimpleTargetedChain(
+							reqHandler, pivot, respHandler); 
+			clientConfig.deployTransport(
+					HTTPTransport.DEFAULT_TRANSPORT_NAME, transport); 
+			return clientConfig;   
+		} catch (Exception ex) {
+			System.out.println("Couldn't create engine configuration: " + ex);
+			return null;
+		}
+	}
+
 }

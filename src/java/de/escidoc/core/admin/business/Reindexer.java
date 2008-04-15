@@ -67,6 +67,17 @@ public class Reindexer implements ReindexerInterface {
 
     private final String RELEASED_CONTAINERS_FILTER =
         "<param><filter name=\"http://escidoc.de/core/01/properties/public-status\">released</filter></param>";
+    
+    private final String FEDORA_ACCESS_DEVIATION_HANDLER_TARGET_NAMESPACE =
+    	"http://localhost:8080/axis/services/access";
+    
+    private final String FEDORA_MANAGEMENT_DEVIATION_HANDLER_TARGET_NAMESPACE =
+    	"http://localhost:8080/axis/services/management";
+    
+    private final String EXPORT_METHOD_NAME = "export";
+    
+    private final String DATASTREAM_DISSEMINATION_METHOD_NAME = 
+    								"getDatastreamDissemination";
 
     private static AppLogger log = new AppLogger(Reindexer.class.getName());
 
@@ -161,11 +172,63 @@ public class Reindexer implements ReindexerInterface {
      * @admin
      * @see de.escidoc.core.admin.business.interfaces.ReindexerInterface#retrieveResource(String resource)
      */
-    public String retrieveResource(String resource)
+    public String retrieveResource(final String resource)
         throws ApplicationServerSystemException {
         try {
             String result =
                 escidocCoreHandler.getRequestEscidoc(resource);
+            return result;
+        }
+        catch (Exception e) {
+            log.error(e);
+            throw new ApplicationServerSystemException(e);
+        }
+    }
+
+    /**
+     * @throws ApplicationServerSystemException
+     *             e
+     * @admin
+     * @see de.escidoc.core.admin.business.interfaces.ReindexerInterface#fedoraExport(final String resource)
+     */
+    public Object fedoraExport(
+    					final String resource)
+        		throws ApplicationServerSystemException {
+        try {
+        	Object[] arguments = new Object[3];
+        	arguments[0] = resource;
+        	arguments[1] = "";
+        	arguments[2] = "public";
+            Object result =
+                escidocCoreHandler.soapRequestEscidoc(
+                		FEDORA_MANAGEMENT_DEVIATION_HANDLER_TARGET_NAMESPACE,
+                		EXPORT_METHOD_NAME, arguments);
+            return result;
+        }
+        catch (Exception e) {
+            log.error(e);
+            throw new ApplicationServerSystemException(e);
+        }
+    }
+
+    /**
+     * @throws ApplicationServerSystemException
+     *             e
+     * @admin
+     * @see de.escidoc.core.admin.business.interfaces.ReindexerInterface#fedoraGetDatastreamDissemination(final String resource)
+     */
+    public Object fedoraGetDatastreamDissemination(
+    					final String resource)
+        		throws ApplicationServerSystemException {
+        try {
+        	Object[] arguments = new Object[3];
+        	arguments[0] = "";
+        	arguments[1] = resource;
+        	arguments[2] = "";
+            Object result =
+                escidocCoreHandler.soapRequestEscidoc(
+                		FEDORA_ACCESS_DEVIATION_HANDLER_TARGET_NAMESPACE,
+                		DATASTREAM_DISSEMINATION_METHOD_NAME, arguments);
             return result;
         }
         catch (Exception e) {
@@ -227,7 +290,6 @@ public class Reindexer implements ReindexerInterface {
     /**
      * close connection to SB-indexing-indexerMessageQueue.
      * 
-     * @throws ApplicationServerSystemException
      *             e
      * @admin
      */
@@ -264,12 +326,14 @@ public class Reindexer implements ReindexerInterface {
 	/**
 	 * @param escidocCoreHandler the escidocCoreHandler to set
 	 */
-	public void setEscidocCoreHandler(EscidocCoreHandler escidocCoreHandler) {
+	public void setEscidocCoreHandler(
+			final EscidocCoreHandler escidocCoreHandler) {
 		this.escidocCoreHandler = escidocCoreHandler;
 	}
 
 	/**
 	 * @param queueConnectionFactory the queueConnectionFactory to set
+	 * @throws Exception e
 	 */
 	public void setQueueConnectionFactory(
 			final QueueConnectionFactory queueConnectionFactory) 
@@ -284,6 +348,7 @@ public class Reindexer implements ReindexerInterface {
 
 	/**
 	 * @param indexerMessageQueue the indexerMessageQueue to set
+	 * @throws Exception e
 	 */
 	public void setIndexerMessageQueue(final Queue indexerMessageQueue)
 														throws Exception {

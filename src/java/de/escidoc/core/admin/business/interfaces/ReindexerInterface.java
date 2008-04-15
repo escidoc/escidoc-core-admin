@@ -74,10 +74,38 @@ public interface ReindexerInterface {
      *             e
      * @admin
      */
-    String retrieveResource(String resource)
+    String retrieveResource(final String resource)
         throws ApplicationServerSystemException;
 
     /**
+     * get object from FedoraManagementDeviationHandler.
+     * 
+     * @param resource String resourceIdentifier
+     * @return Object resource as xml.
+     * 
+     * @throws ApplicationServerSystemException
+     *             e
+     * @admin
+     */
+    Object fedoraExport(
+			final String resource)
+	throws ApplicationServerSystemException;
+	
+    /**
+     * get fulltext from FedoraAccessDeviationHandler.
+     * 
+     * @param resource String resourceIdentifier
+     * @return Object resource as Object.
+     * 
+     * @throws ApplicationServerSystemException
+     *             e
+     * @admin
+     */
+    Object fedoraGetDatastreamDissemination(
+			final String resource)
+	throws ApplicationServerSystemException;
+	
+	/**
      * Send delete-index Message to SB.
      * 
      * @throws ApplicationServerSystemException
