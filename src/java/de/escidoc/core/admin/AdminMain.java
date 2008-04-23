@@ -84,6 +84,9 @@ public class AdminMain {
             else if (args[0].equals("db-migration")) {
                 admin.migrateDataBase(args);
             }
+            else {
+                log.error("method-argument unknown: " + args[0]);
+            }
         }
         else {
             log.error("please provide method-argument");
