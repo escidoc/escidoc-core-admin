@@ -26,20 +26,32 @@
  * Gesellschaft zur Foerderung der Wissenschaft e.V.  
  * All rights reserved.  Use is subject to license terms.
  */
-package de.escidoc.core.admin.common.util.spring;
+package de.escidoc.core.admin.business.interfaces;
 
-public class SpringConstants {
+import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException;
 
-    public static final String ID_RECACHE = "de.escidoc.core.admin.Recache";
+import java.io.IOException;
+import java.text.ParseException;
 
-    public static final String ID_REINDEXER = "de.escidoc.core.admin.Reindexer";
+/**
+ * Interface definition of the recaching service.
+ * 
+ * @author SCHE
+ */
+public interface RecacheInterface {
 
-    public static final String ID_DATA_BASE_MIGRATION_TOOL =
-        "de.escidoc.core.admin.DataBaseMigrationTool";
+    /**
+     * Clear the whole item cache.
+     */
+    void clearCache();
 
-    public static final String ID_APPLICATION_CONTEXT =
-        "de.escidoc.core.admin.context";
-
-    public static final String BEAN_REF_FACTORY = "adminBeanRefFactory.xml";
-
+    /**
+     * Store all available items in the database cache.
+     * 
+     * @throws ApplicationServerSystemException Thrown if eSciDoc failed to receive the item.
+     * @throws IOException Thrown if an I/O error occured.
+     * @throws ParseException The given string cannot be parsed into a date.
+     */
+    void storeItems()
+        throws ApplicationServerSystemException, IOException, ParseException;
 }

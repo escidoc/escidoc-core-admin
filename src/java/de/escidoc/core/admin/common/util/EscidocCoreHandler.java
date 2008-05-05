@@ -28,13 +28,14 @@
  */
 package de.escidoc.core.admin.common.util;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.xml.namespace.QName;
-import javax.xml.rpc.Stub;
 
 import org.apache.axis.EngineConfiguration;
 import org.apache.axis.Handler;
@@ -47,6 +48,13 @@ import org.apache.axis.encoding.ser.BeanDeserializerFactory;
 import org.apache.axis.encoding.ser.BeanSerializerFactory;
 import org.apache.axis.transport.http.HTTPSender;
 import org.apache.axis.transport.http.HTTPTransport;
+import org.apache.commons.httpclient.Header;
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpStatus;
+import org.apache.commons.httpclient.NameValuePair;
+import org.apache.commons.httpclient.URI;
+import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.ws.axis.security.WSDoAllSender;
 import org.apache.ws.security.handler.WSHandlerConstants;
 
@@ -69,26 +77,24 @@ public class EscidocCoreHandler {
 
     private HttpRequester httpRequester;
     
-	private final String LOGIN_PATH = 
-		"/aa/login?target="
-		+ "&shire=https%3A%2F%2Flocalhost%3A8080%2Fshibboleth%2Facs"
-		+ "&providerId=https%3A%2F%2Fwww.escidoc.de%2Fshibboleth";
+    private static final String LOGIN_PATH = "/aa/login?target=";
 
-	private final Pattern userHandlePattern = 
-		Pattern.compile("(?s).*?URL=\\?eSciDocUserHandle=(.*?)\".*");
-	
-	private String login = null;
-	
-	private String password = null;
-	
-	private String securityHandle = null;
-	
+    private final Pattern loginFormPattern = 
+        Pattern.compile("(?s).*?action=\"(.*?)\".*");
+
+    private final Pattern userHandlePattern = 
+        Pattern.compile("(?s).*?href=\"\\?eSciDocUserHandle=(.*?)\".*");
+
+    private String login = null;
+
+    private String securityHandle = null;
+
     private HashMap<String, Object> wsSecurityHash 
-	= new HashMap<String, Object>();
+    = new HashMap<String, Object>();
 
-	private final BASE64Decoder decoder = new BASE64Decoder();
+    private final BASE64Decoder decoder = new BASE64Decoder();
 
-	/**
+    /**
      * initialize EscidocCoreHandler with 
      * escidocCoreUrl to eSciDocCore-System.
      * 
@@ -98,12 +104,12 @@ public class EscidocCoreHandler {
      * @admin
      */
     public EscidocCoreHandler(
-    		final String escidocCoreUrl) {
+            final String escidocCoreUrl) {
         httpRequester = 
-        	new HttpRequester(escidocCoreUrl);
+            new HttpRequester(escidocCoreUrl);
     }
 
-	/**
+    /**
      * initialize EscidocCoreHandler with 
      * escidocCoreUrl to eSciDocCore-System
      * and securityHandle.
@@ -119,14 +125,13 @@ public class EscidocCoreHandler {
      * @admin
      */
     public EscidocCoreHandler(
-    		final String escidocCoreUrl, 
-    		final String login, 
-    		final String password) throws Exception {
-    	this.login = login;
-    	this.password = password;
-    	securityHandle = login(escidocCoreUrl, login, password);
+            final String escidocCoreUrl, 
+            final String login, 
+            final String password) throws Exception {
+        this.login = login;
+        securityHandle = login(escidocCoreUrl, login, password);
         httpRequester = 
-        	new HttpRequester(escidocCoreUrl, securityHandle);
+            new HttpRequester(escidocCoreUrl, securityHandle);
     }
 
     /**
@@ -204,7 +209,7 @@ public class EscidocCoreHandler {
      * @admin
      */
     public String putRequestEscidoc(
-    		final String resource, final String putParam)
+            final String resource, final String putParam)
         throws ApplicationServerSystemException {
         try {
             String result = httpRequester.doPut(resource, putParam);
@@ -236,46 +241,46 @@ public class EscidocCoreHandler {
      * @admin
      */
     public Object soapRequestEscidoc(
-    		final String targetNamespace, 
-    		final String methodName, 
-    		final Object[] arguments)
+            final String targetNamespace, 
+            final String methodName, 
+            final Object[] arguments)
         throws ApplicationServerSystemException {
-		try {
-	        URL url = new URL(targetNamespace);
-	        Service service = new Service(createClientConfig());
-	        Call call = (Call) service.createCall();
-	        call.setTargetEndpointAddress(url);
-	        call.setOperationName(new QName(targetNamespace, methodName));
-	        
-	        //write type-mappings
+        try {
+            URL url = new URL(targetNamespace);
+            Service service = new Service(createClientConfig());
+            Call call = (Call) service.createCall();
+            call.setTargetEndpointAddress(url);
+            call.setOperationName(new QName(targetNamespace, methodName));
+
+            //write type-mappings
             QName poqn =
-                new QName("http://result.interfaces.service.om.core.escidoc.de",
+                new QName("http://result.service.om.core.escidoc.de",
                     "MIMETypedStream");
-            Class mappingClass = Class.forName("de.escidoc.core.om.service.interfaces.result.MIMETypedStream");
+            Class mappingClass = Class.forName(
+                "de.escidoc.core.om.service.result.MIMETypedStream");
             call.registerTypeMapping(mappingClass, poqn,
                 new BeanSerializerFactory(mappingClass, poqn),
                 new BeanDeserializerFactory(mappingClass, poqn));
 
-	        //write security
-	    	if (securityHandle != null) {
-	    		fillWsSecurityHash();
-	    	}
-			if (wsSecurityHash != null) {
-				for (String key : wsSecurityHash.keySet()) {
-					call.setProperty(key, wsSecurityHash.get(key));
-				}
-			}
-			
-			call.setTimeout(120000);
-	        Object ret = call.invoke(arguments);
-	        return ret;
-		} catch (Exception e) {
-            log.error(e);
+            //write security
+            if (securityHandle != null) {
+                fillWsSecurityHash();
+            }
+            if (wsSecurityHash != null) {
+                for (String key : wsSecurityHash.keySet()) {
+                    call.setProperty(key, wsSecurityHash.get(key));
+                }
+            }
+
+            call.setTimeout(120000);
+            Object ret = call.invoke(arguments);
+            return ret;
+        } catch (Exception e) {
             throw new ApplicationServerSystemException(e);
-		}
+        }
     }
-    
-    /**
+
+    /**    
      * login into escidoc and return userHandle.
      * 
      * @param escidocCoreUrl
@@ -290,19 +295,84 @@ public class EscidocCoreHandler {
      * @admin
      */
     private String login(
-    		final String escidocCoreUrl, 
-    		final String login, 
-    		final String password) throws Exception {
-        String loginUrl = escidocCoreUrl + LOGIN_PATH;
-        HttpRequester httpRequester = new HttpRequester(loginUrl);
-        httpRequester.setFollowRedirects(false);
-    	String returnXml = httpRequester.doPost(
-    			"", "login=" + login + "&password=" + password);
-    	String encodedUserHandle = getUserHandle(returnXml);
-    	String decodedUserHandle = new String(
-    			decoder.decodeBuffer(encodedUserHandle));
-    	return decodedUserHandle;
-    	
+            final String escidocCoreUrl, 
+            final String login, 
+            final String password) throws Exception {
+        String result = null;
+        HttpClient client = new HttpClient();
+
+        client.getHostConfiguration().setHost(new URI(escidocCoreUrl, false));
+
+        GetMethod authget = new GetMethod(LOGIN_PATH);
+
+        client.executeMethod(authget);
+
+        PostMethod authpost = new PostMethod(
+            getLoginFormName(authget.getResponseBodyAsString()));
+
+        authget.releaseConnection();
+
+        NameValuePair userid = new NameValuePair("j_username", login);
+        NameValuePair passwd = new NameValuePair("j_password", password);
+
+        authpost.setRequestBody(new NameValuePair[] {userid, passwd});
+        client.executeMethod(authpost);
+        authpost.releaseConnection();
+
+        int statuscode = authpost.getStatusCode();
+
+        if ((statuscode == HttpStatus.SC_MOVED_TEMPORARILY)
+            || (statuscode == HttpStatus.SC_MOVED_PERMANENTLY)
+            || (statuscode == HttpStatus.SC_SEE_OTHER)
+            || (statuscode == HttpStatus.SC_TEMPORARY_REDIRECT)) {
+            Header header = authpost.getResponseHeader("location");
+
+            if (header != null) {
+                String newuri = header.getValue();
+
+                if ((newuri == null) || (newuri.equals(""))) {
+                    newuri = "/";
+                }
+
+                GetMethod redirect = new GetMethod(newuri);
+
+                redirect.setFollowRedirects(false);
+                client.executeMethod(redirect);
+
+                StringBuffer response = new StringBuffer();
+                BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(redirect.getResponseBodyAsStream()));
+                String line = null;
+
+                while ((line = reader.readLine()) != null) {
+                    response.append(line + "\n");
+                }
+                reader.close();
+
+                String encodedUserHandle = getUserHandle(response.toString());
+
+                if (encodedUserHandle != null) {
+                    result = new String(decoder.decodeBuffer(encodedUserHandle));
+                }
+                redirect.releaseConnection();
+            }
+        }
+        return result;
+    }
+
+    /**
+     * extract login form name out of loginPage.
+     * 
+     * @param xml
+     *            String xml.
+     * @return String login form name
+     * 
+     * @admin
+     */
+    private String getLoginFormName(final String xml) {
+        Matcher matcher = loginFormPattern.matcher(xml);
+        matcher.matches();
+        return matcher.group(1);
     }
 
     /**
@@ -314,24 +384,24 @@ public class EscidocCoreHandler {
      * 
      * @admin
      */
-	private String getUserHandle(final String xml) {
-		Matcher userHandleMatcher = userHandlePattern.matcher(xml);
-		userHandleMatcher.matches();
-		return userHandleMatcher.group(1);
-	}
-	
+    private String getUserHandle(final String xml) {
+        Matcher userHandleMatcher = userHandlePattern.matcher(xml);
+        userHandleMatcher.matches();
+        return userHandleMatcher.group(1);
+    }
+
     /**
      * fill WS security parameters.
      * 
      * @admin
      */
     private void fillWsSecurityHash() {
-    	wsSecurityHash.put(WSHandlerConstants.MUST_UNDERSTAND, "false");
-    	wsSecurityHash.put(WSHandlerConstants.ACTION, "UsernameToken");
-    	wsSecurityHash.put(WSHandlerConstants.PASSWORD_TYPE, "PasswordText");
-		wsSecurityHash.put(WSHandlerConstants.USER, login);
-		wsSecurityHash.put(WSHandlerConstants.PW_CALLBACK_REF
-				, new PWCallback(login, securityHandle));
+        wsSecurityHash.put(WSHandlerConstants.MUST_UNDERSTAND, "false");
+        wsSecurityHash.put(WSHandlerConstants.ACTION, "UsernameToken");
+        wsSecurityHash.put(WSHandlerConstants.PASSWORD_TYPE, "PasswordText");
+        wsSecurityHash.put(WSHandlerConstants.USER, login);
+        wsSecurityHash.put(WSHandlerConstants.PW_CALLBACK_REF
+                , new PWCallback(login, securityHandle));
 
     }
 
@@ -343,30 +413,29 @@ public class EscidocCoreHandler {
      * @admin
      */
     private EngineConfiguration createClientConfig() { 
-		try {
-			SimpleProvider clientConfig = new SimpleProvider(); 
-			Handler securityHandler = (Handler) new WSDoAllSender();
-			if (wsSecurityHash != null) {
-				for (String key : wsSecurityHash.keySet()) {
-					securityHandler.setOption(key, wsSecurityHash.get(key));
-				}
-			}
-			SimpleChain reqHandler = new SimpleChain(); 
-			SimpleChain respHandler = new SimpleChain(); 
-			// add the handler to the request
-			reqHandler.addHandler(securityHandler); 
-			// add the handler to the response
-			respHandler.addHandler(securityHandler); 
-			Handler pivot =(Handler) new HTTPSender(); 
-			Handler transport = new SimpleTargetedChain(
-							reqHandler, pivot, respHandler); 
-			clientConfig.deployTransport(
-					HTTPTransport.DEFAULT_TRANSPORT_NAME, transport); 
-			return clientConfig;   
-		} catch (Exception ex) {
-			System.out.println("Couldn't create engine configuration: " + ex);
-			return null;
-		}
-	}
-
+        try {
+            SimpleProvider clientConfig = new SimpleProvider(); 
+            Handler securityHandler = (Handler) new WSDoAllSender();
+            if (wsSecurityHash != null) {
+                for (String key : wsSecurityHash.keySet()) {
+                    securityHandler.setOption(key, wsSecurityHash.get(key));
+                }
+            }
+            SimpleChain reqHandler = new SimpleChain(); 
+            SimpleChain respHandler = new SimpleChain(); 
+            // add the handler to the request
+            reqHandler.addHandler(securityHandler); 
+            // add the handler to the response
+            respHandler.addHandler(securityHandler); 
+            Handler pivot = (Handler) new HTTPSender(); 
+            Handler transport = new SimpleTargetedChain(
+                            reqHandler, pivot, respHandler); 
+            clientConfig.deployTransport(
+                HTTPTransport.DEFAULT_TRANSPORT_NAME, transport); 
+            return clientConfig;   
+        } catch (Exception ex) {
+            System.out.println("Couldn't create engine configuration: " + ex);
+            return null;
+        }
+    }
 }

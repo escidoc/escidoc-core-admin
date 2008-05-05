@@ -103,6 +103,12 @@
 		<ant antfile="${src.bin.dir}/build-junit.xml" target="test-fail" dir="" />
 	</target>
 
+        <target name="recache">
+                <java jar="${dist.build.dir}/eSciDocCoreAdmin.jar" fork="true">
+                        <arg value="recache" />
+                </java>
+        </target>
+
 	<target name="reindex">
 		<java jar="${dist.build.dir}/eSciDocCoreAdmin.jar" fork="true">
 			<arg value="reindex" />

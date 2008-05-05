@@ -14,7 +14,6 @@
 	<classpathentry kind="lib" path="lib/spring/spring-2.5.1.jar"/>
 	<classpathentry kind="lib" path="lib/woodstox/stax2.jar"/>
 	<classpathentry kind="lib" path="lib/woodstox/wstx-asl-3.1.2.jar"/>
-	<classpathentry kind="lib" path="lib/jboss/jbossall-client.jar"/>
 	<classpathentry kind="lib" path="lib/test/junit.jar"/>
 	<classpathentry kind="lib" path="lib/test/xalan-2.6.0.jar"/>
 	<classpathentry kind="lib" path="lib/axis/addressing-1.0.jar"/>
@@ -39,5 +38,7 @@
 	<classpathentry kind="lib" path="lib/axis/xml-apis.jar"/>
 	<classpathentry kind="lib" path="lib/axis/wss4j-1.5.3.jar"/>
 	<classpathentry kind="lib" path="lib/axis/xmlsec-1.4.1.jar"/>
+	<classpathentry kind="lib" path="lib/fedora-client.jar"/>
+	<classpathentry kind="lib" path="lib/commons-httpclient-3.1.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>

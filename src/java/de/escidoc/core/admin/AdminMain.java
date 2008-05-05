@@ -28,7 +28,6 @@
  */
 package de.escidoc.core.admin;
 
-import java.io.ByteArrayInputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Vector;
 
@@ -38,16 +37,13 @@ import org.springframework.beans.factory.access.SingletonBeanFactoryLocator;
 import org.springframework.transaction.CannotCreateTransactionException;
 
 import de.escidoc.core.admin.business.interfaces.DataBaseMigrationInterface;
+import de.escidoc.core.admin.business.interfaces.RecacheInterface;
 import de.escidoc.core.admin.business.interfaces.ReindexerInterface;
 import de.escidoc.core.admin.common.util.spring.SpringConstants;
-import de.escidoc.core.admin.common.util.stax.handler.ComponentContentHrefHandler;
-import de.escidoc.core.admin.common.util.stax.handler.ContainerHrefHandler;
 import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException;
 import de.escidoc.core.common.exceptions.system.IntegritySystemException;
 import de.escidoc.core.common.util.logger.AppLogger;
-import de.escidoc.core.common.util.stax.StaxParser;
 import de.escidoc.core.common.util.string.StringUtility;
-import de.escidoc.core.common.util.xml.XmlUtility;
 
 /**
  * Main Class for the Admin-Tool.
@@ -69,14 +65,17 @@ public class AdminMain {
     /**
      * Main Method, depends on args[0] which method is executed.
      * 
-     * @param args
+     * @param args arguments given on commandline
      */
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
         AdminMain admin = new AdminMain();
         if (args != null && args.length > 0) {
             log.info(args[0]);
             if (args[0].equals("reindex")) {
                 admin.reindex(args);
+            }
+            else if (args[0].equals("recache")) {
+                admin.recache(args);
             }
             else if (args[0].equals("test")) {
                 admin.test(args);
@@ -133,7 +132,7 @@ public class AdminMain {
         }
     }
 
-    private void test(String[] args) {
+    private void test(final String[] args) {
         log.info("Test method invoked!");
         String escidocOmUrl = null;
         String escidocSbUrl = null;
@@ -146,6 +145,26 @@ public class AdminMain {
 
         log.info("escidocOmUrl=" + escidocOmUrl);
         log.info("escidocSbUrl=" + escidocSbUrl);
+    }
+
+    /**
+     * Clear the item cache, get all items and store them in the item cache.
+     * 
+     * @param args The arguments.
+     */
+    private void recache(final String[] args) {
+        RecacheInterface recache =
+            (RecacheInterface) beanFactory
+                .getBean(SpringConstants.ID_RECACHE);
+
+        try {
+            recache.clearCache();
+            recache.storeItems();
+        }
+        catch (Exception e) {
+            log.error(e);
+e.printStackTrace();
+        }
     }
 
     /**

@@ -113,6 +113,21 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
     </property>
 </bean>
 
+<!-- RECACHE -->
+<bean
+     id="de.escidoc.core.admin.Recache"
+          class="de.escidoc.core.admin.business.Recache">
+            <constructor-arg value="${fedora.user}"/>
+            <constructor-arg value="${fedora.password}"/>
+            <constructor-arg value="${fedora.url}"/>
+            <property name="dataSource">
+                <ref bean="de.escidoc.core.admin.DataSource" />
+            </property>
+            <property name="escidocCoreHandler">
+                <ref bean="de.escidoc.core.admin.EscidocCoreHandlerWithSecurity" />
+            </property>
+</bean>
+
 <!-- REINDEXER -->
 <bean 
      id="de.escidoc.core.admin.EscidocCoreHandler"
