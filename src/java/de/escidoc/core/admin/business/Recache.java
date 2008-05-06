@@ -43,6 +43,7 @@ import java.sql.Timestamp;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -404,6 +405,8 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
             input = new BufferedReader(
                 new InputStreamReader(fc.get(ITEM_LIST_QUERY, true)));
 
+            int itemCount = 0;
+            long now = new Date().getTime();
             String line;
 
             while ((line = input.readLine()) != null) {
@@ -415,7 +418,16 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
                     final String id = subject.substring(subject.indexOf('/') + 1);
 
                     storeItem(id, retrieveItemRest(id), retrieveItemSoap(id));
+                    itemCount++;
+                    if (itemCount >= 100)
+                        break;
                 }
+            }
+
+            long time = (new Date().getTime() - now) / 1000;
+
+            if (time > 0) {
+                log.info ("stored " + itemCount + " items in " + time + "s (" + (itemCount / time) + "." + (itemCount % time) + " items/s)");
             }
         }
         finally {
