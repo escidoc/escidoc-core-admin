@@ -419,8 +419,6 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
 
                     storeItem(id, retrieveItemRest(id), retrieveItemSoap(id));
                     itemCount++;
-                    if (itemCount >= 100)
-                        break;
                 }
             }
 
