@@ -163,7 +163,7 @@ public class AdminMain {
         }
         catch (Exception e) {
             log.error(e);
-e.printStackTrace();
+            e.printStackTrace();
         }
     }
 
