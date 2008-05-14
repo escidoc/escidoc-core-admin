@@ -59,13 +59,13 @@ Regenerate cache for filter methods (fast lists)
 ------------------------------------------------
 
 	Use this when 
-	- structure/schema of items changed,
+	- structure/schema of containers or items changed,
 	- structure of cache database changed
 
 	- Workflow:
-		- delete all items from cache database
-		- get all items from om
-		- put these items into the cache database
+		- delete all containers and items from cache database
+		- get all containers and items from om
+		- put these containers and items into the cache database
 
 	- Usage:
 		- modify admin-tool.properties:
