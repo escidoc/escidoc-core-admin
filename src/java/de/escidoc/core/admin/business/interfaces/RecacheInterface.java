@@ -41,17 +41,17 @@ import java.text.ParseException;
 public interface RecacheInterface {
 
     /**
-     * Clear the whole item cache.
+     * Clear all resources from cache.
      */
     void clearCache();
 
     /**
-     * Store all available items in the database cache.
+     * Store all available resources in the database cache.
      * 
-     * @throws ApplicationServerSystemException Thrown if eSciDoc failed to receive the item.
-     * @throws IOException Thrown if an I/O error occured.
-     * @throws ParseException The given string cannot be parsed into a date.
+     * @throws ApplicationServerSystemException Thrown if eSciDoc failed to receive a resource.
+     * @throws IOException Thrown if an I/O error occurred.
+     * @throws ParseException The given string cannot be parsed.
      */
-    void storeItems()
+    void storeResources()
         throws ApplicationServerSystemException, IOException, ParseException;
 }

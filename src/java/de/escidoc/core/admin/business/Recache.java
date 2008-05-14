@@ -73,7 +73,9 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
     /**
      * SQL statements.
      */
-    private static final String DELETE_ALL = "DELETE FROM list.item";
+    private static final String DELETE_ALL_CONTAINERS = "DELETE FROM list.container";
+    private static final String DELETE_ALL_ITEMS = "DELETE FROM list.item";
+    private static final String INSERT_CONTAINER = "INSERT INTO list.container (id, content_model, context_id, creation_date, created_by, description, pid, public_status, title, version_number, version_status, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     private static final String INSERT_ITEM = "INSERT INTO list.item (id, content_model, context_id, creation_date, created_by, description, pid, public_status, title, version_number, version_status, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     /**
@@ -101,12 +103,15 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
     /**
      * Triplestore queries.
      */
+    private static final String CONTAINER_LIST_QUERY = "/risearch?type=triples&lang=spo&format=N-Triples&query=*%20%3chttp://www.w3.org/1999/02/22-rdf-syntax-ns%23type%3e%20%3chttp://escidoc.de/core/01/resources/Container%3e";
     private static final String ITEM_LIST_QUERY = "/risearch?type=triples&lang=spo&format=N-Triples&query=*%20%3chttp://www.w3.org/1999/02/22-rdf-syntax-ns%23type%3e%20%3chttp://escidoc.de/core/01/resources/Item%3e";
-    private static final String ITEM_PROPERTIES_QUERY = "/risearch?type=triples&lang=spo&format=N-Triples&query=%3cinfo:fedora/{0}%3e%20*%20*";
+    private static final String PROPERTIES_QUERY = "/risearch?type=triples&lang=spo&format=N-Triples&query=%3cinfo:fedora/{0}%3e%20*%20*";
 
     /**
      * Axis URLs.
      */
+    private static final String AXIS_CONTAINER_HANDLER_TARGET_NAMESPACE =
+        "http://localhost:8080/axis/services/ContainerHandlerService";
     private static final String AXIS_ITEM_HANDLER_TARGET_NAMESPACE =
         "http://localhost:8080/axis/services/ItemHandlerService";
 
@@ -116,8 +121,9 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
     private static final String RETRIEVE_METHOD_NAME = "retrieve";
 
     /**
-     * eSciDoc item URL.
+     * eSciDoc URLs.
      */
+    private static final String CONTAINER_URL = "/ir/container/";
     private static final String ITEM_URL = "/ir/item/";
 
     /**
@@ -140,8 +146,8 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
     /**
      * Construct a new Recache object.
      * 
-     * @param fedoraUser priviledged Fedora user
-     * @param fedoraPassword password of a priviledged Fedora user
+     * @param fedoraUser privileged Fedora user
+     * @param fedoraPassword password of a privileged Fedora user
      * @param fedoraUrl Fedora base URL 
      */
     public Recache(
@@ -154,16 +160,17 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
     }
 
     /**
-     * Clear the whole item cache.
+     * Clear all resources from cache.
      */
     public void clearCache() {
-        getJdbcTemplate().update(DELETE_ALL);
+        getJdbcTemplate().update(DELETE_ALL_CONTAINERS);
+        getJdbcTemplate().update(DELETE_ALL_ITEMS);
     }
 
     /**
-     * Get the latest release number from the item XML.
+     * Get the latest release number from the given XML.
      * 
-     * @param xml item xml
+     * @param xml resource XML
      * @return latest release number or null
      * @throws IOException If the XML couldn't be parsed.
      */
@@ -227,12 +234,12 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
     }
 
     /**
-     * Get all properties for a given item from Fedora.
+     * Get all properties for a given resource from Fedora.
      * 
-     * @param id item id
+     * @param id resource id
      * 
-     * @return property map for this item
-     * @throws IOException Thrown if an I/O error occured.
+     * @return property map for this resource
+     * @throws IOException Thrown if an I/O error occurred.
      */
     private Map <String, String> getProperties(final String id)
         throws IOException {
@@ -243,7 +250,7 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
 
             try {
                 MessageFormat queryFormat =
-                    new MessageFormat(ITEM_PROPERTIES_QUERY);
+                    new MessageFormat(PROPERTIES_QUERY);
                 String line;
 
                 input = new BufferedReader(
@@ -265,12 +272,12 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
     }
 
     /**
-     * Get all properties for a given item from the item XML.
+     * Get all properties for a given resource from the item XML.
      * 
-     * @param xml item XML
+     * @param xml resource XML
      * 
-     * @return property map for this item
-     * @throws IOException Thrown if an I/O error occured.
+     * @return property map for this resource
+     * @throws IOException Thrown if an I/O error occurred.
      */
     private Map <String, String> getPropertiesFromXml(final String xml)
         throws IOException {
@@ -293,7 +300,7 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
     /**
      * Get a specific id value from the property map.
      * 
-     * @param properties property map for this item
+     * @param properties property map for this resource
      * @param property name of the property to get the value for
      * 
      * @return id value of this property
@@ -368,33 +375,35 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
     }
 
     /**
-     * Retrieve a single item from eSciDoc (REST form).
+     * Retrieve a single resource from eSciDoc (REST form).
      * 
-     * @param id item id
+     * @param url eScidoc URL to retrieve the resource
+     * @param id resource id
      * 
-     * @return XML representation of this item
-     * @throws ApplicationServerSystemException Thrown if eSciDoc failed to receive the item.
+     * @return XML representation of this resource
+     * @throws ApplicationServerSystemException Thrown if eSciDoc failed to receive the resource.
      */
-    private String retrieveItemRest(final String id)
+    private String retrieveResourceRest(final String url, final String id)
         throws ApplicationServerSystemException {
-        return escidocCoreHandler.getRequestEscidoc(ITEM_URL + id);
+        return escidocCoreHandler.getRequestEscidoc(url + id);
     }
 
     /**
-     * Retrieve a single item from eSciDoc (SOAP form).
+     * Retrieve a single resource from eSciDoc (SOAP form).
      * 
-     * @param id item id
+     * @param namespace target namespace
+     * @param id resource id
      * 
-     * @return XML representation of this item
-     * @throws ApplicationServerSystemException Thrown if eSciDoc failed to receive the item.
+     * @return XML representation of this resource
+     * @throws ApplicationServerSystemException Thrown if eSciDoc failed to receive the resource.
      */
-    private String retrieveItemSoap(final String id)
+    private String retrieveResourceSoap(final String namespace, final String id)
         throws ApplicationServerSystemException {
         Object[] arguments = new Object[1];
         arguments[0] = id;
 
         return (String) escidocCoreHandler.soapRequestEscidoc(
-            AXIS_ITEM_HANDLER_TARGET_NAMESPACE, RETRIEVE_METHOD_NAME, arguments);
+            namespace, RETRIEVE_METHOD_NAME, arguments);
     }
 
     /**
@@ -416,6 +425,113 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
     }
 
     /**
+     * Store all available resources of the given type in the database cache.
+     *
+     * @param type must be "container" or "item"
+     * @param listQuery Fedora query to get a list of all resources of the given
+     *                  type
+     * @param resourceUrl eSciDoc URL to retrieve a resource of the given type
+     * @param resourceNamespace target namespace for the given resource type
+     *
+     * @throws ApplicationServerSystemException Thrown if eSciDoc failed to receive a resource.
+     * @throws IOException Thrown if an I/O error occurred.
+     * @throws ParseException The given string cannot be parsed.
+     */
+    private void store(final String type, final String listQuery,
+        final String resourceUrl, final String resourceNamespace)
+        throws ApplicationServerSystemException, IOException, ParseException {
+        BufferedReader input = null;
+
+        try {
+            fc = new FedoraClient(fedoraUrl, fedoraUser, fedoraPassword);
+            input = new BufferedReader(
+                new InputStreamReader(fc.get(listQuery, true)));
+
+            int count = 0;
+            long now = new Date().getTime();
+            String line;
+
+            while ((line = input.readLine()) != null) {
+                final String subject = getSubject(line);
+
+                if (subject != null) {
+                    log.info("store " + type + " " + subject);
+
+                    final String id = subject.substring(subject.indexOf('/') + 1);
+                    String xmlDataRest = retrieveResourceRest(resourceUrl, id);
+                    String xmlDataSoap =
+                        retrieveResourceSoap(resourceNamespace, id);
+                    Map <String, String> properties = getProperties(id);
+                    final String versionNumber =
+                        getStringId(properties, VERSION_NUMBER);
+                    final String latestRelease = getLatestRelease(xmlDataRest);
+
+                    storeResource(type, id, properties, xmlDataRest, xmlDataSoap);
+                    if ((latestRelease != null) && (
+                        !latestRelease.equals(versionNumber))) {
+                        final String versionId = id + ":" + latestRelease;
+
+                        log.info("store " + type + " " + versionId);
+                        xmlDataRest = retrieveResourceRest(resourceUrl, versionId);
+                        xmlDataSoap =
+                            retrieveResourceSoap(resourceNamespace, versionId);
+                        properties = getPropertiesFromXml(xmlDataSoap);
+                        storeResource(
+                            type, id, properties, xmlDataRest, xmlDataSoap);
+                        count++;
+                    }
+                    count++;
+                }
+            }
+
+            long time = (new Date().getTime() - now) / 1000;
+
+            if (time > 0) {
+                log.info("stored " + count + " " + type + "s in " + time + "s ("
+                    + (count / time) + "." + (count % time) + " " + type + "s/s)");
+            }
+        }
+        finally {
+            if (input != null) {
+                input.close();
+            }
+        }
+    }
+
+    /**
+     * Store the container in the database cache.
+     * 
+     * @param id container id
+     * @param properties map containing all filter properties
+     * @param xmlDataRest complete container as XML (REST form)
+     * @param xmlDataSoap complete container as XML (SOAP form)
+     * 
+     * @throws IOException Thrown if an I/O error occurred.
+     * @throws ParseException A date string cannot be parsed.
+     */
+    private void storeContainer(
+        final String id, final Map <String, String> properties,
+        final String xmlDataRest, final String xmlDataSoap)
+        throws IOException, ParseException {
+        getJdbcTemplate().update(
+            INSERT_CONTAINER,
+            new Object[]
+            {id,
+             getStringId(properties, CONTENT_MODEL),
+             getStringId(properties, CONTEXT_ID),
+             getTimestamp(properties, CREATION_DATE),
+             getStringId(properties, CREATED_BY),
+             properties.get(DESCRIPTION),
+             properties.get(PID),
+             getStringId(properties, PUBLIC_STATUS),
+             properties.get(TITLE),
+             getStringId(properties, VERSION_NUMBER),
+             getStringId(properties, VERSION_STATUS),
+             xmlDataRest,
+             xmlDataSoap});
+    }
+
+    /**
      * Store the item in the database cache.
      * 
      * @param id item id
@@ -423,7 +539,7 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
      * @param xmlDataRest complete item as XML (REST form)
      * @param xmlDataSoap complete item as XML (SOAP form)
      * 
-     * @throws IOException Thrown if an I/O error occured.
+     * @throws IOException Thrown if an I/O error occurred.
      * @throws ParseException A date string cannot be parsed.
      */
     private void storeItem(
@@ -449,75 +565,48 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
     }
 
     /**
-     * Store all available items in the database cache.
+     * Store a resource in the database cache.
      * 
-     * @throws ApplicationServerSystemException Thrown if eSciDoc failed to receive the item.
-     * @throws IOException Thrown if an I/O error occured.
+     * @param type must be "container" or "item"
+     * @param id resource id
+     * @param properties map containing all filter properties
+     * @param xmlDataRest complete item as XML (REST form)
+     * @param xmlDataSoap complete item as XML (SOAP form)
+     *
+     * @throws IOException Thrown if an I/O error occurred.
      * @throws ParseException The given string cannot be parsed.
      */
-    public void storeItems()
+    private void storeResource(final String type, final String id,
+        final Map <String, String> properties, final String xmlDataRest,
+        final String xmlDataSoap)
+        throws IOException, ParseException {
+        if (type.equals("container")) {
+            storeContainer(id, properties, xmlDataRest, xmlDataSoap);
+        }
+        else if (type.equals("item")) {
+            storeItem(id, properties, xmlDataRest, xmlDataSoap);
+        }
+    }
+
+    /**
+     * Store all available resources in the database cache.
+     * 
+     * @throws ApplicationServerSystemException Thrown if eSciDoc failed to receive a resource.
+     * @throws IOException Thrown if an I/O error occurred.
+     * @throws ParseException The given string cannot be parsed.
+     */
+    public void storeResources()
         throws ApplicationServerSystemException, IOException, ParseException {
-        BufferedReader input = null;
-
+        // dummy call to prevent "org.apache.commons.discovery.DiscoveryException: No implementation defined for org.apache.commons.logging.LogFactory"
         try {
-            // dummy call to prevent "org.apache.commons.discovery.DiscoveryException: No implementation defined for org.apache.commons.logging.LogFactory"
-            try {
-                retrieveItemSoap("escidoc:1");
-            }
-            catch (Exception e) {
-            }
-
-            fc = new FedoraClient(fedoraUrl, fedoraUser, fedoraPassword);
-
-            input = new BufferedReader(
-                new InputStreamReader(fc.get(ITEM_LIST_QUERY, true)));
-
-            int itemCount = 0;
-            long now = new Date().getTime();
-            String line;
-
-            while ((line = input.readLine()) != null) {
-                final String subject = getSubject(line);
-
-                if (subject != null) {
-                    log.info("store item " + subject);
-
-                    final String id = subject.substring(subject.indexOf('/') + 1);
-                    String xmlDataRest = retrieveItemRest(id);
-                    String xmlDataSoap = retrieveItemSoap(id);
-                    Map <String, String> properties = getProperties(id);
-                    final String versionNumber =
-                        getStringId(properties, VERSION_NUMBER);
-                    final String latestRelease = getLatestRelease(xmlDataRest);
-
-                    storeItem(id, properties, xmlDataRest, xmlDataSoap);
-                    if ((latestRelease != null) && (
-                        !latestRelease.equals(versionNumber))) {
-                        final String versionId = id + ":" + latestRelease;
-
-                        log.info("store item " + versionId);
-                        xmlDataRest = retrieveItemRest(versionId);
-                        xmlDataSoap = retrieveItemSoap(versionId);
-                        properties = getPropertiesFromXml(xmlDataSoap);
-                        storeItem(id, properties, xmlDataRest, xmlDataSoap);
-                        itemCount++;
-                    }
-                    itemCount++;
-                }
-            }
-
-            long time = (new Date().getTime() - now) / 1000;
-
-            if (time > 0) {
-                log.info("stored " + itemCount + " items in " + time + "s ("
-                    + (itemCount / time) + "." + (itemCount % time) + " items/s)");
-            }
+            retrieveResourceSoap(AXIS_ITEM_HANDLER_TARGET_NAMESPACE, "escidoc:1");
         }
-        finally {
-            if (input != null) {
-                input.close();
-            }
+        catch (Exception e) {
         }
+        store("container", CONTAINER_LIST_QUERY, CONTAINER_URL,
+            AXIS_CONTAINER_HANDLER_TARGET_NAMESPACE);
+        store("item", ITEM_LIST_QUERY,
+            ITEM_URL, AXIS_ITEM_HANDLER_TARGET_NAMESPACE);
     }
 
     /**
@@ -726,7 +815,7 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
         }
 
         /**
-         * Extract the value for the given "qName" from the attibute list and
+         * Extract the value for the given "qName" from the attribute list and
          * put it into the map of all filter properties using "key" as key value.
          *  
          * @param attributes attribute list

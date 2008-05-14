@@ -159,7 +159,7 @@ public class AdminMain {
 
         try {
             recache.clearCache();
-            recache.storeItems();
+            recache.storeResources();
         }
         catch (Exception e) {
             log.error(e);
