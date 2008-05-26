@@ -74,9 +74,13 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
      * SQL statements.
      */
     private static final String DELETE_ALL_CONTAINERS = "DELETE FROM list.container";
+    private static final String DELETE_ALL_CONTEXTS = "DELETE FROM list.context";
     private static final String DELETE_ALL_ITEMS = "DELETE FROM list.item";
-    private static final String INSERT_CONTAINER = "INSERT INTO list.container (id, content_model, context_id, creation_date, created_by, description, pid, public_status, title, version_number, version_status, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    private static final String INSERT_ITEM = "INSERT INTO list.item (id, content_model, context_id, creation_date, created_by, description, pid, public_status, title, version_number, version_status, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    private static final String DELETE_ALL_OUS = "DELETE FROM list.ou";
+    private static final String INSERT_CONTAINER = "INSERT INTO list.container (id, content_model, context_id, created_by, creation_date, description, last_modification_date, modified_by, pid, public_status, title, version_number, version_status, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    private static final String INSERT_CONTEXT = "INSERT INTO list.context (id, created_by, creation_date, description, last_modification_date, modified_by, ou, public_status, title, type, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    private static final String INSERT_ITEM = "INSERT INTO list.item (id, content_model, context_id, created_by, creation_date, description, last_modification_date, modified_by, pid, public_status, title, version_number, version_status, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    private static final String INSERT_OU = "INSERT INTO list.ou (id, created_by, creation_date, description, last_modification_date, modified_by, public_status, title, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     /**
      * SQL date formats.
@@ -89,22 +93,28 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
     /**
      * Triplestore properties.
      */
-    private static final String CONTENT_MODEL = "<http://escidoc.de/core/01/structural-relations/content-model>";
-    private static final String CONTEXT_ID = "<http://escidoc.de/core/01/structural-relations/context>";
-    private static final String CREATED_BY = "<http://escidoc.de/core/01/structural-relations/created-by>";
-    private static final String CREATION_DATE = "<info:fedora/fedora-system:def/model#createdDate>";
-    private static final String DESCRIPTION = "<http://purl.org/dc/elements/1.1/description>";
-    private static final String PID = "<http://escidoc.de/core/01/properties/pid>";
-    private static final String PUBLIC_STATUS = "<http://escidoc.de/core/01/properties/public-status>";
-    private static final String TITLE = "<http://purl.org/dc/elements/1.1/title>";
-    private static final String VERSION_NUMBER = "<http://escidoc.de/core/01/properties/version/number>";
-    private static final String VERSION_STATUS = "<http://escidoc.de/core/01/properties/version/status>";
+    private static final String PROP_CONTENT_MODEL = "<http://escidoc.de/core/01/structural-relations/content-model>";
+    private static final String PROP_CONTEXT_ID = "<http://escidoc.de/core/01/structural-relations/context>";
+    private static final String PROP_CONTEXT_TYPE = "<http://escidoc.de/core/01/properties/type>";
+    private static final String PROP_CREATED_BY_ID = "<http://escidoc.de/core/01/structural-relations/created-by>";
+    private static final String PROP_CREATION_DATE = "<info:fedora/fedora-system:def/model#createdDate>";
+    private static final String PROP_DC_DESCRIPTION = "<http://purl.org/dc/elements/1.1/description>";
+    private static final String PROP_DC_TITLE = "<http://purl.org/dc/elements/1.1/title>";
+    private static final String PROP_LAST_MODIFICATION_DATE = "<info:fedora/fedora-system:def/view#lastModifiedDate>";
+    private static final String PROP_MODIFIED_BY_ID = "<http://escidoc.de/core/01/structural-relations/modified-by>";
+    private static final String PROP_ORGANIZATIONAL_UNIT = "<http://escidoc.de/core/01/structural-relations/organizational-unit>";
+    private static final String PROP_PID = "<http://escidoc.de/core/01/properties/pid>";
+    private static final String PROP_PUBLIC_STATUS = "<http://escidoc.de/core/01/properties/public-status>";
+    private static final String PROP_VERSION_NUMBER = "<http://escidoc.de/core/01/properties/version/number>";
+    private static final String PROP_VERSION_STATUS = "<http://escidoc.de/core/01/properties/version/status>";
 
     /**
      * Triplestore queries.
      */
     private static final String CONTAINER_LIST_QUERY = "/risearch?type=triples&lang=spo&format=N-Triples&query=*%20%3chttp://www.w3.org/1999/02/22-rdf-syntax-ns%23type%3e%20%3chttp://escidoc.de/core/01/resources/Container%3e";
+    private static final String CONTEXT_LIST_QUERY = "/risearch?type=triples&lang=spo&format=N-Triples&query=*%20%3chttp://www.w3.org/1999/02/22-rdf-syntax-ns%23type%3e%20%3chttp://escidoc.de/core/01/resources/Context%3e";
     private static final String ITEM_LIST_QUERY = "/risearch?type=triples&lang=spo&format=N-Triples&query=*%20%3chttp://www.w3.org/1999/02/22-rdf-syntax-ns%23type%3e%20%3chttp://escidoc.de/core/01/resources/Item%3e";
+    private static final String OU_LIST_QUERY = "/risearch?type=triples&lang=spo&format=N-Triples&query=*%20%3chttp://www.w3.org/1999/02/22-rdf-syntax-ns%23type%3e%20%3chttp://escidoc.de/core/01/resources/OrganizationalUnit%3e";
     private static final String PROPERTIES_QUERY = "/risearch?type=triples&lang=spo&format=N-Triples&query=%3cinfo:fedora/{0}%3e%20*%20*";
 
     /**
@@ -112,8 +122,12 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
      */
     private static final String AXIS_CONTAINER_HANDLER_TARGET_NAMESPACE =
         "http://localhost:8080/axis/services/ContainerHandlerService";
+    private static final String AXIS_CONTEXT_HANDLER_TARGET_NAMESPACE =
+        "http://localhost:8080/axis/services/ContextHandlerService";
     private static final String AXIS_ITEM_HANDLER_TARGET_NAMESPACE =
         "http://localhost:8080/axis/services/ItemHandlerService";
+    private static final String AXIS_OU_HANDLER_TARGET_NAMESPACE =
+        "http://localhost:8080/axis/services/OrganizationalUnitHandlerService";
 
     /**
      * Axis method names.
@@ -124,7 +138,9 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
      * eSciDoc URLs.
      */
     private static final String CONTAINER_URL = "/ir/container/";
+    private static final String CONTEXT_URL = "/ir/context/";
     private static final String ITEM_URL = "/ir/item/";
+    private static final String OU_URL = "/oum/organizational-unit/";
 
     /**
      * Properties from configuration file.
@@ -164,7 +180,9 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
      */
     public void clearCache() {
         getJdbcTemplate().update(DELETE_ALL_CONTAINERS);
+        getJdbcTemplate().update(DELETE_ALL_CONTEXTS);
         getJdbcTemplate().update(DELETE_ALL_ITEMS);
+        getJdbcTemplate().update(DELETE_ALL_OUS);
     }
 
     /**
@@ -463,7 +481,7 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
                         retrieveResourceSoap(resourceNamespace, id);
                     Map <String, String> properties = getProperties(id);
                     final String versionNumber =
-                        getStringId(properties, VERSION_NUMBER);
+                        getStringId(properties, PROP_VERSION_NUMBER);
                     final String latestRelease = getLatestRelease(xmlDataRest);
 
                     storeResource(type, id, properties, xmlDataRest, xmlDataSoap);
@@ -486,10 +504,11 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
 
             long time = (new Date().getTime() - now) / 1000;
 
-            if (time > 0) {
-                log.info("stored " + count + " " + type + "s in " + time + "s ("
-                    + (count / time) + "." + (count % time) + " " + type + "s/s)");
+            if (time == 0) {
+                time = 1;
             }
+            log.info("stored " + count + " " + type + "s in " + time + "s ("
+                     + (count / time) + "." + (count % time) + " " + type + "s/s)");
         }
         finally {
             if (input != null) {
@@ -517,16 +536,50 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
             INSERT_CONTAINER,
             new Object[]
             {id,
-             getStringId(properties, CONTENT_MODEL),
-             getStringId(properties, CONTEXT_ID),
-             getTimestamp(properties, CREATION_DATE),
-             getStringId(properties, CREATED_BY),
-             properties.get(DESCRIPTION),
-             properties.get(PID),
-             getStringId(properties, PUBLIC_STATUS),
-             properties.get(TITLE),
-             getStringId(properties, VERSION_NUMBER),
-             getStringId(properties, VERSION_STATUS),
+             getStringId(properties, PROP_CONTENT_MODEL),
+             getStringId(properties, PROP_CONTEXT_ID),
+             getStringId(properties, PROP_CREATED_BY_ID),
+             getTimestamp(properties, PROP_CREATION_DATE),
+             properties.get(PROP_DC_DESCRIPTION),
+             getTimestamp(properties, PROP_LAST_MODIFICATION_DATE),
+             getStringId(properties, PROP_MODIFIED_BY_ID),
+             properties.get(PROP_PID),
+             properties.get(PROP_PUBLIC_STATUS),
+             properties.get(PROP_DC_TITLE),
+             properties.get(PROP_VERSION_NUMBER),
+             properties.get(PROP_VERSION_STATUS),
+             xmlDataRest,
+             xmlDataSoap});
+    }
+
+    /**
+     * Store the context in the database cache.
+     * 
+     * @param id context id
+     * @param properties map containing all filter properties
+     * @param xmlDataRest complete context as XML (REST form)
+     * @param xmlDataSoap complete context as XML (SOAP form)
+     * 
+     * @throws IOException Thrown if an I/O error occurred.
+     * @throws ParseException A date string cannot be parsed.
+     */
+    private void storeContext(
+        final String id, final Map <String, String> properties,
+        final String xmlDataRest, final String xmlDataSoap)
+        throws IOException, ParseException {
+        getJdbcTemplate().update(
+            INSERT_CONTEXT,
+            new Object[]
+            {id,
+             getStringId(properties, PROP_CREATED_BY_ID),
+             getTimestamp(properties, PROP_CREATION_DATE),
+             properties.get(PROP_DC_DESCRIPTION),
+             getTimestamp(properties, PROP_LAST_MODIFICATION_DATE),
+             getStringId(properties, PROP_MODIFIED_BY_ID),
+             getStringId(properties, PROP_ORGANIZATIONAL_UNIT),
+             properties.get(PROP_PUBLIC_STATUS),
+             properties.get(PROP_DC_TITLE),
+             properties.get(PROP_CONTEXT_TYPE),
              xmlDataRest,
              xmlDataSoap});
     }
@@ -550,16 +603,48 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
             INSERT_ITEM,
             new Object[]
             {id,
-             getStringId(properties, CONTENT_MODEL),
-             getStringId(properties, CONTEXT_ID),
-             getTimestamp(properties, CREATION_DATE),
-             getStringId(properties, CREATED_BY),
-             properties.get(DESCRIPTION),
-             properties.get(PID),
-             getStringId(properties, PUBLIC_STATUS),
-             properties.get(TITLE),
-             getStringId(properties, VERSION_NUMBER),
-             getStringId(properties, VERSION_STATUS),
+             getStringId(properties, PROP_CONTENT_MODEL),
+             getStringId(properties, PROP_CONTEXT_ID),
+             getStringId(properties, PROP_CREATED_BY_ID),
+             getTimestamp(properties, PROP_CREATION_DATE),
+             properties.get(PROP_DC_DESCRIPTION),
+             getTimestamp(properties, PROP_LAST_MODIFICATION_DATE),
+             getStringId(properties, PROP_MODIFIED_BY_ID),
+             properties.get(PROP_PID),
+             properties.get(PROP_PUBLIC_STATUS),
+             properties.get(PROP_DC_TITLE),
+             properties.get(PROP_VERSION_NUMBER),
+             properties.get(PROP_VERSION_STATUS),
+             xmlDataRest,
+             xmlDataSoap});
+    }
+
+    /**
+     * Store the organizational unit in the database cache.
+     * 
+     * @param id organizational unit id
+     * @param properties map containing all filter properties
+     * @param xmlDataRest complete organizational unit as XML (REST form)
+     * @param xmlDataSoap complete organizational unit as XML (SOAP form)
+     * 
+     * @throws IOException Thrown if an I/O error occurred.
+     * @throws ParseException A date string cannot be parsed.
+     */
+    private void storeOU(
+        final String id, final Map <String, String> properties,
+        final String xmlDataRest, final String xmlDataSoap)
+        throws IOException, ParseException {
+        getJdbcTemplate().update(
+            INSERT_OU,
+            new Object[]
+            {id,
+             getStringId(properties, PROP_CREATED_BY_ID),
+             getTimestamp(properties, PROP_CREATION_DATE),
+             properties.get(PROP_DC_DESCRIPTION),
+             getTimestamp(properties, PROP_LAST_MODIFICATION_DATE),
+             getStringId(properties, PROP_MODIFIED_BY_ID),
+             properties.get(PROP_PUBLIC_STATUS),
+             properties.get(PROP_DC_TITLE),
              xmlDataRest,
              xmlDataSoap});
     }
@@ -567,7 +652,7 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
     /**
      * Store a resource in the database cache.
      * 
-     * @param type must be "container" or "item"
+     * @param type must be "container", "context", "item" or "ou"
      * @param id resource id
      * @param properties map containing all filter properties
      * @param xmlDataRest complete item as XML (REST form)
@@ -583,8 +668,14 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
         if (type.equals("container")) {
             storeContainer(id, properties, xmlDataRest, xmlDataSoap);
         }
+        else if (type.equals("context")) {
+            storeContext(id, properties, xmlDataRest, xmlDataSoap);
+        }
         else if (type.equals("item")) {
             storeItem(id, properties, xmlDataRest, xmlDataSoap);
+        }
+        else if (type.equals("ou")) {
+            storeOU(id, properties, xmlDataRest, xmlDataSoap);
         }
     }
 
@@ -605,6 +696,10 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
         }
         store("container", CONTAINER_LIST_QUERY, CONTAINER_URL,
             AXIS_CONTAINER_HANDLER_TARGET_NAMESPACE);
+        store("context", CONTEXT_LIST_QUERY, CONTEXT_URL,
+            AXIS_CONTEXT_HANDLER_TARGET_NAMESPACE);
+        store("ou", OU_LIST_QUERY,
+            OU_URL, AXIS_OU_HANDLER_TARGET_NAMESPACE);
         store("item", ITEM_LIST_QUERY,
             ITEM_URL, AXIS_ITEM_HANDLER_TARGET_NAMESPACE);
     }
@@ -685,6 +780,7 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
         private boolean foundPid = false;
         private boolean foundPublicStatus = false;
         private boolean foundTitle = false;
+        private boolean foundType = false;
         private boolean foundVersion = false;
         private boolean foundVersionNumber = false;
         private boolean foundVersionStatus = false;
@@ -702,31 +798,35 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
         public void characters(final char [] ch, final int start,
             final int length) {
             if (foundCreationDate) {
-                properties.put(CREATION_DATE, new String(ch, start, length));
+                properties.put(PROP_CREATION_DATE, new String(ch, start, length));
                 foundCreationDate = false;
             }
             else if (foundDescription) {
-                properties.put(DESCRIPTION, new String(ch, start, length));
+                properties.put(PROP_DC_DESCRIPTION, new String(ch, start, length));
                 foundDescription = false;
             }
             else if (foundPid) {
-                properties.put(PID, new String(ch, start, length));
+                properties.put(PROP_PID, new String(ch, start, length));
                 foundPid = false;
             }
             else if (foundPublicStatus) {
-                properties.put(PUBLIC_STATUS, new String(ch, start, length));
+                properties.put(PROP_PUBLIC_STATUS, new String(ch, start, length));
                 foundPublicStatus = false;
             }
             else if (foundTitle) {
-                properties.put(TITLE, new String(ch, start, length));
+                properties.put(PROP_DC_TITLE, new String(ch, start, length));
                 foundTitle = false;
             }
+            else if (foundType) {
+                properties.put(PROP_CONTEXT_TYPE, new String(ch, start, length));
+                foundType = false;
+            }
             else if (foundVersionNumber) {
-                properties.put(VERSION_NUMBER, new String(ch, start, length));
+                properties.put(PROP_VERSION_NUMBER, new String(ch, start, length));
                 foundVersionNumber = false;
             }
             else if (foundVersionStatus) {
-                properties.put(VERSION_STATUS, new String(ch, start, length));
+                properties.put(PROP_VERSION_STATUS, new String(ch, start, length));
                 foundVersionStatus = false;
             }
         }
@@ -780,19 +880,28 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
         public void startElement(final String uri, final String localName,
             final String qName, final Attributes attributes) {
             if (qName.equals("srel:content-model")) {
-                storeProperty(attributes, "objid", CONTENT_MODEL);
+                storeProperty(attributes, "objid", PROP_CONTENT_MODEL);
             }
             else if (qName.equals("srel:context")) {
-                storeProperty(attributes, "objid", CONTEXT_ID);
+                storeProperty(attributes, "objid", PROP_CONTEXT_ID);
             }
             else if (qName.equals("srel:created-by")) {
-                storeProperty(attributes, "objid", CREATED_BY);
+                storeProperty(attributes, "objid", PROP_CREATED_BY_ID);
             }
             else if (qName.equals("prop:creation-date")) {
                 foundCreationDate = true;
             }
             else if (qName.equals("prefix-dc:description")) {
                 foundDescription = true;
+            }
+            else if (qName.equals("context:context")) {
+                storeProperty(attributes, "last-modification-date", PROP_LAST_MODIFICATION_DATE);
+            }
+            else if (qName.equals("srel:modified-by")) {
+                storeProperty(attributes, "objid", PROP_MODIFIED_BY_ID);
+            }
+            else if (qName.equals("srel:organizational-unit")) {
+                storeProperty(attributes, "objid", PROP_ORGANIZATIONAL_UNIT);
             }
             else if (qName.equals("prop:pid")) {
                 foundPid = true;
@@ -802,6 +911,9 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
             }
             else if (qName.equals("prefix-dc:title")) {
                 foundTitle = true;
+            }
+            else if (qName.equals("prop:type")) {
+                foundType = true;
             }
             else if (qName.equals("prop:version")) {
                 foundVersion = true;
