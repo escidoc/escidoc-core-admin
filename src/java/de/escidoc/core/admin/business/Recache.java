@@ -80,7 +80,7 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
     private static final String INSERT_CONTAINER = "INSERT INTO list.container (id, content_model, context_id, created_by, creation_date, description, last_modification_date, modified_by, pid, public_status, title, version_number, version_status, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     private static final String INSERT_CONTEXT = "INSERT INTO list.context (id, created_by, creation_date, description, last_modification_date, modified_by, ou, public_status, title, type, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     private static final String INSERT_ITEM = "INSERT INTO list.item (id, content_model, context_id, created_by, creation_date, description, last_modification_date, modified_by, pid, public_status, title, version_number, version_status, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    private static final String INSERT_OU = "INSERT INTO list.ou (id, created_by, creation_date, description, last_modification_date, modified_by, public_status, title, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    private static final String INSERT_OU = "INSERT INTO list.ou (id, created_by, creation_date, description, last_modification_date, modified_by, parent, public_status, title, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     /**
      * SQL date formats.
@@ -103,6 +103,7 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
     private static final String PROP_LAST_MODIFICATION_DATE = "<info:fedora/fedora-system:def/view#lastModifiedDate>";
     private static final String PROP_MODIFIED_BY_ID = "<http://escidoc.de/core/01/structural-relations/modified-by>";
     private static final String PROP_ORGANIZATIONAL_UNIT = "<http://escidoc.de/core/01/structural-relations/organizational-unit>";
+    private static final String PROP_PARENT = "<http://escidoc.de/core/01/structural-relations/parent>";
     private static final String PROP_PID = "<http://escidoc.de/core/01/properties/pid>";
     private static final String PROP_PUBLIC_STATUS = "<http://escidoc.de/core/01/properties/public-status>";
     private static final String PROP_VERSION_NUMBER = "<http://escidoc.de/core/01/properties/version/number>";
@@ -643,6 +644,7 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
              properties.get(PROP_DC_DESCRIPTION),
              getTimestamp(properties, PROP_LAST_MODIFICATION_DATE),
              getStringId(properties, PROP_MODIFIED_BY_ID),
+             getStringId(properties, PROP_PARENT),
              properties.get(PROP_PUBLIC_STATUS),
              properties.get(PROP_DC_TITLE),
              xmlDataRest,
