@@ -72,7 +72,7 @@ public class ItemHrefHandler extends DefaultHandler {
     public StartElement startElement(StartElement element)
         throws MissingAttributeValueException {
 
-        String itemRefPath = "/item-ref-list/item-ref";
+        String itemRefPath = "/item-list/item";
         String currentPath = parser.getCurPath();
 
         if (itemRefPath.equals(currentPath)) {

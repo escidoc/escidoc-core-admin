@@ -58,9 +58,9 @@ import de.escidoc.core.common.util.xml.XmlUtility;
  */
 public class Reindexer implements ReindexerInterface {
 	
-    private final String ITEM_FILTER_URL = "/ir/items/filter/refs";
+    private final String ITEM_FILTER_URL = "/ir/items/filter";
 
-    private final String CONTAINER_FILTER_URL = "/ir/containers/filter/refs";
+    private final String CONTAINER_FILTER_URL = "/ir/containers/filter";
 
     private final String RELEASED_ITEMS_FILTER =
         "<param><filter name=\"http://escidoc.de/core/01/properties/public-status\">released</filter></param>";
