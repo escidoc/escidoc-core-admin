@@ -36,7 +36,6 @@ import de.escidoc.core.common.util.logger.AppLogger;
 import fedora.client.FedoraClient;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URLEncoder;
@@ -49,13 +48,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.sql.DataSource;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
 
 import org.springframework.jdbc.core.support.JdbcDaoSupport;
-
-import org.xml.sax.Attributes;
-import org.xml.sax.helpers.DefaultHandler;
 
 /**
  * Provides methods used for recaching.
@@ -187,30 +181,6 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
     }
 
     /**
-     * Get the latest release number from the given XML.
-     * 
-     * @param xml resource XML
-     * @return latest release number or null
-     * @throws IOException If the XML couldn't be parsed.
-     */
-    private String getLatestRelease(final String xml) throws IOException {
-        String result = null;
-
-        try {
-            SAXParser parser = SAXParserFactory.newInstance().newSAXParser();
-            LatestReleaseHandler handler = new LatestReleaseHandler();
-
-            parser.parse(new ByteArrayInputStream(xml.getBytes(CHARSET)), handler);
-            result = handler.getLatestRelease();
-        }
-        catch (Exception e) {
-            log.error(e);
-            throw new IOException(e.getMessage());
-        }
-        return result;
-    }
-
-    /**
      * Extract the object from the given triple.
      *
      * @param triple the triple from which the object has to be extracted
@@ -286,32 +256,6 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
                     input.close();
                 }
             }
-        }
-        return result;
-    }
-
-    /**
-     * Get all properties for a given resource from the item XML.
-     * 
-     * @param xml resource XML
-     * 
-     * @return property map for this resource
-     * @throws IOException Thrown if an I/O error occurred.
-     */
-    private Map <String, String> getPropertiesFromXml(final String xml)
-        throws IOException {
-        Map <String, String> result = null;
-
-        try {
-            SAXParser parser = SAXParserFactory.newInstance().newSAXParser();
-            FilterHandler handler = new FilterHandler();
-
-            parser.parse(new ByteArrayInputStream(xml.getBytes(CHARSET)), handler);
-            result = handler.getProperties();
-        }
-        catch (Exception e) {
-            log.error(e);
-            throw new IOException(e.getMessage());
         }
         return result;
     }
@@ -481,24 +425,8 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
                     String xmlDataSoap =
                         retrieveResourceSoap(resourceNamespace, id);
                     Map <String, String> properties = getProperties(id);
-                    final String versionNumber =
-                        getStringId(properties, PROP_VERSION_NUMBER);
-                    final String latestRelease = getLatestRelease(xmlDataRest);
 
                     storeResource(type, id, properties, xmlDataRest, xmlDataSoap);
-                    if ((latestRelease != null) && (
-                        !latestRelease.equals(versionNumber))) {
-                        final String versionId = id + ":" + latestRelease;
-
-                        log.info("store " + type + " " + versionId);
-                        xmlDataRest = retrieveResourceRest(resourceUrl, versionId);
-                        xmlDataSoap =
-                            retrieveResourceSoap(resourceNamespace, versionId);
-                        properties = getPropertiesFromXml(xmlDataSoap);
-                        storeResource(
-                            type, id, properties, xmlDataRest, xmlDataSoap);
-                        count++;
-                    }
                     count++;
                 }
             }
@@ -509,7 +437,8 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
                 time = 1;
             }
             log.info("stored " + count + " " + type + "s in " + time + "s ("
-                     + (count / time) + "." + (count % time) + " " + type + "s/s)");
+                     + (count / time) + "." + (count % time) + " " + type
+                     + "s/s)");
         }
         finally {
             if (input != null) {
@@ -704,249 +633,5 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
             OU_URL, AXIS_OU_HANDLER_TARGET_NAMESPACE);
         store("item", ITEM_LIST_QUERY,
             ITEM_URL, AXIS_ITEM_HANDLER_TARGET_NAMESPACE);
-    }
-
-    /**
-     * SAX event handler to get the latest release from an item.
-     * 
-     * @author SCHE
-     */
-    private class LatestReleaseHandler extends DefaultHandler {
-        private boolean foundLatestRelease = false;
-        private boolean foundReleaseNumber = false;
-        private String latestRelease = null;
-
-        /**
-         * Receive notification of character data inside an element.
-         * 
-         * @param ch The whitespace characters.
-         * @param start The start position in the character array.
-         * @param length The number of characters to use from the character array.
-         * 
-         * @see org.xml.sax.helpers.DefaultHandler#characters(char [], int, int)
-         */
-        public void characters(final char [] ch, final int start,
-            final int length) {
-            if (foundReleaseNumber) {
-                latestRelease = new String(ch, start, length).trim();
-                foundReleaseNumber = false;
-            }
-        }
-
-        /**
-         * Get the latest release number.
-         * 
-         * @return latest release number
-         */
-        public String getLatestRelease() {
-            return latestRelease;
-        }
-
-        /**
-         * Receive notification of the start of an element.
-         * 
-         * @param uri The Namespace URI, or the empty string if the element has
-         *            no Namespace URI or if Namespace processing is not being
-         *            performed.
-         * @param localName The local name (without prefix), or the empty string
-         *                  if Namespace processing is not being performed.
-         * @param qName The qualified name (with prefix), or the empty string if
-         *              qualified names are not available.
-         * @param attributes The attributes attached to the element. If there are
-         *                   no attributes, it shall be an empty Attributes
-         *                   object.
-         * 
-         * @see org.xml.sax.helpers.DefaultHandler#startElement(String, String,
-         *                                                      String, Attributes)
-         */
-        public void startElement(final String uri, final String localName,
-            final String qName, final Attributes attributes) {
-            if (qName.equals("prop:latest-release")) {
-                foundLatestRelease = true;
-            }
-            else if (foundLatestRelease && (qName.equals("release:number"))) {
-                foundReleaseNumber = true;
-                foundLatestRelease = false;
-            }
-        }
-    }
-
-    /**
-     * SAX event handler to get all filter criteria from an item.
-     * 
-     * @author SCHE
-     */
-    private class FilterHandler extends DefaultHandler {
-        private boolean foundCreationDate = false;
-        private boolean foundDescription = false;
-        private boolean foundPid = false;
-        private boolean foundPublicStatus = false;
-        private boolean foundTitle = false;
-        private boolean foundType = false;
-        private boolean foundVersion = false;
-        private boolean foundVersionNumber = false;
-        private boolean foundVersionStatus = false;
-        private Map <String, String> properties = new HashMap <String, String>();
-
-        /**
-         * Receive notification of character data inside an element.
-         * 
-         * @param ch The whitespace characters.
-         * @param start The start position in the character array.
-         * @param length The number of characters to use from the character array.
-         * 
-         * @see org.xml.sax.helpers.DefaultHandler#characters(char [], int, int)
-         */
-        public void characters(final char [] ch, final int start,
-            final int length) {
-            if (foundCreationDate) {
-                properties.put(PROP_CREATION_DATE, new String(ch, start, length));
-                foundCreationDate = false;
-            }
-            else if (foundDescription) {
-                properties.put(PROP_DC_DESCRIPTION, new String(ch, start, length));
-                foundDescription = false;
-            }
-            else if (foundPid) {
-                properties.put(PROP_PID, new String(ch, start, length));
-                foundPid = false;
-            }
-            else if (foundPublicStatus) {
-                properties.put(PROP_PUBLIC_STATUS, new String(ch, start, length));
-                foundPublicStatus = false;
-            }
-            else if (foundTitle) {
-                properties.put(PROP_DC_TITLE, new String(ch, start, length));
-                foundTitle = false;
-            }
-            else if (foundType) {
-                properties.put(PROP_CONTEXT_TYPE, new String(ch, start, length));
-                foundType = false;
-            }
-            else if (foundVersionNumber) {
-                properties.put(PROP_VERSION_NUMBER, new String(ch, start, length));
-                foundVersionNumber = false;
-            }
-            else if (foundVersionStatus) {
-                properties.put(PROP_VERSION_STATUS, new String(ch, start, length));
-                foundVersionStatus = false;
-            }
-        }
-
-        /**
-         * Receive notification of the end of an element.
-         *
-         * @param uri The Namespace URI, or the empty string if the element has
-         *            no Namespace URI or if Namespace processing is not being
-         *            performed.
-         * @param localName The local name (without prefix), or the empty string
-         *                  if Namespace processing is not being performed.
-         * @param qName The qualified name (with prefix), or the empty string if
-         *              qualified names are not available.
-         * 
-         * @see org.xml.sax.helpers.DefaultHandler#endElement(String, String, String)
-         */
-        public void endElement(final String uri, final String localName,
-            final String qName) {
-            if (qName.equals("prop:version")) {
-                foundVersion = false;
-            }
-        }
-
-        /**
-         * Get a map of all filter properties.
-         * 
-         * @return map of all filter properties
-         */
-        public Map <String, String> getProperties() {
-            return properties;
-        }
-
-        /**
-         * Receive notification of the start of an element.
-         * 
-         * @param uri The Namespace URI, or the empty string if the element has
-         *            no Namespace URI or if Namespace processing is not being
-         *            performed.
-         * @param localName The local name (without prefix), or the empty string
-         *                  if Namespace processing is not being performed.
-         * @param qName The qualified name (with prefix), or the empty string if
-         *              qualified names are not available.
-         * @param attributes The attributes attached to the element. If there are
-         *                   no attributes, it shall be an empty Attributes
-         *                   object.
-         * 
-         * @see org.xml.sax.helpers.DefaultHandler#startElement(String, String,
-         *                                                      String, Attributes)
-         */
-        public void startElement(final String uri, final String localName,
-            final String qName, final Attributes attributes) {
-            if (qName.equals("srel:content-model")) {
-                storeProperty(attributes, "objid", PROP_CONTENT_MODEL);
-            }
-            else if (qName.equals("srel:context")) {
-                storeProperty(attributes, "objid", PROP_CONTEXT_ID);
-            }
-            else if (qName.equals("srel:created-by")) {
-                storeProperty(attributes, "objid", PROP_CREATED_BY_ID);
-            }
-            else if (qName.equals("prop:creation-date")) {
-                foundCreationDate = true;
-            }
-            else if (qName.equals("prefix-dc:description")) {
-                foundDescription = true;
-            }
-            else if (qName.equals("context:context")) {
-                storeProperty(attributes, "last-modification-date", PROP_LAST_MODIFICATION_DATE);
-            }
-            else if (qName.equals("srel:modified-by")) {
-                storeProperty(attributes, "objid", PROP_MODIFIED_BY_ID);
-            }
-            else if (qName.equals("srel:organizational-unit")) {
-                storeProperty(attributes, "objid", PROP_ORGANIZATIONAL_UNIT);
-            }
-            else if (qName.equals("prop:pid")) {
-                foundPid = true;
-            }
-            else if (qName.equals("prop:public-status")) {
-                foundPublicStatus = true;
-            }
-            else if (qName.equals("prefix-dc:title")) {
-                foundTitle = true;
-            }
-            else if (qName.equals("prop:type")) {
-                foundType = true;
-            }
-            else if (qName.equals("prop:version")) {
-                foundVersion = true;
-            }
-            else if (foundVersion && qName.equals("version:number")) {
-                foundVersionNumber = true;
-            }
-            else if (foundVersion && qName.equals("version:status")) {
-                foundVersionStatus = true;
-            }
-        }
-
-        /**
-         * Extract the value for the given "qName" from the attribute list and
-         * put it into the map of all filter properties using "key" as key value.
-         *  
-         * @param attributes attribute list
-         * @param qName qualified name
-         * @param key key to be used as key value in the properties map
-         */
-        private void storeProperty(final Attributes attributes,
-            final String qName, final String key) {
-            if (attributes != null) {
-                for (int index = 0; index < attributes.getLength();
-                     index++) {
-                    if (attributes.getQName(index).equals(qName)) {
-                        properties.put(key, attributes.getValue(index));
-                        break;
-                    }
-                }
-            }
-        }
     }
 }
