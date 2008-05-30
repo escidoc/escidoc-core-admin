@@ -189,8 +189,18 @@ public class AdminMain {
             reindexer.sendDeleteIndexMessage();
 
             // Reindex released items
+            int i = 0;
             for (String itemHref : itemHrefs) {
                 reindexer.sendUpdateIndexMessage(itemHref);
+                if (i == 0) {
+                	//wait 30 secs because if core-framework
+                	//was just initialized there are
+                	//problems with many simultaneous messages
+					try {
+						Thread.sleep(30000);
+					} catch (InterruptedException e) {}
+					i++;
+                }
             }
 
             // reindex released containers
