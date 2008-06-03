@@ -45,7 +45,9 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 
 import javax.sql.DataSource;
 
@@ -71,9 +73,10 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
     private static final String DELETE_ALL_CONTEXTS = "DELETE FROM list.context";
     private static final String DELETE_ALL_ITEMS = "DELETE FROM list.item";
     private static final String DELETE_ALL_OUS = "DELETE FROM list.ou";
-    private static final String INSERT_CONTAINER = "INSERT INTO list.container (id, content_model, context_id, created_by, creation_date, description, last_modification_date, modified_by, parent, pid, public_status, title, version_number, version_status, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    private static final String INSERT_CONTAINER = "INSERT INTO list.container (id, content_model, context_id, created_by, creation_date, description, last_modification_date, modified_by, pid, public_status, title, version_number, version_status, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     private static final String INSERT_CONTEXT = "INSERT INTO list.context (id, created_by, creation_date, description, last_modification_date, modified_by, ou, public_status, title, type, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    private static final String INSERT_ITEM = "INSERT INTO list.item (id, content_model, context_id, created_by, creation_date, description, last_modification_date, modified_by, parent, pid, public_status, title, version_number, version_status, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    private static final String INSERT_ITEM = "INSERT INTO list.item (id, content_model, context_id, created_by, creation_date, description, last_modification_date, modified_by, pid, public_status, title, version_number, version_status, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    private static final String INSERT_MEMBER = "INSERT INTO list.member (member, parent) VALUES (?, ?)";
     private static final String INSERT_OU = "INSERT INTO list.ou (id, created_by, creation_date, description, last_modification_date, modified_by, parent, public_status, title, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     /**
@@ -110,7 +113,7 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
     private static final String CONTEXT_LIST_QUERY = "/risearch?type=triples&lang=spo&format=N-Triples&query=*%20%3chttp://www.w3.org/1999/02/22-rdf-syntax-ns%23type%3e%20%3chttp://escidoc.de/core/01/resources/Context%3e";
     private static final String ITEM_LIST_QUERY = "/risearch?type=triples&lang=spo&format=N-Triples&query=*%20%3chttp://www.w3.org/1999/02/22-rdf-syntax-ns%23type%3e%20%3chttp://escidoc.de/core/01/resources/Item%3e";
     private static final String OU_LIST_QUERY = "/risearch?type=triples&lang=spo&format=N-Triples&query=*%20%3chttp://www.w3.org/1999/02/22-rdf-syntax-ns%23type%3e%20%3chttp://escidoc.de/core/01/resources/OrganizationalUnit%3e";
-    private static final String PARENTS_QUERY = "/risearch?type=triples&lang=spo&format=N-Triples&query=*%20%3chttp://escidoc.de/core/01/structural-relations/member%3e%20%3cinfo:fedora/{0}%3e";
+    private static final String MEMBERS_QUERY = "/risearch?type=triples&lang=spo&format=N-Triples&query=%3cinfo:fedora/{0}%3e%20%3chttp://escidoc.de/core/01/structural-relations/member%3e%20*";
     private static final String PROPERTIES_QUERY = "/risearch?type=triples&lang=spo&format=N-Triples&query=%3cinfo:fedora/{0}%3e%20*%20*";
 
     /**
@@ -182,6 +185,57 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
     }
 
     /**
+     * Get the objid from a Fedora identifier, e.g. from
+     * &lt;info:fedora/escidoc:1&gt;.
+     * 
+     * @param uri the value to get the objid from
+     *
+     * @return the extracted objid
+     */
+    private String getIdFromUri(final String uri) {
+        String result = null;
+
+        if (uri != null) {
+            result = uri.substring(uri.indexOf('/') + 1);
+        }
+        return result;
+    }
+
+    /**
+     * Get the struct map of a container.
+     *
+     * @param id container id
+     *
+     * @return struct map (may contain containers and items)
+     * @throws IOException Thrown if an I/O error occurred.
+     */
+    private List <String> getMembers(final String id) throws IOException {
+        List <String> result = new Vector <String>();
+
+        if (id != null) {
+            BufferedReader input = null;
+
+            try {
+                MessageFormat queryFormat = new MessageFormat(MEMBERS_QUERY);
+                String line;
+
+                input = new BufferedReader(
+                    new InputStreamReader(
+                     fc.get(queryFormat.format(new Object [] {id}), true)));
+                while ((line = input.readLine()) != null) {
+                    result.add(getObject(line));
+                }
+            }
+            finally {
+                if (input != null) {
+                    input.close();
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
      * Extract the object from the given triple.
      *
      * @param triple the triple from which the object has to be extracted
@@ -197,37 +251,6 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
 
             if ((tokens != null) && tokens.length == count) {
                 result = tokens [2].substring(1, tokens [2].length() - count);
-            }
-        }
-        return result;
-    }
-
-    /**
-     * Get the parent container of the given item.
-     *
-     * @param id item id
-     *
-     * @return parent container or null
-     * @throws IOException Thrown if an I/O error occurred.
-     */
-    private String getParentContainer(final String id) throws IOException {
-        String result = null;
-
-        if (id != null) {
-            BufferedReader input = null;
-
-            try {
-                MessageFormat queryFormat = new MessageFormat(PARENTS_QUERY);
-
-                input = new BufferedReader(
-                    new InputStreamReader(
-                     fc.get(queryFormat.format(new Object [] {id}), true)));
-                result = getSubject(input.readLine());
-            }
-            finally {
-                if (input != null) {
-                    input.close();
-                }
             }
         }
         return result;
@@ -302,13 +325,7 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
      */
     private String getStringId(
         final Map <String, String> properties, final String property) {
-        String result = null;
-        String object = (String) properties.get(property);
-
-        if (object != null) {
-            result = object.substring(object.indexOf('/') + 1);
-        }
-        return result;
+        return getIdFromUri((String) properties.get(property));
     }
 
     /**
@@ -505,7 +522,6 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
              properties.get(PROP_DC_DESCRIPTION),
              getTimestamp(properties, PROP_LAST_MODIFICATION_DATE),
              getStringId(properties, PROP_MODIFIED_BY_ID),
-             getParentContainer(id),
              properties.get(PROP_PID),
              properties.get(PROP_PUBLIC_STATUS),
              properties.get(PROP_DC_TITLE),
@@ -513,6 +529,13 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
              properties.get(PROP_VERSION_STATUS),
              xmlDataRest,
              xmlDataSoap});
+
+        List <String> members = getMembers(id);
+
+        for (int index = 0; index < members.size(); index++) {
+            getJdbcTemplate().update(INSERT_MEMBER, new Object[]
+                {getIdFromUri(members.get(index)), id});
+        }
     }
 
     /**
@@ -573,7 +596,6 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
              properties.get(PROP_DC_DESCRIPTION),
              getTimestamp(properties, PROP_LAST_MODIFICATION_DATE),
              getStringId(properties, PROP_MODIFIED_BY_ID),
-             getParentContainer(id),
              properties.get(PROP_PID),
              properties.get(PROP_PUBLIC_STATUS),
              properties.get(PROP_DC_TITLE),
