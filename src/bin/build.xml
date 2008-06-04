@@ -11,6 +11,12 @@
 		</java>
 	</target>
 
+	<target name="recache">
+		<java jar="eSciDocCoreAdmin.jar" fork="true">
+			<arg value="recache" />
+		</java>
+	</target>
+
 	<target name="reindex">
 		<java jar="eSciDocCoreAdmin.jar" fork="true">
 			<arg value="reindex" />
