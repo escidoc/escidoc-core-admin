@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<project name="eSciDocCoreAdminTest" default="reindex" basedir=".">
+<project name="eSciDocCore Admin Tools" default="reindex" basedir=".">
 
 	<property file="admin-tool.properties" />
 
