@@ -109,10 +109,6 @@
                 </java>
         </target>
 
-	<target name="reindex">
-		<java jar="${dist.build.dir}/eSciDocCoreAdmin.jar" fork="true">
-			<arg value="reindex" />
-		</java>
-	</target>
+	
 
 </project>
