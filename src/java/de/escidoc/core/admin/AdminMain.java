@@ -187,6 +187,13 @@ public class AdminMain {
 
             // Delete index
             reindexer.sendDeleteIndexMessage();
+            
+            log.info("scheduling " 
+            		+ itemHrefs.size() 
+            		+ " items for reindexing");
+            log.info("scheduling " 
+            		+ containerHrefs.size() 
+            		+ " containers for reindexing");
 
             // Reindex released items
             int i = 0;
