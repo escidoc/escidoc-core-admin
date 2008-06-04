@@ -72,6 +72,7 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
     private static final String DELETE_ALL_CONTAINERS = "DELETE FROM list.container";
     private static final String DELETE_ALL_CONTEXTS = "DELETE FROM list.context";
     private static final String DELETE_ALL_ITEMS = "DELETE FROM list.item";
+    private static final String DELETE_ALL_MEMBERS = "DELETE FROM list.member";
     private static final String DELETE_ALL_OUS = "DELETE FROM list.ou";
     private static final String INSERT_CONTAINER = "INSERT INTO list.container (id, content_model, context_id, created_by, creation_date, description, last_modification_date, modified_by, pid, public_status, title, version_number, version_status, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     private static final String INSERT_CONTEXT = "INSERT INTO list.context (id, created_by, creation_date, description, last_modification_date, modified_by, ou, public_status, title, type, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -178,6 +179,7 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
      * Clear all resources from cache.
      */
     public void clearCache() {
+        getJdbcTemplate().update(DELETE_ALL_MEMBERS);
         getJdbcTemplate().update(DELETE_ALL_CONTAINERS);
         getJdbcTemplate().update(DELETE_ALL_CONTEXTS);
         getJdbcTemplate().update(DELETE_ALL_ITEMS);
