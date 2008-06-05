@@ -356,7 +356,7 @@
 									name="contentDigestTemplate" />
 								<xsl:element name="foxml:xmlContent"
 									namespace="info:fedora/fedora-system:def/foxml#">
-									<xsl:element name="file"
+									<xsl:element name="file:file"
 										namespace="http://escidoc.mpg.de/metadataprofile/schema/0.1/file">											
 										<xsl:element name="dc:title"
 											namespace="http://purl.org/dc/elements/1.1/">
@@ -383,7 +383,7 @@
 										</xsl:element>
 										</xsl:if>
 										<xsl:element
-											name="content-category" namespace="http://escidoc.mpg.de/metadataprofile/schema/0.1/file">
+											name="file:content-category" namespace="http://escidoc.mpg.de/metadataprofile/schema/0.1/file">
 											<xsl:value-of
 												select="foxml:xmlContent/rdf:RDF/rdf:Description/escidocComponents:content-category" />
 										</xsl:element>
