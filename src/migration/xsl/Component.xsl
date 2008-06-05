@@ -53,7 +53,7 @@
 												<xsl:when
 													test="$name='CONTROL_GROUP'">
 													<xsl:attribute
-														name="CONTROL_GROUP">E</xsl:attribute>
+														name="CONTROL_GROUP" select="'R'"/>
 												</xsl:when>
 												<xsl:otherwise>
 													<xsl:copy />
@@ -79,7 +79,7 @@
 															select="$locatorUrl" />
 						</xsl:attribute>
 													<xsl:attribute
-														name="TYPE">URL</xsl:attribute>
+														name="TYPE" select="'URL'"/>
 												</xsl:element>
 											</xsl:copy>
 										</xsl:for-each>
