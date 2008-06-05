@@ -247,7 +247,7 @@
 												name="dcterms:alternative"
 												namespace="http://purl.org/dc/terms/">
 												<xsl:value-of
-													select="foxml:xmlContent/organizational-unit:organization-details/organizational-unit:abbreviation" />
+													select="text()" />
 											</xsl:element>
 											</xsl:when>
 											</xsl:choose>
