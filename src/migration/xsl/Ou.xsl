@@ -8,6 +8,7 @@
 	xmlns:organizational-unit="http://www.escidoc.de/schemas/organizationalunit/0.3"
 	xmlns:escidocRelations="http://www.nsdl.org/ontologies/relationships/"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:dcterms="http://purl.org/dc/terms/"
 	xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/"
 	xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
 	exclude-result-prefixes="fedoraxsi xsl rdf audit">
@@ -71,6 +72,15 @@
 											<xsl:value-of
 												select="foxml:xmlContent/organizational-unit:organization-details/organizational-unit:name" />
 										</xsl:element>
+										<xsl:if
+											test="foxml:xmlContent/organizational-unit:organization-details/organizational-unit:abbreviation">
+											<xsl:element
+												name="dcterms:alternative"
+												namespace="http://purl.org/dc/terms/">
+												<xsl:value-of
+													select="foxml:xmlContent/organizational-unit:organization-details/organizational-unit:abbreviation" />
+											</xsl:element>
+										</xsl:if>
 										<xsl:if
 											test="foxml:xmlContent/organizational-unit:organization-details/organizational-unit:uri">
 											<xsl:element
@@ -231,6 +241,15 @@
 															select="text()" />
 													</xsl:element>
 												</xsl:when>
+												<xsl:when
+													test="$name = 'organizational-unit:abbreviation'">
+												<xsl:element
+												name="dcterms:alternative"
+												namespace="http://purl.org/dc/terms/">
+												<xsl:value-of
+													select="foxml:xmlContent/organizational-unit:organization-details/organizational-unit:abbreviation" />
+											</xsl:element>
+											</xsl:when>
 											</xsl:choose>
 										</xsl:for-each>
 										<xsl:element
