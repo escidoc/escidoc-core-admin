@@ -83,19 +83,19 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
     private static final String DELETE_ALL_OUS = "DELETE FROM list.ou";
 
     private static final String INSERT_CONTAINER =
-        "INSERT INTO list.container (id, content_model, context_id, created_by, creation_date, description, last_modification_date, modified_by, pid, public_status, title, version_number, version_status, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        "INSERT INTO list.container (id, content_model_id, content_model_title, context_id, context_title, created_by_id, created_by_title, creation_date, description, last_modification_date, modified_by_id, modified_by_title, pid, public_status, title, version_number, version_status, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     private static final String INSERT_CONTEXT =
-        "INSERT INTO list.context (id, created_by, creation_date, description, last_modification_date, modified_by, ou, public_status, title, type, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        "INSERT INTO list.context (id, created_by_id, created_by_title, creation_date, description, last_modification_date, modified_by_id, modified_by_title, ou, public_status, title, type, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     private static final String INSERT_ITEM =
-        "INSERT INTO list.item (id, content_model, context_id, created_by, creation_date, description, last_modification_date, modified_by, pid, public_status, title, version_number, version_status, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        "INSERT INTO list.item (id, content_model_id, content_model_title, context_id, context_title, created_by_id, created_by_title, creation_date, description, last_modification_date, modified_by_id, modified_by_title, pid, public_status, title, version_number, version_status, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     private static final String INSERT_MEMBER =
         "INSERT INTO list.member (member, parent) VALUES (?, ?)";
 
     private static final String INSERT_OU =
-        "INSERT INTO list.ou (id, created_by, creation_date, description, last_modification_date, modified_by, parent, public_status, title, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        "INSERT INTO list.ou (id, created_by_id, created_by_title, creation_date, description, last_modification_date, modified_by_id, modified_by_title, parent, public_status, title, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     /**
      * SQL date formats.
@@ -109,17 +109,26 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
     /**
      * Triplestore properties.
      */
-    private static final String PROP_CONTENT_MODEL =
+    private static final String PROP_CONTENT_MODEL_ID =
         "<http://escidoc.de/core/01/structural-relations/content-model>";
+
+    private static final String PROP_CONTENT_MODEL_TITLE =
+        "<http://escidoc.de/core/01/properties/content-model-title>";
 
     private static final String PROP_CONTEXT_ID =
         "<http://escidoc.de/core/01/structural-relations/context>";
+
+    private static final String PROP_CONTEXT_TITLE =
+        "<http://escidoc.de/core/01/properties/context-title>";
 
     private static final String PROP_CONTEXT_TYPE =
         "<http://escidoc.de/core/01/properties/type>";
 
     private static final String PROP_CREATED_BY_ID =
         "<http://escidoc.de/core/01/structural-relations/created-by>";
+
+    private static final String PROP_CREATED_BY_TITLE =
+        "<http://escidoc.de/core/01/properties/created-by-title>";
 
     private static final String PROP_CREATION_DATE =
         "<info:fedora/fedora-system:def/model#createdDate>";
@@ -135,6 +144,9 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
 
     private static final String PROP_MODIFIED_BY_ID =
         "<http://escidoc.de/core/01/structural-relations/modified-by>";
+
+    private static final String PROP_MODIFIED_BY_TITLE =
+        "<http://escidoc.de/core/01/properties/modified-by-title>";
 
     private static final String PROP_ORGANIZATIONAL_UNIT =
         "<http://escidoc.de/core/01/structural-relations/organizational-unit>";
@@ -636,13 +648,18 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
         getJdbcTemplate()
             .update(
                 INSERT_CONTAINER,
-                new Object[] { id, getStringId(properties, PROP_CONTENT_MODEL),
+                new Object[] { id,
+                    getStringId(properties, PROP_CONTENT_MODEL_ID),
+                    properties.get(PROP_CONTENT_MODEL_TITLE),
                     getStringId(properties, PROP_CONTEXT_ID),
+                    properties.get(PROP_CONTEXT_TITLE),
                     getStringId(properties, PROP_CREATED_BY_ID),
+                    properties.get(PROP_CREATED_BY_TITLE),
                     getTimestamp(properties, PROP_CREATION_DATE),
                     properties.get(PROP_DC_DESCRIPTION),
                     getTimestamp(properties, PROP_LAST_MODIFICATION_DATE),
                     getStringId(properties, PROP_MODIFIED_BY_ID),
+                    properties.get(PROP_MODIFIED_BY_TITLE),
                     properties.get(PROP_PID),
                     properties.get(PROP_PUBLIC_STATUS),
                     properties.get(PROP_DC_TITLE),
@@ -681,11 +698,14 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
         ParseException {
         getJdbcTemplate().update(
             INSERT_CONTEXT,
-            new Object[] { id, getStringId(properties, PROP_CREATED_BY_ID),
+            new Object[] { id,
+                getStringId(properties, PROP_CREATED_BY_ID),
+                properties.get(PROP_CREATED_BY_TITLE),
                 getTimestamp(properties, PROP_CREATION_DATE),
                 properties.get(PROP_DC_DESCRIPTION),
                 getTimestamp(properties, PROP_LAST_MODIFICATION_DATE),
                 getStringId(properties, PROP_MODIFIED_BY_ID),
+                properties.get(PROP_MODIFIED_BY_TITLE),
                 getStringId(properties, PROP_ORGANIZATIONAL_UNIT),
                 properties.get(PROP_PUBLIC_STATUS),
                 properties.get(PROP_DC_TITLE),
@@ -716,13 +736,18 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
         getJdbcTemplate()
             .update(
                 INSERT_ITEM,
-                new Object[] { id, getStringId(properties, PROP_CONTENT_MODEL),
+                new Object[] { id,
+                    getStringId(properties, PROP_CONTENT_MODEL_ID),
+                    properties.get(PROP_CONTENT_MODEL_TITLE),
                     getStringId(properties, PROP_CONTEXT_ID),
+                    properties.get(PROP_CONTEXT_TITLE),
                     getStringId(properties, PROP_CREATED_BY_ID),
+                    properties.get(PROP_CREATED_BY_TITLE),
                     getTimestamp(properties, PROP_CREATION_DATE),
                     properties.get(PROP_DC_DESCRIPTION),
                     getTimestamp(properties, PROP_LAST_MODIFICATION_DATE),
                     getStringId(properties, PROP_MODIFIED_BY_ID),
+                    properties.get(PROP_MODIFIED_BY_TITLE),
                     properties.get(PROP_PID),
                     properties.get(PROP_PUBLIC_STATUS),
                     properties.get(PROP_DC_TITLE),
@@ -754,11 +779,14 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
         ParseException {
         getJdbcTemplate().update(
             INSERT_OU,
-            new Object[] { id, getStringId(properties, PROP_CREATED_BY_ID),
+            new Object[] { id,
+                getStringId(properties, PROP_CREATED_BY_ID),
+                properties.get(PROP_CREATED_BY_TITLE),
                 getTimestamp(properties, PROP_CREATION_DATE),
                 properties.get(PROP_DC_DESCRIPTION),
                 getTimestamp(properties, PROP_LAST_MODIFICATION_DATE),
                 getStringId(properties, PROP_MODIFIED_BY_ID),
+                properties.get(PROP_MODIFIED_BY_TITLE),
                 getStringId(properties, PROP_PARENT),
                 properties.get(PROP_PUBLIC_STATUS),
                 properties.get(PROP_DC_TITLE), xmlDataRest, xmlDataSoap });
