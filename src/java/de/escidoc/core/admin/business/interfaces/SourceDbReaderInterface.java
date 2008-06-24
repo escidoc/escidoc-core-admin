@@ -49,8 +49,10 @@ public interface SourceDbReaderInterface {
      * @param whereClause
      *            Optional where clause to restrict the result, e.g. 'where id <>
      *            someid'
-     * @param offset TODO
-     * @param limit TODO
+     * @param offset
+     *            The offset.
+     * @param limit
+     *            The limit (max number of results).
      * @return Returns the values of a table.
      */
     public List<Map<String, Object>> retrieveTableData(
