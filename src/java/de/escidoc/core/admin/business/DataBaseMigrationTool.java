@@ -238,7 +238,6 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
                         cmd.append(", ");
                     }
                     if (value instanceof String) {
-                        // FIXME: this SQL escaping is wrong!!!???
                         cmd.append("'");
                         final Matcher matcher =
                             PATTERN_SQL_SPECIAL_CHARS.matcher((String) value);
