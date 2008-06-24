@@ -55,6 +55,8 @@ import de.escidoc.core.common.util.string.StringUtility;
 public class DataBaseMigrationTool extends JdbcDaoSupport
     implements DataBaseMigrationInterface {
 
+    private static final int LIMIT = 1000;
+
     /**
      * The (default) bean id.
      */
@@ -149,18 +151,14 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
      */
     private void copyTableData(final String tableName) {
 
-        if (log.isInfoEnabled()) {
-            log.info(StringUtility.concatenateWithBracketsToString(
-                "Copying data from table", tableName));
-        }
-        List<Map<String, Object>> tableData =
-            reader.retrieveTableData(tableName, null);
-        insertTableData(tableName, null, tableData);
+        copyTableData(tableName, null, null);
     }
 
     /**
      * Copies data from an original table to the new table without changing the
-     * data.
+     * data.<br>
+     * The operation is performed in chunks of size defined by the constant
+     * value LIMIT.
      * 
      * @param tableName
      *            The name of the table, including the schema name, e.g.
@@ -183,9 +181,19 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
                     "Copying data from table", tableName, dropColumns,
                     whereClause));
         }
+        int offset = 0;
+        // get first chunk
         List<Map<String, Object>> tableData =
-            reader.retrieveTableData(tableName, whereClause);
-        insertTableData(tableName, dropColumns, tableData);
+            reader.retrieveTableData(tableName, whereClause, offset, LIMIT);
+        while (tableData != null && tableData.size() > 0) {
+            // copy current chunk
+            insertTableData(tableName, dropColumns, tableData);
+
+            // get next chunk
+            offset += tableData.size();
+            tableData =
+                reader.retrieveTableData(tableName, whereClause, offset, LIMIT);
+        }
     }
 
     /**
@@ -274,62 +282,79 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
         // primary affiliation columns are replaced by the new table
         droppedColumns.add("affiliations");
         droppedColumns.add("primary-affiliation");
-        final List<Map<String, Object>> tableData =
-            reader.retrieveTableData("aa.user_account",
-                "WHERE id<>'escidoc:user43' AND id<>'escidoc:exuser3'");
-        insertTableData("aa.user_account", droppedColumns, tableData);
 
-        // copy data to new table user_account_ous
-        final Iterator<Map<String, Object>> iter = tableData.iterator();
-        while (iter.hasNext()) {
-            final Map<String, Object> columnData = iter.next();
-            final String ous = (String) columnData.get("ous");
+        // get first chunk
+        int offset = 0;
+        final String userAccountTableName = "aa.user_account";
+        final String userAccountWhereClause =
+            "WHERE id<>'escidoc:user43' AND id<>'escidoc:exuser3'";
+        List<Map<String, Object>> tableData =
+            reader.retrieveTableData(userAccountTableName,
+                userAccountWhereClause, offset, LIMIT);
+        while (tableData != null && tableData.size() > 0) {
 
-            Matcher matcher = PATTERN_UPDATE_OUS.matcher(ous);
-            int matcherIndex = 0;
-            int tableIndex = 0;
-            // first, search the ou that previously has been marked as the
-            // primary one. This ou will be the first one in the new list.
-            String primaryOuId = null;
-            if (ous != null) {
-                // migrate from build 0159
-                while (matcher.find(matcherIndex)) {
-                    final String primaryFlag = matcher.group(2);
-                    if (primaryFlag != null && primaryFlag.length() > 0) {
+            insertTableData(userAccountTableName, droppedColumns, tableData);
+
+            // copy data to new table user_account_ous
+            final Iterator<Map<String, Object>> iter = tableData.iterator();
+            while (iter.hasNext()) {
+                final Map<String, Object> columnData = iter.next();
+                final String ous = (String) columnData.get("ous");
+
+                Matcher matcher = PATTERN_UPDATE_OUS.matcher(ous);
+                int matcherIndex = 0;
+                int tableIndex = 0;
+                // first, search the ou that previously has been marked as the
+                // primary one. This ou will be the first one in the new list.
+                String primaryOuId = null;
+                if (ous != null) {
+                    // migrate from build 0159
+                    while (matcher.find(matcherIndex)) {
+                        final String primaryFlag = matcher.group(2);
+                        if (primaryFlag != null && primaryFlag.length() > 0) {
+                            executeSqlCommand(StringUtility
+                                .concatenateToString(
+                                    "INSERT INTO aa.user_account_ous VALUES (",
+                                    tableIndex++, ", '", columnData.get("id"),
+                                    "', '", primaryOuId, "');"));
+                            matcherIndex = 0;
+                            matcher.reset();
+                            break;
+                        }
+                        matcherIndex = matcher.end();
+                    }
+                }
+                else {
+                    // migrate from 0.9.1.x
+                    primaryOuId =
+                        (String) columnData.get("primary_affiliation");
+                    if (primaryOuId != null) {
                         executeSqlCommand(StringUtility.concatenateToString(
                             "INSERT INTO aa.user_account_ous VALUES (",
                             tableIndex++, ", '", columnData.get("id"), "', '",
                             primaryOuId, "');"));
-                        matcherIndex = 0;
-                        matcher.reset();
-                        break;
+                    }
+                }
+
+                // insert other ous
+                while (matcher.find(matcherIndex)) {
+                    final String ouId = matcher.group(1);
+                    if (!ouId.equals(primaryOuId)) {
+                        executeSqlCommand(StringUtility.concatenateToString(
+                            "INSERT INTO aa.user_account_ous VALUES (",
+                            tableIndex++, ", '", columnData.get("id"), "', '",
+                            ouId, "');"));
                     }
                     matcherIndex = matcher.end();
                 }
-            }
-            else {
-                // migrate from 0.9.1.x
-                primaryOuId = (String) columnData.get("primary_affiliation");
-                if (primaryOuId != null) {
-                    executeSqlCommand(StringUtility.concatenateToString(
-                        "INSERT INTO aa.user_account_ous VALUES (",
-                        tableIndex++, ", '", columnData.get("id"), "', '",
-                        primaryOuId, "');"));
-                }
+
             }
 
-            // insert other ous
-            while (matcher.find(matcherIndex)) {
-                final String ouId = matcher.group(1);
-                if (!ouId.equals(primaryOuId)) {
-                    executeSqlCommand(StringUtility.concatenateToString(
-                        "INSERT INTO aa.user_account_ous VALUES (",
-                        tableIndex++, ", '", columnData.get("id"), "', '",
-                        ouId, "');"));
-                }
-                matcherIndex = matcher.end();
-            }
-
+            // get next chunk
+            offset += tableData.size();
+            tableData =
+                reader.retrieveTableData(userAccountTableName,
+                    userAccountWhereClause, offset, LIMIT);
         }
 
         copyTableData("aa.user_login_data", null,
@@ -352,18 +377,32 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
         // use insertTableData after removing the grants form the table data)
         // link to role:workflowmanager was wrong in build.159, escidoc:role6
         // instead of escidoc:role workflowmanager. Needs to be fixed.
-        final List<Map<String, Object>> tableData =
-            reader.retrieveTableData("aa.role_grant",
-                "WHERE role_id <>'escidoc:role-indexer'");
-        final Iterator<Map<String, Object>> tableIter = tableData.iterator();
-        while (tableIter.hasNext()) {
-            Map<String, Object> rowData = tableIter.next();
-            final Object roleId = rowData.get("role_id");
-            if ("escidoc:role6".equals(roleId)) {
-                rowData.put("role_id", "escidoc:role-workflow-manager");
+        final String roleGrantTableName = "aa.role_grant";
+        final String roleGrantWhereClause =
+            "WHERE role_id <>'escidoc:role-indexer'";
+        // get first chunk
+        int offset = 0;
+        List<Map<String, Object>> tableData =
+            reader.retrieveTableData(roleGrantTableName, roleGrantWhereClause,
+                offset, LIMIT);
+        while (tableData != null && tableData.size() > 0) {
+            final Iterator<Map<String, Object>> tableIter =
+                tableData.iterator();
+            while (tableIter.hasNext()) {
+                Map<String, Object> rowData = tableIter.next();
+                final Object roleId = rowData.get("role_id");
+                if ("escidoc:role6".equals(roleId)) {
+                    rowData.put("role_id", "escidoc:role-workflow-manager");
+                }
             }
+            insertTableData(roleGrantTableName, droppedColumns, tableData);
+
+            // get next chunk
+            offset += tableData.size();
+            tableData =
+                reader.retrieveTableData(roleGrantTableName,
+                    roleGrantWhereClause, offset, LIMIT);
         }
-        insertTableData("aa.role_grant", droppedColumns, tableData);
     }
 
     /**

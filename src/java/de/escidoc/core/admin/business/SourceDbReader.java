@@ -54,10 +54,11 @@ public class SourceDbReader extends JdbcDaoSupport
      * @param tableName
      * @return
      * @see de.escidoc.core.admin.business.interfaces.SourceDbReaderInterface#retrieveTableData(java.lang.String,
-     *      String)
+     *      String, int, int)
      */
     public List<Map<String, Object>> retrieveTableData(
-        final String tableName, final String whereClause) {
+        final String tableName, final String whereClause, final int offset,
+        final int limit) {
 
         final StringBuffer cmd = new StringBuffer("select * from ");
         cmd.append(tableName);
@@ -65,6 +66,10 @@ public class SourceDbReader extends JdbcDaoSupport
             cmd.append(" ");
             cmd.append(whereClause);
         }
+        cmd.append(" OFFSET ");
+        cmd.append(offset);
+        cmd.append(" LIMIT ");
+        cmd.append(limit);
         cmd.append(";");
         return getJdbcTemplate().queryForList(cmd.toString());
     }
