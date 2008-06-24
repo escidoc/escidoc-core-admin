@@ -84,7 +84,7 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
      * Pattern used to escape SQL forbidden characters.
      */
     private static final Pattern PATTERN_SQL_SPECIAL_CHARS =
-        Pattern.compile("['´`]");
+        Pattern.compile("(['´`])");
 
     /**
      * The logger.
@@ -119,6 +119,10 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
             // copy om data
             executeSqlScript("om.lockstatus.create.sql");
             copyTableData("om.lockstatus");
+
+            // create object cache data
+            executeSqlScript("list.create.sql");
+            executeSqlScript("list.init.method-mappings.item.sql");
 
             // migrate sm data
             executeSqlScript("sm.create.sql");
@@ -234,9 +238,11 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
                         cmd.append(", ");
                     }
                     if (value instanceof String) {
+                        // FIXME: this SQL escaping is wrong!!!???
                         cmd.append("'");
-                        cmd.append(PATTERN_SQL_SPECIAL_CHARS.matcher(
-                            (String) value).replaceAll("\\\\'"));
+                        final Matcher matcher =
+                            PATTERN_SQL_SPECIAL_CHARS.matcher((String) value);
+                        cmd.append(matcher.replaceAll("\\\\$1"));
                         cmd.append("'");
                     }
                     else if (value instanceof Date
