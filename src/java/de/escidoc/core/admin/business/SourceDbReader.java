@@ -33,6 +33,8 @@ import java.util.Map;
 
 import org.springframework.jdbc.core.support.JdbcDaoSupport;
 
+import de.escidoc.core.admin.business.interfaces.SourceDbReaderInterface;
+
 /**
  * This class encapsulates the reading operations on the original (source)
  * database.
@@ -51,7 +53,7 @@ public class SourceDbReader extends JdbcDaoSupport
      * 
      * @param tableName
      * @return
-     * @see de.escidoc.core.admin.business.SourceDbReaderInterface#retrieveTableData(java.lang.String,
+     * @see de.escidoc.core.admin.business.interfaces.SourceDbReaderInterface#retrieveTableData(java.lang.String,
      *      String)
      */
     public List<Map<String, Object>> retrieveTableData(

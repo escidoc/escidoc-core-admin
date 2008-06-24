@@ -26,7 +26,7 @@
  * Gesellschaft zur Foerderung der Wissenschaft e.V.  
  * All rights reserved.  Use is subject to license terms.
  */
-package de.escidoc.core.admin.business;
+package de.escidoc.core.admin.business.interfaces;
 
 import java.util.List;
 import java.util.Map;

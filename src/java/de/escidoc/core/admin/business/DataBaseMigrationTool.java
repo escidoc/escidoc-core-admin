@@ -41,6 +41,7 @@ import java.util.regex.Pattern;
 import org.springframework.jdbc.core.support.JdbcDaoSupport;
 
 import de.escidoc.core.admin.business.interfaces.DataBaseMigrationInterface;
+import de.escidoc.core.admin.business.interfaces.SourceDbReaderInterface;
 import de.escidoc.core.common.exceptions.system.IntegritySystemException;
 import de.escidoc.core.common.util.logger.AppLogger;
 import de.escidoc.core.common.util.string.StringUtility;
@@ -115,19 +116,20 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
 
             // copy om data
             executeSqlScript("om.lockstatus.create.sql");
-            copyTableData("om.lockstatus", null, null);
+            copyTableData("om.lockstatus");
 
             // migrate sm data
             executeSqlScript("sm.create.sql");
-            copyTableData("sm.scopes", null, null);
-            copyTableData("sm.statistic_data", null, null);
-            copyTableData("sm.aggregation_definitions", null, null);
-            copyTableData("sm.report_definitions", null, null);
+            copyTableData("sm.scopes");
+            copyTableData("sm.statistic_data");
+            copyTableData("sm.aggregation_definitions");
+            copyTableData("sm.report_definitions");
+            // FIXME: ALL aggregation tables have to be copied!
             migrateSmTables();
 
             // copy st data
             executeSqlScript("st.create.sql");
-            copyTableData("st.staging_file", null, null);
+            copyTableData("st.staging_file");
 
         }
         catch (IOException e) {
@@ -138,8 +140,27 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
     }
 
     /**
-     * Copies data from an original table to the new table without changing
-     * them.
+     * Copies data from an original table to the new table without changing the
+     * tables.
+     * 
+     * @param tableName
+     *            The name of the table, including the schema name, e.g.
+     *            aa.user_account.
+     */
+    private void copyTableData(final String tableName) {
+
+        if (log.isInfoEnabled()) {
+            log.info(StringUtility.concatenateWithBracketsToString(
+                "Copying data from table", tableName));
+        }
+        List<Map<String, Object>> tableData =
+            reader.retrieveTableData(tableName, null);
+        insertTableData(tableName, null, tableData);
+    }
+
+    /**
+     * Copies data from an original table to the new table without changing the
+     * data.
      * 
      * @param tableName
      *            The name of the table, including the schema name, e.g.
@@ -157,7 +178,10 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
         final String whereClause) {
 
         if (log.isInfoEnabled()) {
-            log.info("Copying data from table " + tableName);
+            log
+                .info(StringUtility.concatenateWithBracketsToString(
+                    "Copying data from table", tableName, dropColumns,
+                    whereClause));
         }
         List<Map<String, Object>> tableData =
             reader.retrieveTableData(tableName, whereClause);
