@@ -33,10 +33,16 @@ Migrate the escidoc-core database from build 0.9.0159 / 0.9.1.x to Release 1.0
    Prerequisites for migration: Ant in version 1.7.0 
 
     - Usage:
-        - Create new (empty) database as the target of the migration.
+        - Recommended: Backup the existing database.
+        
+        - Copy existing database to a new database that is used the target 
+          of the migration. E.g. using
+          e.g. CREATE DATABASE "<new-database-name>" WITH TEMPLATE = "<old-database-name>";
+          
         - Modify admin-tool.properties to define the database values
           - Values for existing database (source)
           - Values for new database (target)
+          
         - Execute 
             - java -jar eSciDocCoreAdmin.jar db-migration 
             or
