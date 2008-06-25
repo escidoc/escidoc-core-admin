@@ -95,7 +95,7 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
         "INSERT INTO list.member (member, parent) VALUES (?, ?)";
 
     private static final String INSERT_OU =
-        "INSERT INTO list.ou (id, created_by_id, created_by_title, creation_date, description, last_modification_date, modified_by_id, modified_by_title, parent, public_status, title, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        "INSERT INTO list.ou (id, created_by_id, created_by_title, creation_date, description, last_modification_date, modified_by_id, modified_by_title, public_status, title, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     /**
      * SQL date formats.
@@ -151,9 +151,6 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
     private static final String PROP_ORGANIZATIONAL_UNIT =
         "<http://escidoc.de/core/01/structural-relations/organizational-unit>";
 
-    private static final String PROP_PARENT =
-        "<http://escidoc.de/core/01/structural-relations/parent>";
-
     private static final String PROP_PID =
         "<http://escidoc.de/core/01/properties/pid>";
 
@@ -183,6 +180,9 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
 
     private static final String MEMBERS_QUERY =
         "/risearch?type=triples&lang=spo&format=N-Triples&query=%3cinfo:fedora/{0}%3e%20%3chttp://escidoc.de/core/01/structural-relations/member%3e%20*";
+
+    private static final String PARENTS_QUERY =
+        "/risearch?type=triples&lang=spo&format=N-Triples&query=%3cinfo:fedora/{0}%3e%20%3chttp://escidoc.de/core/01/structural-relations/parent%3e%20*";
 
     private static final String PROPERTIES_QUERY =
         "/risearch?type=triples&lang=spo&format=N-Triples&query=%3cinfo:fedora/{0}%3e%20*%20*";
@@ -343,6 +343,41 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
 
             if ((tokens != null) && tokens.length == count) {
                 result = tokens[2].substring(1, tokens[2].length() - count);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Get the parent ou list of a given ou.
+     * 
+     * @param id ou id
+     * 
+     * @return list of parent ous
+     * @throws IOException
+     *             Thrown if an I/O error occurred.
+     */
+    private List<String> getParents(final String id) throws IOException {
+        List<String> result = new Vector<String>();
+
+        if (id != null) {
+            BufferedReader input = null;
+
+            try {
+                MessageFormat queryFormat = new MessageFormat(PARENTS_QUERY);
+                String line;
+
+                input =
+                    new BufferedReader(new InputStreamReader(fc.get(queryFormat
+                        .format(new Object[] { id }), true)));
+                while ((line = input.readLine()) != null) {
+                    result.add(getObject(line));
+                }
+            }
+            finally {
+                if (input != null) {
+                    input.close();
+                }
             }
         }
         return result;
@@ -666,12 +701,9 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
                     properties.get(PROP_VERSION_NUMBER),
                     properties.get(PROP_VERSION_STATUS), xmlDataRest,
                     xmlDataSoap });
-
-        List<String> members = getMembers(id);
-
-        for (int index = 0; index < members.size(); index++) {
+        for (String member : getMembers(id)) {
             getJdbcTemplate().update(INSERT_MEMBER,
-                new Object[] { getIdFromUri(members.get(index)), id });
+                new Object[] { getIdFromUri(member), id });
         }
     }
 
@@ -787,9 +819,12 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
                 getTimestamp(properties, PROP_LAST_MODIFICATION_DATE),
                 getStringId(properties, PROP_MODIFIED_BY_ID),
                 properties.get(PROP_MODIFIED_BY_TITLE),
-                getStringId(properties, PROP_PARENT),
                 properties.get(PROP_PUBLIC_STATUS),
                 properties.get(PROP_DC_TITLE), xmlDataRest, xmlDataSoap });
+        for (String parent : getParents(id)) {
+            getJdbcTemplate().update(INSERT_MEMBER,
+                new Object[] {id, getIdFromUri(parent)});
+        }
     }
 
     /**
