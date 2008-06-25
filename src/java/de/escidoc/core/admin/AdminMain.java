@@ -114,7 +114,7 @@ public class AdminMain {
             log.warn("================");
             log.warn("Now, after the object");
             log.warn("cache tables have been");
-            log.warn("createdduring the migration,");
+            log.warn("created during the migration,");
             log.warn("this cache has to be synchronized");
             log.warn("with the existing resource objects");
             log.warn("using the recache method from the");
