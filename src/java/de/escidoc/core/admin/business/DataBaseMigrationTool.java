@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.jdbc.core.support.JdbcDaoSupport;
 
 import de.escidoc.core.admin.business.interfaces.DataBaseMigrationInterface;
@@ -53,7 +54,7 @@ import de.escidoc.core.common.util.string.StringUtility;
  * 
  */
 public class DataBaseMigrationTool extends JdbcDaoSupport
-    implements DataBaseMigrationInterface {
+    implements DataBaseMigrationInterface, InitializingBean {
 
     /**
      * Chunk size for copy operations on database table data.
@@ -96,6 +97,10 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
         new AppLogger(DataBaseMigrationTool.class.getName());
 
     private SourceDbReaderInterface reader;
+
+    private String sourceAdress;
+
+    private String targetAdress;
 
     // CHECKSTYLE:JAVADOC-OFF
 
@@ -611,5 +616,13 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
      */
     public void setReader(final SourceDbReaderInterface reader) {
         this.reader = reader;
+    }
+
+    public void setSourceAdress(final String sourceAdress) {
+        this.sourceAdress = sourceAdress;
+    }
+
+    public void setTargetAdress(final String targetAdress) {
+        this.targetAdress = targetAdress;
     }
 }

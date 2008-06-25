@@ -109,7 +109,9 @@ public class AdminMain {
                 .getBean(SpringConstants.ID_DATA_BASE_MIGRATION_TOOL);
         try {
             dbm.migrate();
+            log.info("");
             log.info("Migration successfully completed.\n");
+            log.warn("");
             log.warn("Recaching needed");
             log.warn("================");
             log.warn("Now, after the object");
