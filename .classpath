@@ -11,7 +11,7 @@
 	<classpathentry kind="lib" path="lib/jsr173_1.0_api.jar"/>
 	<classpathentry kind="lib" path="lib/postgresql-8.2-504.jdbc3.jar"/>
 	<classpathentry kind="con" path="org.jboss.ide.eclipse.jdt.core.classpath.j2ee-1.4"/>
-	<classpathentry kind="lib" path="lib/spring/spring-2.5.1.jar"/>
+	<classpathentry kind="lib" path="lib/spring/spring-2.5.4.jar"/>
 	<classpathentry kind="lib" path="lib/woodstox/stax2.jar"/>
 	<classpathentry kind="lib" path="lib/woodstox/wstx-asl-3.1.2.jar"/>
 	<classpathentry kind="lib" path="lib/test/junit.jar"/>
