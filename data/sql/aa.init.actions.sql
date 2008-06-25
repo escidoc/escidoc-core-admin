@@ -22,7 +22,14 @@ INSERT INTO aa.actions (id, name) VALUES
 INSERT INTO aa.actions (id, name) VALUES
     ('escidoc:action-find-attribute', 'info:escidoc/names:aa:1.0:action:find-attribute');
          
-         
+     /**
+     * Ingest (external) action.
+     */
+INSERT INTO aa.actions (id, name) VALUES
+    ('escidoc:action-ingest', 'info:escidoc/names:aa:1.0:action:ingest');
+        
+
+
     /**
      * AA (external) action.
      */
