@@ -42,6 +42,9 @@ Migrate the escidoc-core database from build 0.9.0159 / 0.9.1.x to Release 1.0
         - Modify admin-tool.properties to define the database values
           - Values for existing database (source)
           - Values for new database (target)
+          Note: source and target database MUST NOT be the same database, as 
+          some tables have to be dropped an recreated using data in the source 
+          database during the migration step.
           
         - Execute 
             - java -jar eSciDocCoreAdmin.jar db-migration 
