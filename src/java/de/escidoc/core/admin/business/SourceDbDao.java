@@ -31,29 +31,27 @@ package de.escidoc.core.admin.business;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.jdbc.core.support.JdbcDaoSupport;
+import org.springframework.beans.factory.BeanInitializationException;
 
-import de.escidoc.core.admin.business.interfaces.SourceDbReaderInterface;
+import de.escidoc.core.admin.business.interfaces.SourceDbDaoInterface;
 
 /**
  * This class encapsulates the reading operations on the original (source)
  * database.
  * 
- * @spring.bean id="de.escidoc.core.admin.Reader"
+ * @spring.bean id="de.escidoc.core.admin.SourceDbDao"
  * @author TTE
  * 
  */
-public class SourceDbReader extends JdbcDaoSupport
-    implements SourceDbReaderInterface {
+public class SourceDbDao extends DbDao implements SourceDbDaoInterface {
 
     // CHECKSTYLE:JAVADOC-OFF
-
     /**
      * See Interface for functional description.
      * 
      * @param tableName
      * @return
-     * @see de.escidoc.core.admin.business.interfaces.SourceDbReaderInterface#retrieveTableData(java.lang.String,
+     * @see de.escidoc.core.admin.business.interfaces.SourceDbDaoInterface#retrieveTableData(java.lang.String,
      *      String, int, int)
      */
     public List<Map<String, Object>> retrieveTableData(
@@ -72,6 +70,22 @@ public class SourceDbReader extends JdbcDaoSupport
         cmd.append(limit);
         cmd.append(";");
         return getJdbcTemplate().queryForList(cmd.toString());
+    }
+
+    /**
+     * See Interface for functional description.
+     * 
+     * @see org.springframework.jdbc.core.support.JdbcDaoSupport#checkDaoConfig()
+     */
+    @Override
+    protected void checkDaoConfig() {
+
+        super.checkDaoConfig();
+        if (getUrl() == null || getUrl().length() == 0) {
+            throw new BeanInitializationException(
+                "Database URL must not be null or empty.");
+        }
+
     }
 
     // CHECKSTYLE:JAVADOC-ON

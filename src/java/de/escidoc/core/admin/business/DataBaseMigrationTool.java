@@ -29,20 +29,16 @@
 package de.escidoc.core.admin.business;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.jdbc.core.support.JdbcDaoSupport;
-
 import de.escidoc.core.admin.business.interfaces.DataBaseMigrationInterface;
-import de.escidoc.core.admin.business.interfaces.SourceDbReaderInterface;
+import de.escidoc.core.admin.business.interfaces.SourceDbDaoInterface;
+import de.escidoc.core.admin.business.interfaces.TargetDbDaoInterface;
 import de.escidoc.core.common.exceptions.system.IntegritySystemException;
 import de.escidoc.core.common.util.logger.AppLogger;
 import de.escidoc.core.common.util.string.StringUtility;
@@ -53,8 +49,7 @@ import de.escidoc.core.common.util.string.StringUtility;
  * @spring.bean id="de.escidoc.core.admin.DataBaseMigrationTool"
  * 
  */
-public class DataBaseMigrationTool extends JdbcDaoSupport
-    implements DataBaseMigrationInterface, InitializingBean {
+public class DataBaseMigrationTool implements DataBaseMigrationInterface {
 
     /**
      * Chunk size for copy operations on database table data.
@@ -85,22 +80,25 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
         Pattern.compile("[^|]+\\|([^|]+)\\|([p]?)\\|");
 
     /**
-     * Pattern used to escape SQL forbidden characters.
-     */
-    private static final Pattern PATTERN_SQL_SPECIAL_CHARS =
-        Pattern.compile("(['´`])");
-
-    /**
      * The logger.
      */
     private static AppLogger log =
         new AppLogger(DataBaseMigrationTool.class.getName());
 
-    private SourceDbReaderInterface reader;
+    /**
+     * The DAO to access the source DB.
+     */
+    private SourceDbDaoInterface source;
 
-    private String sourceAdress;
+    /**
+     * The DAO to access the target DB.
+     */
+    private TargetDbDaoInterface target;
 
-    private String targetAdress;
+    /**
+     * Flag indicating if tests shall be skipped.
+     */
+    private boolean skipTests = false;
 
     // CHECKSTYLE:JAVADOC-OFF
 
@@ -112,16 +110,24 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
      */
     public void migrate() throws IntegritySystemException {
 
-        log
-            .info("Migrating data from original database schema to new database schema.");
+        log.info("Migrating data from original database schema");
+        log.info("to new database schema:");
+        log.info(source.getUrl());
+        log.info(" --> ");
+        log.info(target.getUrl());
+        if (source.getUrl().equals(target.getUrl())) {
+            throw new RuntimeException(
+                "Source and Target DB must not be the same.");
+        }
+
         try {
             // Here it is assumed the new database has been
             // created using the old one as a template
             // e.g. CREATE DATABASE "escidoc-core" WITH TEMPLATE = escidoc;
 
             // migrate sm data
-            // The SM schema has not been changed, only some values have to be
-            // fixed. Therefore, the schema is kept, here.
+            // The sm schema is kept to keep the aggregation data tables.
+            // changes of the db schema are changed per ALTER commands etc.
             migrateSmTables();
 
             // for all other schemas, the schemas may have been changed and will
@@ -129,36 +135,36 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
             // dropped, here.
 
             // Create Database for Workflow Manager
-            executeSqlCommand("DROP SCHEMA jbpm CASCADE");
-            executeSqlScript("jbpm.create.sql");
+            target.dropSchema("jbpm");
+            target.executeCreateScript("jbpm");
 
             // copy aa data
-            executeSqlCommand("DROP SCHEMA aa CASCADE");
-            executeSqlScript("aa.create.sql");
+            target.dropSchema("aa");
+            target.executeCreateScript("aa");
             migrateActionsAndMethodMappings();
             migrateUserAccounts();
             migrateRolesAndPolicies();
             migrateGrants();
 
             // copy om data
-            executeSqlCommand("DROP SCHEMA om CASCADE");
-            executeSqlScript("om.create.sql");
+            target.dropSchema("om");
+            target.executeCreateScript("om");
             copyTableData("om.lockstatus");
 
             // create object cache data
-            executeSqlScript("list.create.sql");
-            executeSqlScript("list.init.rules.sql");
+            target.executeCreateScript("list");
+            target.executeSqlScript("list.init.rules.sql");
 
-            // copy st data
-            executeSqlCommand("DROP SCHEMA st CASCADE");
-            executeSqlScript("st.create.sql");
-            copyTableData("st.staging_file");
+            // st schema has not been changed since 159, can be left as
+            // copied from the source database
 
         }
         catch (IOException e) {
             // FIXME: Exception handling
             throw new RuntimeException(e);
         }
+
+        selfTest();
 
     }
 
@@ -205,76 +211,15 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
         int offset = 0;
         // get first chunk
         List<Map<String, Object>> tableData =
-            reader.retrieveTableData(tableName, whereClause, offset, LIMIT);
+            source.retrieveTableData(tableName, whereClause, offset, LIMIT);
         while (tableData != null && tableData.size() > 0) {
             // copy current chunk
-            insertTableData(tableName, dropColumns, tableData);
+            target.insertTableData(tableName, dropColumns, tableData);
 
             // get next chunk
             offset += tableData.size();
             tableData =
-                reader.retrieveTableData(tableName, whereClause, offset, LIMIT);
-        }
-    }
-
-    /**
-     * Inserts the provided table data into the new table.
-     * 
-     * @param tableName
-     *            The name of the table, including the schema name, e.g.
-     *            aa.user_account.
-     * @param dropColumns
-     *            {@link List} containing the name of the columns that shall be
-     *            dropped, i.e. will not be copied. This parameter may be
-     *            <code>null</code>.
-     * @param tableData
-     *            The table data.
-     */
-    private void insertTableData(
-        final String tableName, final List<String> dropColumns,
-        final List<Map<String, Object>> tableData) {
-
-        List<String> toBeDropped = dropColumns;
-        if (toBeDropped == null) {
-            toBeDropped = new ArrayList<String>(0);
-        }
-
-        Iterator<Map<String, Object>> iter = tableData.iterator();
-        while (iter.hasNext()) {
-            Map<String, Object> rowData = iter.next();
-            Iterator<String> columnIter = rowData.keySet().iterator();
-            StringBuffer cmd = new StringBuffer("INSERT INTO ");
-            cmd.append(tableName);
-            cmd.append(" VALUES (");
-            boolean isNotFirst = false;
-            while (columnIter.hasNext()) {
-                String name = columnIter.next();
-                if (!toBeDropped.contains(name)) {
-                    Object value = rowData.get(name);
-                    if (isNotFirst) {
-                        cmd.append(", ");
-                    }
-                    if (value instanceof String) {
-                        cmd.append("'");
-                        final Matcher matcher =
-                            PATTERN_SQL_SPECIAL_CHARS.matcher((String) value);
-                        cmd.append(matcher.replaceAll("\\\\$1"));
-                        cmd.append("'");
-                    }
-                    else if (value instanceof Date
-                        || value instanceof java.sql.Date) {
-                        cmd.append("'");
-                        cmd.append(value);
-                        cmd.append("'");
-                    }
-                    else {
-                        cmd.append(value);
-                    }
-                    isNotFirst = true;
-                }
-            }
-            cmd.append(");");
-            executeSqlCommand(cmd.toString());
+                source.retrieveTableData(tableName, whereClause, offset, LIMIT);
         }
     }
 
@@ -311,11 +256,12 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
         final String userAccountWhereClause =
             "WHERE id<>'escidoc:user43' AND id<>'escidoc:exuser3'";
         List<Map<String, Object>> tableData =
-            reader.retrieveTableData(userAccountTableName,
+            source.retrieveTableData(userAccountTableName,
                 userAccountWhereClause, offset, LIMIT);
         while (tableData != null && tableData.size() > 0) {
 
-            insertTableData(userAccountTableName, droppedColumns, tableData);
+            target.insertTableData(userAccountTableName, droppedColumns,
+                tableData);
 
             // copy data to new table user_account_ous
             final Iterator<Map<String, Object>> iter = tableData.iterator();
@@ -323,7 +269,7 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
                 final Map<String, Object> columnData = iter.next();
                 final String ous = (String) columnData.get("ous");
 
-                Matcher matcher = PATTERN_UPDATE_OUS.matcher(ous);
+                final Matcher matcher = PATTERN_UPDATE_OUS.matcher(ous);
                 int matcherIndex = 0;
                 int tableIndex = 0;
                 // first, search the ou that previously has been marked as the
@@ -334,13 +280,12 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
                     while (matcher.find(matcherIndex)) {
                         final String primaryFlag = matcher.group(2);
                         if (primaryFlag != null && primaryFlag.length() > 0) {
-                            executeSqlCommand(StringUtility
+                            primaryOuId = matcher.group(1);
+                            target.executeSqlCommand(StringUtility
                                 .concatenateToString(
                                     "INSERT INTO aa.user_account_ous VALUES (",
                                     tableIndex++, ", '", columnData.get("id"),
                                     "', '", primaryOuId, "');"));
-                            matcherIndex = 0;
-                            matcher.reset();
                             break;
                         }
                         matcherIndex = matcher.end();
@@ -351,21 +296,25 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
                     primaryOuId =
                         (String) columnData.get("primary_affiliation");
                     if (primaryOuId != null) {
-                        executeSqlCommand(StringUtility.concatenateToString(
-                            "INSERT INTO aa.user_account_ous VALUES (",
-                            tableIndex++, ", '", columnData.get("id"), "', '",
-                            primaryOuId, "');"));
+                        target.executeSqlCommand(StringUtility
+                            .concatenateToString(
+                                "INSERT INTO aa.user_account_ous VALUES (",
+                                tableIndex++, ", '", columnData.get("id"),
+                                "', '", primaryOuId, "');"));
                     }
                 }
 
                 // insert other ous
+                matcherIndex = 0;
+                matcher.reset();
                 while (matcher.find(matcherIndex)) {
                     final String ouId = matcher.group(1);
                     if (!ouId.equals(primaryOuId)) {
-                        executeSqlCommand(StringUtility.concatenateToString(
-                            "INSERT INTO aa.user_account_ous VALUES (",
-                            tableIndex++, ", '", columnData.get("id"), "', '",
-                            ouId, "');"));
+                        target.executeSqlCommand(StringUtility
+                            .concatenateToString(
+                                "INSERT INTO aa.user_account_ous VALUES (",
+                                tableIndex++, ", '", columnData.get("id"),
+                                "', '", ouId, "');"));
                     }
                     matcherIndex = matcher.end();
                 }
@@ -375,7 +324,7 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
             // get next chunk
             offset += tableData.size();
             tableData =
-                reader.retrieveTableData(userAccountTableName,
+                source.retrieveTableData(userAccountTableName,
                     userAccountWhereClause, offset, LIMIT);
         }
 
@@ -405,7 +354,7 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
         // get first chunk
         int offset = 0;
         List<Map<String, Object>> tableData =
-            reader.retrieveTableData(roleGrantTableName, roleGrantWhereClause,
+            source.retrieveTableData(roleGrantTableName, roleGrantWhereClause,
                 offset, LIMIT);
         while (tableData != null && tableData.size() > 0) {
             final Iterator<Map<String, Object>> tableIter =
@@ -417,12 +366,13 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
                     rowData.put("role_id", "escidoc:role-workflow-manager");
                 }
             }
-            insertTableData(roleGrantTableName, droppedColumns, tableData);
+            target.insertTableData(roleGrantTableName, droppedColumns,
+                tableData);
 
             // get next chunk
             offset += tableData.size();
             tableData =
-                reader.retrieveTableData(roleGrantTableName,
+                source.retrieveTableData(roleGrantTableName,
                     roleGrantWhereClause, offset, LIMIT);
         }
     }
@@ -433,36 +383,66 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
     private void migrateSmTables() {
 
         log.info("Migrating table report_definitions");
-        executeSqlCommand(StringUtility
-            .concatenateToString(
-                "UPDATE sm.report_definitions",
-                " SET id=4, xml='<?xml version=\"1.0\" encoding=\"UTF-8\"?><report-definition xmlns=\"http://www.escidoc.de/schemas/reportdefinition/0.3\" objid=\"4\">    <name>Item retrievals, all users</name>  <scope objid=\"2\" />    <sql>       select object_id as itemId, sum(requests) as itemRequests       from _1_object_statistics       where object_id = {object_id} and handler=''ItemHandler'' and request=''retrieve'' group by object_id;  </sql> </report-definition>',",
-                " scope_id=2 WHERE id=4;"));
-        executeSqlCommand(StringUtility
-            .concatenateToString(
-                "UPDATE sm.report_definitions",
-                " SET id=5, xml='<?xml version=\"1.0\" encoding=\"UTF-8\"?><report-definition xmlns=\"http://www.escidoc.de/schemas/reportdefinition/0.3\" objid=\"5\">    <name>File downloads per Item, all users</name>  <scope objid=\"2\" />    <sql>       select parent_object_id as itemId, sum(requests)    as fileRequests from _1_object_statistics       where parent_object_id = {object_id} and handler=''ItemHandler'' and request=''retrieveContent'' group by parent_object_id; </sql> </report-definition>',",
-                " scope_id=2  WHERE id=5;"));
-        executeSqlCommand(StringUtility
-            .concatenateToString(
-                "UPDATE sm.report_definitions",
-                " SET id=6, xml='<?xml version=\"1.0\" encoding=\"UTF-8\"?><report-definition xmlns=\"http://www.escidoc.de/schemas/reportdefinition/0.3\" objid=\"6\">    <name>File downloads, all users</name>  <scope objid=\"2\" /> <sql>       select object_id as fileId, sum(requests) as fileRequests       from _1_object_statistics       where object_id = {object_id} and handler=''ItemHandler'' and request=''retrieveContent'' group by object_id;   </sql> </report-definition>',",
-                " scope_id=2 WHERE id=6;"));
-        executeSqlCommand(StringUtility
-            .concatenateToString(
-                "INSERT INTO sm.report_definitions",
-                " (id, xml, scope_id) VALUES (7, '<?xml version=\"1.0\" encoding=\"UTF-8\"?><report-definition xmlns=\"http://www.escidoc.de/schemas/reportdefinition/0.3\" objid=\"7\">    <name>Item retrievals, anonymous users</name>  <scope objid=\"2\" />  <sql>       select object_id as itemId, sum(requests) as itemRequests       from _1_object_statistics       where object_id = {object_id} and handler=''ItemHandler'' and request=''retrieve'' and user_id='''' group by object_id; </sql> </report-definition>',",
-                " 2);"));
-        executeSqlCommand(StringUtility
-            .concatenateToString(
-                "INSERT INTO sm.report_definitions",
-                " (id, xml, scope_id) VALUES (8, '<?xml version=\"1.0\" encoding=\"UTF-8\"?><report-definition xmlns=\"http://www.escidoc.de/schemas/reportdefinition/0.3\" objid=\"8\">    <name>File downloads per Item, anonymous users</name>  <scope objid=\"2\" />  <sql>       select parent_object_id as itemId, sum(requests)    as fileRequests from _1_object_statistics       where parent_object_id = {object_id} and handler=''ItemHandler'' and request=''retrieveContent'' and user_id='''' group by parent_object_id;    </sql> </report-definition>',",
-                " 2);"));
-        executeSqlCommand(StringUtility
-            .concatenateToString(
-                "INSERT INTO sm.report_definitions",
-                " (id, xml, scope_id) VALUES (9, '<?xml version=\"1.0\" encoding=\"UTF-8\"?><report-definition xmlns=\"http://www.escidoc.de/schemas/reportdefinition/0.3\" objid=\"9\">    <name>File downloads, anonymous users</name>  <scope objid=\"2\" />   <sql>       select object_id as fileId, sum(requests) as fileRequests       from _1_object_statistics       where object_id = {object_id} and handler=''ItemHandler'' and request=''retrieveContent'' and user_id='''' group by object_id;  </sql> </report-definition>',",
-                " 2);"));
+        target
+            .executeSqlCommand(StringUtility
+                .concatenateToString(
+                    "UPDATE sm.report_definitions",
+                    " SET id=4, xml='<?xml version=\"1.0\" encoding=\"UTF-8\"?><report-definition xmlns=\"http://www.escidoc.de/schemas/reportdefinition/0.3\" objid=\"4\">    <name>Item retrievals, all users</name>  <scope objid=\"2\" />    <sql>       select object_id as itemId, sum(requests) as itemRequests       from _1_object_statistics       where object_id = {object_id} and handler=''ItemHandler'' and request=''retrieve'' group by object_id;  </sql> </report-definition>',",
+                    " scope_id=2 WHERE id=4;"));
+        target
+            .executeSqlCommand(StringUtility
+                .concatenateToString(
+                    "UPDATE sm.report_definitions",
+                    " SET id=5, xml='<?xml version=\"1.0\" encoding=\"UTF-8\"?><report-definition xmlns=\"http://www.escidoc.de/schemas/reportdefinition/0.3\" objid=\"5\">    <name>File downloads per Item, all users</name>  <scope objid=\"2\" />    <sql>       select parent_object_id as itemId, sum(requests)    as fileRequests from _1_object_statistics       where parent_object_id = {object_id} and handler=''ItemHandler'' and request=''retrieveContent'' group by parent_object_id; </sql> </report-definition>',",
+                    " scope_id=2  WHERE id=5;"));
+        target
+            .executeSqlCommand(StringUtility
+                .concatenateToString(
+                    "UPDATE sm.report_definitions",
+                    " SET id=6, xml='<?xml version=\"1.0\" encoding=\"UTF-8\"?><report-definition xmlns=\"http://www.escidoc.de/schemas/reportdefinition/0.3\" objid=\"6\">    <name>File downloads, all users</name>  <scope objid=\"2\" /> <sql>       select object_id as fileId, sum(requests) as fileRequests       from _1_object_statistics       where object_id = {object_id} and handler=''ItemHandler'' and request=''retrieveContent'' group by object_id;   </sql> </report-definition>',",
+                    " scope_id=2 WHERE id=6;"));
+        target
+            .executeSqlCommand(StringUtility
+                .concatenateToString(
+                    "INSERT INTO sm.report_definitions",
+                    " (id, xml, scope_id) VALUES (7, '<?xml version=\"1.0\" encoding=\"UTF-8\"?><report-definition xmlns=\"http://www.escidoc.de/schemas/reportdefinition/0.3\" objid=\"7\">    <name>Item retrievals, anonymous users</name>  <scope objid=\"2\" />  <sql>       select object_id as itemId, sum(requests) as itemRequests       from _1_object_statistics       where object_id = {object_id} and handler=''ItemHandler'' and request=''retrieve'' and user_id='''' group by object_id; </sql> </report-definition>',",
+                    " 2);"));
+        target
+            .executeSqlCommand(StringUtility
+                .concatenateToString(
+                    "INSERT INTO sm.report_definitions",
+                    " (id, xml, scope_id) VALUES (8, '<?xml version=\"1.0\" encoding=\"UTF-8\"?><report-definition xmlns=\"http://www.escidoc.de/schemas/reportdefinition/0.3\" objid=\"8\">    <name>File downloads per Item, anonymous users</name>  <scope objid=\"2\" />  <sql>       select parent_object_id as itemId, sum(requests)    as fileRequests from _1_object_statistics       where parent_object_id = {object_id} and handler=''ItemHandler'' and request=''retrieveContent'' and user_id='''' group by parent_object_id;    </sql> </report-definition>',",
+                    " 2);"));
+        target
+            .executeSqlCommand(StringUtility
+                .concatenateToString(
+                    "INSERT INTO sm.report_definitions",
+                    " (id, xml, scope_id) VALUES (9, '<?xml version=\"1.0\" encoding=\"UTF-8\"?><report-definition xmlns=\"http://www.escidoc.de/schemas/reportdefinition/0.3\" objid=\"9\">    <name>File downloads, anonymous users</name>  <scope objid=\"2\" />   <sql>       select object_id as fileId, sum(requests) as fileRequests       from _1_object_statistics       where object_id = {object_id} and handler=''ItemHandler'' and request=''retrieveContent'' and user_id='''' group by object_id;  </sql> </report-definition>',",
+                    " 2);"));
+
+        // xml columns have been renamed to xml_data
+        target.renameTableColumn("sm.statistic_data", "xml", "xml_data");
+        target.renameTableColumn("sm.scopes", "xml", "xml_data");
+        target.renameTableColumn("sm.aggregation_definitions", "xml",
+            "xml_data");
+        target.renameTableColumn("sm.report_definitions", "xml", "xml_data");
+
+        target
+            .renameTableColumn("sm.statistic_data", "timestamp", "timemarker");
+
+        target
+            .executeSqlCommand("create table sm.ESCIDOC_SM_IDS (tablename VARCHAR(255) unique not null primary key, id INTEGER);");
+        target
+            .executeSqlCommand("CREATE INDEX sm_ids_table_idx ON sm.ESCIDOC_SM_IDS (TABLENAME);");
+
+        final Object maxId =
+            target.getMaxOfColumn("sm.aggregation_definitions", "id");
+        final int nextId = ((Integer) maxId).intValue() + 1;
+        target
+            .executeSqlCommand(StringUtility
+                .concatenateToString(
+                    "INSERT INTO sm.ESCIDOC_SM_IDS (TABLENAME, ID) VALUES ('AGGREGATION_DEFINITIONS', ",
+                    nextId, ");"));
     }
 
     /**
@@ -484,7 +464,7 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
         try {
             copyTableData("aa.escidoc_policies", null,
                 "WHERE role_id<>'escidoc:role-indexer'");
-            executeSqlScript("aa.update.policies-xml.sql");
+            target.executeSqlScript("aa.update.policies-xml.sql");
         }
         catch (IOException e) {
             // FIXME: Exception handling
@@ -495,9 +475,7 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
             "WHERE role_id<>'escidoc:role-indexer'");
 
         // some attributes have been renamed, xml of policies have to be changed
-        final List<Map<String, Object>> policiesData =
-            getJdbcTemplate().queryForList(
-                "select id, xml from aa.escidoc_policies");
+        final List<Map<String, Object>> policiesData = target.getPoliciesData();
         final Iterator<Map<String, Object>> policiesIter =
             policiesData.iterator();
         while (policiesIter.hasNext()) {
@@ -510,7 +488,7 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
                     PATTERN_UPDATE_CMM_ACTIONS.matcher(newXml);
                 if (matcher2.groupCount() > 0) {
                     newXml = matcher2.replaceAll("$1model");
-                    executeSqlCommand(StringUtility.concatenateToString(
+                    target.executeSqlCommand(StringUtility.concatenateToString(
                         "UPDATE aa.escidoc_policies SET xml = '", newXml,
                         "' WHERE id = '", id, "';"));
                 }
@@ -525,26 +503,35 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
 
         // action ids have been renamed from ...-content-type to
         // ...-content-model
-        // FIXME: changes needed?
-
         log
             .info("Migrating tables action, method-mappings and invocation_mappings");
         // These tables should not be changed by anyone as action is no
         // resource.
         // Therefore, the tables are initialized from a script.
         try {
-            executeSqlScript("aa.init.actions.sql");
-            executeSqlScript("aa.init.method-mappings.aa.sql");
-            executeSqlScript("aa.init.method-mappings.cmm.sql");
-            executeSqlScript("aa.init.method-mappings.om.container.sql");
-            executeSqlScript("aa.init.method-mappings.om.context.sql");
-            executeSqlScript("aa.init.method-mappings.om.item.sql");
-            executeSqlScript("aa.init.method-mappings.om.semantic-store.sql");
-            executeSqlScript("aa.init.method-mappings.oum.sql");
-            executeSqlScript("aa.init.method-mappings.sb.sql");
-            executeSqlScript("aa.init.method-mappings.sm.sql");
-            executeSqlScript("aa.init.method-mappings.st.sql");
-            executeSqlScript("aa.init.method-mappings.wm.sql");
+            target.executeSqlScript("aa.init.actions.sql");
+            // FIXME: generic way needed to identify all method-mappings
+            target.executeSqlScript("aa.init.method-mappings.aa.sql");
+            target.executeSqlScript("aa.init.method-mappings.cmm.sql");
+            target.executeSqlScript("aa.init.method-mappings.om.container.sql");
+            target.executeSqlScript("aa.init.method-mappings.om.context.sql");
+            target.executeSqlScript("aa.init.method-mappings.om.ingest.sql");
+            target.executeSqlScript("aa.init.method-mappings.om.item.sql");
+            target
+                .executeSqlScript("aa.init.method-mappings.om.semantic-store.sql");
+            target.executeSqlScript("aa.init.method-mappings.om.toc.sql");
+            target.executeSqlScript("aa.init.method-mappings.oum.sql");
+            target.executeSqlScript("aa.init.method-mappings.sb.sql");
+            target.executeSqlScript("aa.init.method-mappings.sm.sql");
+            target.executeSqlScript("aa.init.method-mappings.st.sql");
+            target.executeSqlScript("aa.init.method-mappings.tme.jhove.sql");
+            target.executeSqlScript("aa.init.method-mappings.wm.sql");
+
+            if (log.isInfoEnabled()) {
+                log.info(StringUtility.concatenateToString(
+                    "Number of method-mappings: ", target
+                        .getNumberOfRows("aa.method_mappings")));
+            }
         }
         catch (IOException e) {
             // FIXME: Exception handling
@@ -552,77 +539,143 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
         }
     }
 
+    /**
+     * Performs some tests on the migrated data. <br>
+     * If skipTests is set to <code>true</code>, no test is performed.
+     */
+    private void selfTest() {
+
+        if (skipTests) {
+            return;
+        }
+
+        log.warn("");
+        log.warn("Perfoming some tests on the migrated database");
+        log.warn("To skip these tests, use the admin-tool property");
+        log.warn("dbmigration.skipTests (set to true)");
+        log.warn("");
+
+        // aa tests
+        assertEquals("Checking number of actions...", 119, target
+            .getNumberOfRows("aa.actions"));
+        assertEquals("Checking number of method mappings...", 209, target
+            .getNumberOfRows("aa.method_mappings"));
+        assertEquals("Checking number of invocation mappings...", 209, target
+            .getNumberOfRows("aa.method_mappings"));
+        // user account escidoc:user43 has been removed
+        assertEquals("Checking number of user accounts...", source
+            .getNumberOfRows("aa.user_account") - 1, target
+            .getNumberOfRows("aa.user_account"));
+        // escidoc:role-indexer has been removed
+        assertEquals("Checking number of roles...", source
+            .getNumberOfRows("aa.escidoc_role") - 1, target
+            .getNumberOfRows("aa.escidoc_role"));
+        assertEquals("Checking number of role scope defs...", source
+            .getNumberOfRows("aa.scope_def"), target
+            .getNumberOfRows("aa.scope_def"));
+
+        // om tests
+        assertEquals("Checking number of object locks...", source
+            .getNumberOfRows("om.lockstatus"), target
+            .getNumberOfRows("om.lockstatus"));
+
+        // sm tests
+        assertEquals("Checking number of statistic data record...", source
+            .getNumberOfRows("sm.statistic_data"), target
+            .getNumberOfRows("sm.statistic_data"));
+        assertEquals("Checking number of scopes...", source
+            .getNumberOfRows("sm.scopes"), target.getNumberOfRows("sm.scopes"));
+        assertEquals("Checking number of aggregation definitions...", source
+            .getNumberOfRows("sm.aggregation_definitions"), target
+            .getNumberOfRows("sm.aggregation_definitions"));
+        // 3 report definitions have been added since build 159
+        assertEquals("Checking number of report definitions...", source
+            .getNumberOfRows("sm.report_definitions") + 3, target
+            .getNumberOfRows("sm.report_definitions"));
+
+        assertTableExists("Checking table sm.ESCIDOC_SM_IDS...",
+            "sm.ESCIDOC_SM_IDS");
+        // FIXME: check aggregation data tables
+
+        // st tests
+        assertEquals("Checking number of staging files...", source
+            .getNumberOfRows("st.staging_file"), target
+            .getNumberOfRows("st.staging_file"));
+    }
+
+    /**
+     * Asserts the provided values are equal. Otherwise an Exception is thrown
+     * containing the provided message.
+     * 
+     * @param message
+     *            The assertion failed message.
+     * @param expected
+     *            The expected value.
+     * @param toBeAsserted
+     *            The value to check.
+     */
+    private void assertEquals(
+        final String message, final Object expected, final Object toBeAsserted) {
+
+        log.info(message);
+
+        if ((expected == null && toBeAsserted != null)
+            || (!expected.equals(toBeAsserted))) {
+            throw new RuntimeException(StringUtility
+                .concatenateWithBracketsToString(message + " failed", expected,
+                    toBeAsserted));
+        }
+    }
+
+    /**
+     * Asserts a table with the provided name exists in the target database.
+     * 
+     * @param message
+     *            The assertion failed message.
+     * @param tableName
+     *            The name of the table including the schema name.
+     */
+    private void assertTableExists(final String message, final String tableName) {
+
+        log.info(message);
+
+        if (!target.existsTable(tableName)) {
+            throw new RuntimeException(StringUtility.concatenateToString(
+                message, " failed. Table not found."));
+        }
+    }
+
     // CHECKSTYLE:JAVADOC-ON
 
     /**
-     * Executed the specified SQL script.
+     * Injects the {@link SourceDbDaoInterface} of the original database.
      * 
-     * @param scriptName
-     *            The name of the SQL script.
-     * @throws IOException
-     *             Thrown if data could not be read from SQL script.
+     * @param source
+     *            the {@link SourceDbDaoInterface} implementation to inject.
      */
-    private void executeSqlScript(final String scriptName) throws IOException {
-
-        InputStream resource =
-            getClass().getClassLoader().getResourceAsStream(scriptName);
-        if (resource == null) {
-            throw new IOException(StringUtility
-                .concatenateWithBracketsToString("Resource not found",
-                    scriptName));
-        }
-        executeSqlScript(resource);
+    public void setSource(final SourceDbDaoInterface source) {
+        this.source = source;
     }
 
     /**
-     * Executed the SQL script contained in the provided {@link InputStream}.
+     * Injects the {@link TargetDbDaoInterface} of the new database.
      * 
-     * @param resource
-     *            The {@link InputStream} containing the SQL script.
-     * @throws IOException
-     *             Thrown if data could not be read from SQL script.
+     * @param target
+     *            the {@link TargetDbDaoInterface} implementation to inject.
      */
-    private void executeSqlScript(final InputStream resource)
-        throws IOException {
-        int c = resource.read();
-        StringBuffer cmd = new StringBuffer();
-        while (c != -1) {
-            cmd.append((char) c);
-            if (c == ';') {
-                executeSqlCommand(cmd.toString());
-                cmd = new StringBuffer();
-            }
-            c = resource.read();
-        }
+    public void setTarget(final TargetDbDaoInterface target) {
+        this.target = target;
     }
 
     /**
-     * Executes the given SQL command.
+     * Injects the value for skipTests.
      * 
-     * @param command
-     *            The command to execute.
+     * @param skipTests
+     *            The flag indicating if the etsts shall be skipped.
      */
-    private void executeSqlCommand(final String command) {
+    public void setSkipTests(final boolean skipTests) {
 
-        log.debug(command);
-        getJdbcTemplate().execute(command);
+        this.skipTests = skipTests;
     }
 
-    /**
-     * Injects the reader of the original database.
-     * 
-     * @param reader
-     *            the reader to inject.
-     */
-    public void setReader(final SourceDbReaderInterface reader) {
-        this.reader = reader;
-    }
-
-    public void setSourceAdress(final String sourceAdress) {
-        this.sourceAdress = sourceAdress;
-    }
-
-    public void setTargetAdress(final String targetAdress) {
-        this.targetAdress = targetAdress;
-    }
 }

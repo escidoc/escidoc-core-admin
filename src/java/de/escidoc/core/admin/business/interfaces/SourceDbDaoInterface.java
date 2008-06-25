@@ -38,7 +38,7 @@ import java.util.Map;
  * @author TTE
  * 
  */
-public interface SourceDbReaderInterface {
+public interface SourceDbDaoInterface extends DbDaoInterface {
 
     /**
      * Gets the content of the specified table.
