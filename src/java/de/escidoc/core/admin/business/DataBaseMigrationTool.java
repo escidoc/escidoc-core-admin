@@ -269,7 +269,7 @@ public class DataBaseMigrationTool implements DataBaseMigrationInterface {
                 final Map<String, Object> columnData = iter.next();
                 final String ous = (String) columnData.get("ous");
 
-                final Matcher matcher = PATTERN_UPDATE_OUS.matcher(ous);
+                Matcher matcher = PATTERN_UPDATE_OUS.matcher(ous);
                 int matcherIndex = 0;
                 int tableIndex = 0;
                 // first, search the ou that previously has been marked as the
@@ -306,7 +306,7 @@ public class DataBaseMigrationTool implements DataBaseMigrationInterface {
 
                 // insert other ous
                 matcherIndex = 0;
-                matcher.reset();
+                matcher = PATTERN_UPDATE_OUS.matcher(ous);
                 while (matcher.find(matcherIndex)) {
                     final String ouId = matcher.group(1);
                     if (!ouId.equals(primaryOuId)) {
@@ -382,7 +382,7 @@ public class DataBaseMigrationTool implements DataBaseMigrationInterface {
      */
     private void migrateSmTables() {
 
-        log.info("Migrating table report_definitions");
+        log.info("Migrating sm tables");
         target
             .executeSqlCommand(StringUtility
                 .concatenateToString(
