@@ -55,6 +55,9 @@ import de.escidoc.core.common.util.string.StringUtility;
 public class DataBaseMigrationTool extends JdbcDaoSupport
     implements DataBaseMigrationInterface {
 
+    /**
+     * Chunk size for copy operations on database table data.
+     */
     private static final int LIMIT = 1000;
 
     /**
@@ -104,12 +107,28 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
      */
     public void migrate() throws IntegritySystemException {
 
-        log.info("Migrating data from original database to new database");
+        log
+            .info("Migrating data from original database schema to new database schema.");
         try {
+            // Here it is assumed the new database has been
+            // created using the old one as a template
+            // e.g. CREATE DATABASE "escidoc-core" WITH TEMPLATE = escidoc;
+
+            // migrate sm data
+            // The SM schema has not been changed, only some values have to be
+            // fixed. Therefore, the schema is kept, here.
+            migrateSmTables();
+
+            // for all other schemas, the schemas may have been changed and will
+            // be recreated using the new create scripts, after they have been
+            // dropped, here.
+
             // Create Database for Workflow Manager
+            executeSqlCommand("DROP SCHEMA jbpm CASCADE");
             executeSqlScript("jbpm.create.sql");
 
             // copy aa data
+            executeSqlCommand("DROP SCHEMA aa CASCADE");
             executeSqlScript("aa.create.sql");
             migrateActionsAndMethodMappings();
             migrateUserAccounts();
@@ -117,23 +136,16 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
             migrateGrants();
 
             // copy om data
-            executeSqlScript("om.lockstatus.create.sql");
+            executeSqlCommand("DROP SCHEMA om CASCADE");
+            executeSqlScript("om.create.sql");
             copyTableData("om.lockstatus");
 
             // create object cache data
             executeSqlScript("list.create.sql");
-            executeSqlScript("list.init.method-mappings.item.sql");
-
-            // migrate sm data
-            executeSqlScript("sm.create.sql");
-            copyTableData("sm.scopes");
-            copyTableData("sm.statistic_data");
-            copyTableData("sm.aggregation_definitions");
-            copyTableData("sm.report_definitions");
-            // FIXME: ALL aggregation tables have to be copied!
-            migrateSmTables();
+            executeSqlScript("list.init.rules.sql");
 
             // copy st data
+            executeSqlCommand("DROP SCHEMA st CASCADE");
             executeSqlScript("st.create.sql");
             copyTableData("st.staging_file");
 
@@ -478,7 +490,6 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
             "WHERE role_id<>'escidoc:role-indexer'");
 
         // some attributes have been renamed, xml of policies have to be changed
-        // FIXME: action ids have been changed, too.
         final List<Map<String, Object>> policiesData =
             getJdbcTemplate().queryForList(
                 "select id, xml from aa.escidoc_policies");
@@ -555,6 +566,19 @@ public class DataBaseMigrationTool extends JdbcDaoSupport
                 .concatenateWithBracketsToString("Resource not found",
                     scriptName));
         }
+        executeSqlScript(resource);
+    }
+
+    /**
+     * Executed the SQL script contained in the provided {@link InputStream}.
+     * 
+     * @param resource
+     *            The {@link InputStream} containing the SQL script.
+     * @throws IOException
+     *             Thrown if data could not be read from SQL script.
+     */
+    private void executeSqlScript(final InputStream resource)
+        throws IOException {
         int c = resource.read();
         StringBuffer cmd = new StringBuffer();
         while (c != -1) {

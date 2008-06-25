@@ -65,7 +65,8 @@ public class AdminMain {
     /**
      * Main Method, depends on args[0] which method is executed.
      * 
-     * @param args arguments given on commandline
+     * @param args
+     *            arguments given on commandline
      */
     public static void main(final String[] args) {
         AdminMain admin = new AdminMain();
@@ -108,7 +109,17 @@ public class AdminMain {
                 .getBean(SpringConstants.ID_DATA_BASE_MIGRATION_TOOL);
         try {
             dbm.migrate();
-            log.info("Migration successfully completed.");
+            log.info("Migration successfully completed.\n");
+            log.warn("Recaching needed");
+            log.warn("================");
+            log.warn("Now, after the object");
+            log.warn("cache tables have been");
+            log.warn("createdduring the migration,");
+            log.warn("this cache has to be synchronized");
+            log.warn("with the existing resource objects");
+            log.warn("using the recache method from the");
+            log.warn("admin tool.");
+            log.warn("Please, see readme.txt.");
         }
         catch (IntegritySystemException e) {
             log.error(e);
@@ -150,12 +161,12 @@ public class AdminMain {
     /**
      * Clear the item cache, get all items and store them in the item cache.
      * 
-     * @param args The arguments.
+     * @param args
+     *            The arguments.
      */
     private void recache(final String[] args) {
         RecacheInterface recache =
-            (RecacheInterface) beanFactory
-                .getBean(SpringConstants.ID_RECACHE);
+            (RecacheInterface) beanFactory.getBean(SpringConstants.ID_RECACHE);
 
         try {
             recache.clearCache();
@@ -187,26 +198,27 @@ public class AdminMain {
 
             // Delete index
             reindexer.sendDeleteIndexMessage();
-            
-            log.info("scheduling " 
-            		+ itemHrefs.size() 
-            		+ " items for reindexing");
-            log.info("scheduling " 
-            		+ containerHrefs.size() 
-            		+ " containers for reindexing");
+
+            log
+                .info("scheduling " + itemHrefs.size()
+                    + " items for reindexing");
+            log.info("scheduling " + containerHrefs.size()
+                + " containers for reindexing");
 
             // Reindex released items
             int i = 0;
             for (String itemHref : itemHrefs) {
                 reindexer.sendUpdateIndexMessage(itemHref);
                 if (i == 0) {
-                	//wait 30 secs because if core-framework
-                	//was just initialized there are
-                	//problems with many simultaneous messages
-					try {
-						Thread.sleep(30000);
-					} catch (InterruptedException e) {}
-					i++;
+                    // wait 30 secs because if core-framework
+                    // was just initialized there are
+                    // problems with many simultaneous messages
+                    try {
+                        Thread.sleep(30000);
+                    }
+                    catch (InterruptedException e) {
+                    }
+                    i++;
                 }
             }
 
