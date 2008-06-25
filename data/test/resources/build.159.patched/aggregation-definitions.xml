@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<aggregation-definition-list
+	xmlns="http://www.escidoc.de/schemas/aggregationdefinitionlist/0.3">
+	<aggregation-definition
+		xmlns="http://www.escidoc.de/schemas/aggregationdefinition/0.3"
+		objid="1">
+		<name>Page Statistics for Framework</name>
+		<scope objid="1" />
+		<aggregation-table>
+			<name>_1_Request_Statistics</name>
+			<field>
+				<info-field feed="statistics-data">
+					<name>handler</name>
+					<type>text</type>
+					<xpath>
+						//parameter[@name="handler"]/stringvalue
+					</xpath>
+				</info-field>
+			</field>
+			<field>
+				<info-field feed="statistics-data">
+					<name>request</name>
+					<type>text</type>
+					<xpath>
+						//parameter[@name="request"]/stringvalue
+					</xpath>
+				</info-field>
+			</field>
+			<field>
+				<info-field feed="statistics-data">
+					<name>interface</name>
+					<type>text</type>
+					<xpath>
+						//parameter[@name="interface"]/stringvalue
+					</xpath>
+				</info-field>
+			</field>
+			<field>
+				<time-reduction-field feed="statistics-data">
+					<name>day</name>
+					<reduce-to>day</reduce-to>
+				</time-reduction-field>
+			</field>
+			<field>
+				<time-reduction-field feed="statistics-data">
+					<name>month</name>
+					<reduce-to>month</reduce-to>
+				</time-reduction-field>
+			</field>
+			<field>
+				<time-reduction-field feed="statistics-data">
+					<name>year</name>
+					<reduce-to>year</reduce-to>
+				</time-reduction-field>
+			</field>
+			<field>
+				<count-cumulation-field>
+					<name>requests</name>
+				</count-cumulation-field>
+			</field>
+			<index>
+				<name>_1_time1_idx</name>
+				<field>day</field>
+				<field>month</field>
+				<field>year</field>
+			</index>
+			<index>
+				<name>_1_time2_idx</name>
+				<field>month</field>
+				<field>year</field>
+			</index>
+		</aggregation-table>
+		<aggregation-table>
+			<name>_1_Object_Statistics</name>
+			<field>
+				<info-field feed="statistics-data">
+					<name>handler</name>
+					<type>text</type>
+					<xpath>
+						//parameter[@name="handler"]/stringvalue
+					</xpath>
+				</info-field>
+			</field>
+			<field>
+				<info-field feed="statistics-data">
+					<name>request</name>
+					<type>text</type>
+					<xpath>
+						//parameter[@name="request"]/stringvalue
+					</xpath>
+				</info-field>
+			</field>
+			<field>
+				<info-field feed="statistics-data">
+					<name>object_id</name>
+					<type>text</type>
+					<xpath>
+						//parameter[@name="object_id"]/stringvalue
+					</xpath>
+				</info-field>
+			</field>
+			<field>
+				<info-field feed="statistics-data">
+					<name>parent_object_id</name>
+					<type>text</type>
+					<xpath>
+						//parameter[@name="parent_object_id1"]/stringvalue
+					</xpath>
+				</info-field>
+			</field>
+			<field>
+				<info-field feed="statistics-data">
+					<name>user_id</name>
+					<type>text</type>
+					<xpath>
+						//parameter[@name="user_id"]/stringvalue
+					</xpath>
+				</info-field>
+			</field>
+			<field>
+				<time-reduction-field feed="statistics-data">
+					<name>month</name>
+					<reduce-to>month</reduce-to>
+				</time-reduction-field>
+			</field>
+			<field>
+				<time-reduction-field feed="statistics-data">
+					<name>year</name>
+					<reduce-to>year</reduce-to>
+				</time-reduction-field>
+			</field>
+			<field>
+				<count-cumulation-field>
+					<name>requests</name>
+				</count-cumulation-field>
+			</field>
+			<index>
+				<name>_1_time3_idx</name>
+				<field>month</field>
+				<field>year</field>
+			</index>
+		</aggregation-table>
+		<statistic-data>
+			<statistic-table>
+				<xpath>
+					//parameter[@name="successful"]/*='1' AND
+					//parameter[@name="internal"]/*='0'
+				</xpath>
+			</statistic-table>
+		</statistic-data>
+	</aggregation-definition>
+	<aggregation-definition
+		xmlns="http://www.escidoc.de/schemas/aggregationdefinition/0.3"
+		objid="2">
+		<name>Error Statistics for Framework</name>
+		<scope objid="1" />
+		<aggregation-table>
+			<name>_2_Error_Statistics</name>
+			<field>
+				<info-field feed="statistics-data">
+					<name>handler</name>
+					<type>text</type>
+					<xpath>
+						//parameter[@name="handler"]/stringvalue
+					</xpath>
+				</info-field>
+			</field>
+			<field>
+				<info-field feed="statistics-data">
+					<name>request</name>
+					<type>text</type>
+					<xpath>
+						//parameter[@name="request"]/stringvalue
+					</xpath>
+				</info-field>
+			</field>
+			<field>
+				<info-field feed="statistics-data">
+					<name>interface</name>
+					<type>text</type>
+					<xpath>
+						//parameter[@name="interface"]/stringvalue
+					</xpath>
+				</info-field>
+			</field>
+			<field>
+				<info-field feed="statistics-data">
+					<name>exception_name</name>
+					<type>text</type>
+					<xpath>
+						//parameter[@name="exception_name"]/stringvalue
+					</xpath>
+				</info-field>
+			</field>
+			<field>
+				<time-reduction-field feed="statistics-data">
+					<name>day</name>
+					<reduce-to>day</reduce-to>
+				</time-reduction-field>
+			</field>
+			<field>
+				<time-reduction-field feed="statistics-data">
+					<name>month</name>
+					<reduce-to>month</reduce-to>
+				</time-reduction-field>
+			</field>
+			<field>
+				<time-reduction-field feed="statistics-data">
+					<name>year</name>
+					<reduce-to>year</reduce-to>
+				</time-reduction-field>
+			</field>
+			<field>
+				<count-cumulation-field>
+					<name>requests</name>
+				</count-cumulation-field>
+			</field>
+			<index>
+				<name>_1_time1_idx</name>
+				<field>day</field>
+				<field>month</field>
+				<field>year</field>
+			</index>
+			<index>
+				<name>_1_time2_idx</name>
+				<field>month</field>
+				<field>year</field>
+			</index>
+		</aggregation-table>
+		<statistic-data>
+			<statistic-table>
+				<xpath>//parameter[@name="successful"]/*='0'</xpath>
+			</statistic-table>
+		</statistic-data>
+	</aggregation-definition>
+	<aggregation-definition
+		xmlns="http://www.escidoc.de/schemas/aggregationdefinition/0.3"
+		objid="15">
+		<name>Statistics for Report Test</name>
+		<scope objid="6" />
+		<aggregation-table>
+			<name>_15_Report_Test</name>
+			<field>
+				<info-field feed="statistics-data">
+					<name>page</name>
+					<type>text</type>
+					<xpath><![CDATA[
+					//parameter[@name="page"]/stringvalue
+				]]></xpath>
+				</info-field>
+			</field>
+			<field>
+				<time-reduction-field feed="statistics-data">
+					<name>month</name>
+					<reduce-to>month</reduce-to>
+				</time-reduction-field>
+			</field>
+			<field>
+				<time-reduction-field feed="statistics-data">
+					<name>year</name>
+					<reduce-to>year</reduce-to>
+				</time-reduction-field>
+			</field>
+			<field>
+				<count-cumulation-field>
+					<name>requests</name>
+				</count-cumulation-field>
+			</field>
+			<field>
+				<difference-cumulation-field feed="statistics-data">
+					<name>sessions</name>
+					<xpath>
+						//parameter[@name="session_id"]/stringvalue
+					</xpath>
+				</difference-cumulation-field>
+			</field>
+			<index>
+				<name>_15_time_idx</name>
+				<field>month</field>
+				<field>year</field>
+			</index>
+		</aggregation-table>
+		<aggregation-table>
+			<name>_15_Report_Test1</name>
+			<field>
+				<info-field feed="statistics-data">
+					<name>date</name>
+					<type>date</type>
+					<xpath>//parameter[@name="time"]/datevalue</xpath>
+				</info-field>
+			</field>
+			<field>
+				<time-reduction-field feed="statistics-data">
+					<name>year</name>
+					<reduce-to>month</reduce-to>
+					<xpath>//parameter[@name="time"]/datevalue</xpath>
+				</time-reduction-field>
+			</field>
+			<field>
+				<count-cumulation-field>
+					<name>requests</name>
+				</count-cumulation-field>
+			</field>
+			<field>
+				<difference-cumulation-field feed="statistics-data">
+					<name>sessions</name>
+					<xpath>
+						//parameter[@name="session_id"]/stringvalue
+					</xpath>
+				</difference-cumulation-field>
+			</field>
+			<index>
+				<name>_15_time_idx1</name>
+				<field>sessions</field>
+				<field>year</field>
+			</index>
+		</aggregation-table>
+		<statistic-data>
+			<statistic-table>
+				<xpath>//parameter[@name="reporttest"]</xpath>
+			</statistic-table>
+		</statistic-data>
+	</aggregation-definition>
+
+</aggregation-definition-list>

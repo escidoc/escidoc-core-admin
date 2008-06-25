@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="http://localhost:8080/xsl/Resource2Html.xsl"?>
+<grants:current-grants
+	xmlns:grants="http://www.escidoc.de/schemas/grants/0.3"
+	xmlns:xlink="http://www.w3.org/1999/xlink"
+	xmlns:xml="http://www.w3.org/XML/1998/namespace"
+	xml:base="http://localhost:8080" xlink:type="simple"
+	xlink:title="Grants of test_dep_scientist"
+	xlink:href="/aa/user-account/escidoc:user1/resources/current-grants"
+	last-modification-date="2008-06-24T08:58:06.342Z">
+	<grants:grant xlink:type="simple"
+		xlink:title="Administrator of Item escidoc:1335"
+		xlink:href="/aa/user-account/escidoc:user1/resources/grants/grant/escidoc:1338">
+		<grants:properties>
+			<grants:creation-date>
+				2008-06-24T10:35:27.113Z
+			</grants:creation-date>
+			<grants:created-by xlink:type="simple"
+				xlink:title="Test Depositor Scientist"
+				xlink:href="/aa/user-account/escidoc:user1" />
+			<grants:grant-remark>
+				°^^&quot;§$%/()=ß?\´`@€+*~#,;.:-_|&gt;
+				&amp;&gt;&lt;&quot;&apos; &amp;amp; &amp;gt; &amp;lt;
+				&amp;quot; &amp;apos; &lt; &amp; &gt; &quot; &apos;
+				&amp;lt; &amp;amp; &amp;gt; &amp;quot; &amp;apos;
+			</grants:grant-remark>
+			<grants:role xlink:type="simple" xlink:title="Administrator"
+				xlink:href="/aa/role/escidoc:role-administrator" />
+			<grants:object xlink:type="simple"
+				xlink:title="Item escidoc:1335" xlink:href="/ir/item/escidoc:1335" />
+		</grants:properties>
+	</grants:grant>
+	<grants:grant xlink:type="simple"
+		xlink:title="Administrator of Name"
+		xlink:href="/aa/user-account/escidoc:user1/resources/grants/grant/escidoc:1340">
+		<grants:properties>
+			<grants:creation-date>
+				2008-06-24T10:35:30.129Z
+			</grants:creation-date>
+			<grants:created-by xlink:type="simple"
+				xlink:title="Test Depositor Scientist"
+				xlink:href="/aa/user-account/escidoc:user1" />
+			<grants:grant-remark>
+				°^^&quot;§$%/()=ß?\´`@€+*~#,;.:-_|&gt;
+				&amp;&gt;&lt;&quot;&apos; &amp;amp; &amp;gt; &amp;lt;
+				&amp;quot; &amp;apos; &lt; &amp; &gt; &quot; &apos;
+				&amp;lt; &amp;amp; &amp;gt; &amp;quot; &amp;apos;
+			</grants:grant-remark>
+			<grants:role xlink:type="simple" xlink:title="Administrator"
+				xlink:href="/aa/role/escidoc:role-administrator" />
+			<grants:object xlink:type="simple" xlink:title="Name"
+				xlink:href="/ir/container/escidoc:1339" />
+		</grants:properties>
+	</grants:grant>
+	<grants:grant xlink:type="simple"
+		xlink:title="Administrator of Some Context 1214303730769"
+		xlink:href="/aa/user-account/escidoc:user1/resources/grants/grant/escidoc:1343">
+		<grants:properties>
+			<grants:creation-date>
+				2008-06-24T10:35:32.535Z
+			</grants:creation-date>
+			<grants:created-by xlink:type="simple" xlink:title="roland"
+				xlink:href="/aa/user-account/escidoc:user42" />
+			<grants:grant-remark>
+				°^^&quot;§$%/()=ß?\´`@€+*~#,;.:-_|&gt;
+				&amp;&gt;&lt;&quot;&apos; &amp;amp; &amp;gt; &amp;lt;
+				&amp;quot; &amp;apos; &lt; &amp; &gt; &quot; &apos;
+				&amp;lt; &amp;amp; &amp;gt; &amp;quot; &amp;apos;
+			</grants:grant-remark>
+			<grants:role xlink:type="simple" xlink:title="Administrator"
+				xlink:href="/aa/role/escidoc:role-administrator" />
+			<grants:object xlink:type="simple"
+				xlink:title="Some Context 1214303730769"
+				xlink:href="/ir/context/escidoc:1341" />
+		</grants:properties>
+	</grants:grant>
+	<grants:grant xlink:type="simple"
+		xlink:title="Administrator of PubMan Test Collection"
+		xlink:href="/aa/user-account/escidoc:user1/resources/grants/grant/escidoc:grant4201">
+		<grants:properties>
+			<grants:creation-date>
+				2008-06-24T08:58:06.342Z
+			</grants:creation-date>
+			<grants:created-by xlink:type="simple" xlink:title="roland"
+				xlink:href="/aa/user-account/escidoc:user42" />
+			<grants:grant-remark>
+				°^^&quot;§$%/()=ß?\´`@€+*~#,;.:-_|&gt;
+				&amp;&gt;&lt;&quot;&apos; &amp;amp; &amp;gt; &amp;lt;
+				&amp;quot; &amp;apos; &lt; &amp; &gt; &quot; &apos;
+				&amp;lt; &amp;amp; &amp;gt; &amp;quot; &amp;apos;
+			</grants:grant-remark>
+			<grants:role xlink:type="simple" xlink:title="Administrator"
+				xlink:href="/aa/role/escidoc:role-administrator" />
+			<grants:object xlink:type="simple"
+				xlink:title="PubMan Test Collection"
+				xlink:href="/ir/context/escidoc:persistent3" />
+		</grants:properties>
+	</grants:grant>
+	<grants:grant xlink:type="simple"
+		xlink:title="Depositor of PubMan Test Collection"
+		xlink:href="/aa/user-account/escidoc:user1/resources/grants/grant/escidoc:grant4202">
+		<grants:properties>
+			<grants:creation-date>
+				2008-06-24T08:58:06.342Z
+			</grants:creation-date>
+			<grants:created-by xlink:type="simple" xlink:title="roland"
+				xlink:href="/aa/user-account/escidoc:user42" />
+			<grants:grant-remark>
+				°^^&quot;§$%/()=ß?\´`@€+*~#,;.:-_|&gt;
+				&amp;&gt;&lt;&quot;&apos; &amp;amp; &amp;gt; &amp;lt;
+				&amp;quot; &amp;apos; &lt; &amp; &gt; &quot; &apos;
+				&amp;lt; &amp;amp; &amp;gt; &amp;quot; &amp;apos;
+			</grants:grant-remark>
+			<grants:role xlink:type="simple" xlink:title="Depositor"
+				xlink:href="/aa/role/escidoc:role-depositor" />
+			<grants:object xlink:type="simple"
+				xlink:title="PubMan Test Collection"
+				xlink:href="/ir/context/escidoc:persistent3" />
+		</grants:properties>
+	</grants:grant>
+	<grants:grant xlink:type="simple"
+		xlink:title="Moderator of PubMan Test Collection"
+		xlink:href="/aa/user-account/escidoc:user1/resources/grants/grant/escidoc:grant4204">
+		<grants:properties>
+			<grants:creation-date>
+				2008-06-24T08:58:06.342Z
+			</grants:creation-date>
+			<grants:created-by xlink:type="simple" xlink:title="roland"
+				xlink:href="/aa/user-account/escidoc:user42" />
+			<grants:grant-remark>
+				°^^&quot;§$%/()=ß?\´`@€+*~#,;.:-_|&gt;
+				&amp;&gt;&lt;&quot;&apos; &amp;amp; &amp;gt; &amp;lt;
+				&amp;quot; &amp;apos; &lt; &amp; &gt; &quot; &apos;
+				&amp;lt; &amp;amp; &amp;gt; &amp;quot; &amp;apos;
+			</grants:grant-remark>
+			<grants:role xlink:type="simple" xlink:title="Moderator"
+				xlink:href="/aa/role/escidoc:role-moderator" />
+			<grants:object xlink:type="simple"
+				xlink:title="PubMan Test Collection"
+				xlink:href="/ir/context/escidoc:persistent3" />
+		</grants:properties>
+	</grants:grant>
+	<grants:grant xlink:type="simple"
+		xlink:title="WorkflowManager of PubMan Test Collection"
+		xlink:href="/aa/user-account/escidoc:user1/resources/grants/grant/escidoc:grant4203">
+		<grants:properties>
+			<grants:creation-date>
+				2008-06-24T08:58:06.342Z
+			</grants:creation-date>
+			<grants:created-by xlink:type="simple" xlink:title="roland"
+				xlink:href="/aa/user-account/escidoc:user42" />
+			<grants:grant-remark>
+				°^^&quot;§$%/()=ß?\´`@€+*~#,;.:-_|&gt;
+				&amp;&gt;&lt;&quot;&apos; &amp;amp; &amp;gt; &amp;lt;
+				&amp;quot; &amp;apos; &lt; &amp; &gt; &quot; &apos;
+				&amp;lt; &amp;amp; &amp;gt; &amp;quot; &amp;apos;
+			</grants:grant-remark>
+			<grants:role xlink:type="simple"
+				xlink:title="WorkflowManager" xlink:href="/aa/role/escidoc:role6" />
+			<grants:object xlink:type="simple"
+				xlink:title="PubMan Test Collection"
+				xlink:href="/ir/context/escidoc:persistent3" />
+		</grants:properties>
+	</grants:grant>
+</grants:current-grants>
