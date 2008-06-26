@@ -560,9 +560,9 @@ public class DataBaseMigrationTool implements DataBaseMigrationInterface {
             // aa tests
             assertEquals("Checking number of actions...", 119, target
                 .getNumberOfRows("aa.actions"));
-            assertEquals("Checking number of method mappings...", 209, target
+            assertEquals("Checking number of method mappings...", 208, target
                 .getNumberOfRows("aa.method_mappings"));
-            assertEquals("Checking number of invocation mappings...", 209,
+            assertEquals("Checking number of invocation mappings...", 208,
                 target.getNumberOfRows("aa.method_mappings"));
             assertEquals("Checking number of user accounts...", source
                 .getNumberOfRows("aa.user_account"), target
