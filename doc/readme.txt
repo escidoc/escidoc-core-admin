@@ -2,31 +2,6 @@ eSciDoc infrastructure administration tool
 ==========================================
 
 
-Regenerate index for search
----------------------------
-
-	Use this when 
-	- structure/schema of items or containers changes
-	- Structure of index-database changed (new index etc.)
-	
-	- Workflow:
-		- get all items/container-hrefs from om where status = released
-		- delete index-databases
-		- put item-hrefs in SB-indexing queue -> reindex items
-		- put container-hrefs in SB-indexing queue -> reindex containers
-		
-	- Usage:
-		- modify admin-tool.properties:
-			- escidocOmUrl : URL of OM
-			- escidocSbUrl: URL of naming-service of SB
-        - Execute 
-            - java -jar eSciDocCoreAdmin.jar reindex 
-            or
-            - target reindex of ant file build.xml
-          The admin-tool.properties must be placed in the directory from that 
-          the admin tool is executed.
-		
-
 Migrate the escidoc-core database from build 0.9.0159 / 0.9.1.x to Release 1.0
 ------------------------------------------------------------------------------
 
@@ -76,6 +51,10 @@ Regenerate cache for filter methods (fast lists)
 	Use this when 
 	- structure/schema of containers or items changed,
 	- structure of cache database changed
+	
+	Prerequisites for recaching:
+    - Database has been migrated (if necessary)
+    - Fedora has been migrated (if necessary)
 
 	- Workflow:
 		- delete all containers and items from cache database
@@ -97,3 +76,36 @@ Regenerate cache for filter methods (fast lists)
             - target recache of ant file build.xml
           The admin-tool.properties must be placed in the directory from that 
           the admin tool is executed.
+
+
+Regenerate index for search
+---------------------------
+
+    Prerequisites for reindexing:
+    - Database has been migrated (if necessary)
+    - Fedora has been migrated (if necessary)
+    - Object cache has been regenerated (if necessary)
+
+    Use this when 
+    - structure/schema of items or containers changes
+    - Structure of index-database changed (new index etc.)
+    
+    - Workflow:
+        - get all items/container-hrefs from om where status = released
+        - delete index-databases
+        - put item-hrefs in SB-indexing queue -> reindex items
+        - put container-hrefs in SB-indexing queue -> reindex containers
+        
+    - Usage:
+        - modify admin-tool.properties:
+            - escidocOmUrl : URL of OM
+            - escidocSbUrl: URL of naming-service of SB
+        - Execute 
+            - java -jar eSciDocCoreAdmin.jar reindex 
+            or
+            - target reindex of ant file build.xml
+          The admin-tool.properties must be placed in the directory from that 
+          the admin tool is executed.
+        
+
+          
