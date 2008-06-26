@@ -69,9 +69,7 @@
 			<fileset dir="${java.src.dir}" includes="**/*.xml" />
 		</copy>
 	</target>
-
-
-
+	
 	<target name="main-jar" depends="build">
 		<copy todir="${main.jar.build.dir}">
 			<fileset dir="${java.build.dir}" includes="de/**/*.class" excludes="**/test/**/*.class"/>
@@ -90,6 +88,9 @@
 			<fileset dir="${sql.src.dir}" includes="*.sql" />
 			
 		</copy>
+		<delete failonerror="false" >
+			<fileset dir="${admin.jar.build.dir}/de" excludes="**/EscidocXsltFunctions.class"/>
+	    </delete>
 		<copy todir="${admin.jar.lib.dir}">
 			<fileset dir="${lib.dir}" includes="**/*"  excludes="**/test/**/*"/>
 		</copy>
