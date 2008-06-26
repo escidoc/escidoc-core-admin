@@ -253,8 +253,9 @@ public class DataBaseMigrationTool implements DataBaseMigrationInterface {
         // get first chunk
         int offset = 0;
         final String userAccountTableName = "aa.user_account";
-        final String userAccountWhereClause =
-            "WHERE id<>'escidoc:user43' AND id<>'escidoc:exuser3'";
+        // indexer have been removed, but maybe they are referenced in existing
+        // data, therefore they are not removed here.
+        final String userAccountWhereClause = null;
         List<Map<String, Object>> tableData =
             source.retrieveTableData(userAccountTableName,
                 userAccountWhereClause, offset, LIMIT);
@@ -563,9 +564,8 @@ public class DataBaseMigrationTool implements DataBaseMigrationInterface {
                 .getNumberOfRows("aa.method_mappings"));
             assertEquals("Checking number of invocation mappings...", 209,
                 target.getNumberOfRows("aa.method_mappings"));
-            // user account escidoc:user43 has been removed
             assertEquals("Checking number of user accounts...", source
-                .getNumberOfRows("aa.user_account") - 1, target
+                .getNumberOfRows("aa.user_account"), target
                 .getNumberOfRows("aa.user_account"));
             // escidoc:role-indexer has been removed
             assertEquals("Checking number of roles...", source
@@ -581,7 +581,7 @@ public class DataBaseMigrationTool implements DataBaseMigrationInterface {
                 .getNumberOfRows("om.lockstatus"));
 
             // sm tests
-            assertEquals("Checking number of statistic data record...", source
+            assertEquals("Checking number of statistic data records...", source
                 .getNumberOfRows("sm.statistic_data"), target
                 .getNumberOfRows("sm.statistic_data"));
             assertEquals("Checking number of scopes...", source

@@ -13,10 +13,14 @@
 	xmlns:escidocComponents="http://www.escidoc.de/schemas/components/0.3/"
 	xmlns:escidocRelations="http://www.nsdl.org/ontologies/relationships/"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:eidt="http://escidoc.mpg.de/metadataprofile/schema/0.1/idtypes"
-	exclude-result-prefixes="fedoraxsi xsl types rdf dcterms audit escidocComponents">
+    xmlns:eidt="http://escidoc.mpg.de/metadataprofile/schema/0.1/idtypes"
+	xmlns:EscidocXsltFunctions="java:de.escidoc.core.admin.business.EscidocXsltFunctions"
+    exclude-result-prefixes="EscidocXsltFunctions fedoraxsi xsl types rdf dcterms audit escidocComponents">
+	
 	<xsl:import href="contentDigest.xsl" />
-	<xsl:import href="ElementWithCorrectContentDigest.xsl" />
+    <xsl:import href="ElementWithCorrectContentDigest.xsl" />
+    
+       
 	<xsl:output encoding="utf-8" method="xml" />
 	<!--    
 		<xsl:template match="/">
@@ -39,51 +43,52 @@
 							<xsl:variable name="locatorUrl"
 								select="/foxml:digitalObject/foxml:datastream/foxml:datastreamVersion/foxml:xmlContent/rdf:RDF/rdf:Description/escidocComponents:locator-url" />
 							<xsl:choose>
-								<xsl:when test="$locatorUrl=''">
-									<!-- content data stream einfach kopieren -->
-									<xsl:call-template
-										name="elementWithCorrectContentDigestTemplate" />
+								<xsl:when 
+                                    test="EscidocXsltFunctions:is-valid-url($locatorUrl)">
+									<xsl:copy copy-namespaces="no">
+                                        <xsl:for-each select="@*">
+                                            <xsl:variable name="name"
+                                                select="local-name()" />
+                                            <xsl:choose>
+                                                <xsl:when
+                                                    test="$name='CONTROL_GROUP'">
+                                                    <xsl:attribute
+                                                        name="CONTROL_GROUP" select="'R'"/>
+                                                </xsl:when>
+                                                <xsl:otherwise>
+                                                    <xsl:copy />
+                                                </xsl:otherwise>
+                                            </xsl:choose>
+                                        </xsl:for-each>
+                                        <xsl:for-each
+                                            select="foxml:datastreamVersion">
+                                            <xsl:copy
+                                                copy-namespaces="no">
+                                                <xsl:for-each
+                                                    select="@*">
+                                                    <xsl:copy />
+                                                </xsl:for-each>
+                                                <xsl:call-template
+                                                    name="contentDigestTemplate" />
+                                                <xsl:element
+                                                    name="foxml:contentLocation"
+                                                    namespace="info:fedora/fedora-system:def/foxml#">
+                                                    <xsl:attribute
+                                                        name="REF">
+                                        <xsl:value-of
+                                                            select="$locatorUrl" />
+                        </xsl:attribute>
+                                                    <xsl:attribute
+                                                        name="TYPE" select="'URL'"/>
+                                                </xsl:element>
+                                            </xsl:copy>
+                                        </xsl:for-each>
+                                    </xsl:copy>
 								</xsl:when>
 								<xsl:otherwise>
-									<xsl:copy copy-namespaces="no">
-										<xsl:for-each select="@*">
-											<xsl:variable name="name"
-												select="local-name()" />
-											<xsl:choose>
-												<xsl:when
-													test="$name='CONTROL_GROUP'">
-													<xsl:attribute
-														name="CONTROL_GROUP" select="'R'"/>
-												</xsl:when>
-												<xsl:otherwise>
-													<xsl:copy />
-												</xsl:otherwise>
-											</xsl:choose>
-										</xsl:for-each>
-										<xsl:for-each
-											select="foxml:datastreamVersion">
-											<xsl:copy
-												copy-namespaces="no">
-												<xsl:for-each
-													select="@*">
-													<xsl:copy />
-												</xsl:for-each>
-												<xsl:call-template
-													name="contentDigestTemplate" />
-												<xsl:element
-													name="foxml:contentLocation"
-													namespace="info:fedora/fedora-system:def/foxml#">
-													<xsl:attribute
-														name="REF">
-										<xsl:value-of
-															select="$locatorUrl" />
-						</xsl:attribute>
-													<xsl:attribute
-														name="TYPE" select="'URL'"/>
-												</xsl:element>
-											</xsl:copy>
-										</xsl:for-each>
-									</xsl:copy>
+								    <!-- content data stream einfach kopieren -->
+                                    <xsl:call-template
+                                        name="elementWithCorrectContentDigestTemplate" />
 								</xsl:otherwise>
 							</xsl:choose>
 						</xsl:when>

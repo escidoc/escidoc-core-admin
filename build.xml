@@ -90,7 +90,6 @@
 			<fileset dir="${sql.src.dir}" includes="*.sql" />
 			
 		</copy>
-		<delete dir="${admin.jar.build.dir}/de" failonerror="false" />
 		<copy todir="${admin.jar.lib.dir}">
 			<fileset dir="${lib.dir}" includes="**/*"  excludes="**/test/**/*"/>
 		</copy>

@@ -2,6 +2,11 @@
 <project name="eSciDocCore Admin Tools" default="reindex" basedir=".">
 
 	<property file="admin-tool.properties" />
+	
+	<path id="build.classpath">
+		<fileset dir="." includes="eSciDocCoreAdmin.jar" />
+	    <fileset dir="." includes="lib/saxon8.jar" />
+	</path>
 
 	<target name="test">
 		<java jar="eSciDocCoreAdmin.jar" fork="true">
@@ -52,7 +57,7 @@
 	<target name="foxml-migration" depends="prepare-foxml-migration">
 		<echo>Starting migration of fedora repository</echo>
 		<xslt basedir="${foxml.src.dir}" destdir="${foxml.target.dir}" style="xsl/GeneralNew.xsl" force="true">
-			<classpath location="lib/saxon8.jar" />
+			<classpath refid="build.classpath" />
 			<mapper type="identity" />
 		</xslt>
 		<!-- delete all FOXML files with 0 bytes length -->
