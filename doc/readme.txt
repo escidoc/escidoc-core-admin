@@ -34,6 +34,12 @@ Migrate the escidoc-core database from build 0.9.0159 / 0.9.1.x to Release 1.0
 
     - Usage:
         - Recommended: Backup the existing database.
+        - Recommended: Check for user accounts that have references to 
+          organizational-units that does not exists. These references have to be
+          fixed, manually. During database migration, they are kept as defined 
+          in the source database. Fixing these releation after migration is 
+          possible by changing the table aa.user_account_ous that defines the 
+          n x m relation between user accounts and organizational units.
         
         - Copy existing database to a new database that is used the target 
           of the migration. E.g. using
