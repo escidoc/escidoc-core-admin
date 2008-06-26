@@ -24,23 +24,14 @@ public class EscidocXsltFunctions {
     public static boolean isValidUrl(final String url) {
 
         if (url == null || url.length() == 0) {
-            // FIXME: remove
-            System.out.println("Url is invalid [" + url + "]");
-            // end
             return false;
         }
         else {
             try {
                 new URL(url);
-                // FIXME: remove
-                System.out.println("Url is valid [" + url + "]");
-                // end
                 return true;
             }
             catch (MalformedURLException e) {
-                // FIXME: remove
-                System.out.println("Url is invalid [" + url + "]");
-                // end
                 return false;
             }
         }
