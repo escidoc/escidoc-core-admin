@@ -5,10 +5,13 @@ eSciDoc infrastructure administration tool
 Migrate the escidoc-core database from build 0.9.0159 / 0.9.1.x to Release 1.0
 ------------------------------------------------------------------------------
 
-   Prerequisites for migration: Ant in version 1.7.0 
+   Prerequisites: 
+    - Ant in version 1.7.0 (if ant is used)
+    - New database that is copied from the original database (see below).
 
     - Usage:
         - Recommended: Backup the existing database.
+        
         - Recommended: Check for user accounts that have references to 
           organizational-units that does not exists. These references have to be
           fixed, manually. During database migration, they are kept as defined 
@@ -38,11 +41,31 @@ Migrate the escidoc-core database from build 0.9.0159 / 0.9.1.x to Release 1.0
 Migrate the fedora content of a eSciDoc repository from build 0.9.0159 to Release 1.0
 -------------------------------------------------------------------------------------
 
+This tool first backups the folder fedora3.home/data/datastreams and copies 
+the datatstreams folder from the existing Fedora 2 repository.
+Afterwards the tool migrates all relevant foxml files from the existing Fedora 2 
+repository to the new Fedora 3.0b repository.
+
+    Prerequisites:
+    - Ant in version 1.7.0
+    - Newly installed Fedora 3.0b repository in directory fedora3.home
+
     - Usage:
         - Modify admin-tool.properties to define the values for properties fedora-2.home and fedora-3.home
+        - increase the available memory by setting the system property ANT_OPT
+          (ANT_OPTS=-Xmx1024m -Xms512m -XX:MaxPermSize=256m)
         - execute target foxml-migration of ant file build.xml
           The admin-tool.properties must be placed in the directory from that 
           the admin tool is executed.
+          
+        - Rebuild the Fedora 3.0b resource index and SQL database. 
+          To do that you have to call fedora-rebuild script located in 
+          fedora3.home/server/bin and follow the instructions.
+        - check the higestid value for escidoc in the fedora 3 database, 
+          table public.pidgen. This value should be the higest id that has been 
+          reported during the previous rebuild step. Sometimes, this value is 
+          less than the maximum id. In this case, either retry rebuilding index 
+          and database, or set this to a value higher than the maximum id.
 
 
 Regenerate cache for filter methods (fast lists)
@@ -68,6 +91,7 @@ Regenerate cache for filter methods (fast lists)
                         - fedora.password : Fedora admin password
                         - fedora.url : URL of Fedora
                         - new.datasource.* : JDBC properties for eSciDoc database
+                        - login: eSciDoc admin login name
                         - password : eSciDoc admin password
 
         - Execute 
