@@ -555,52 +555,61 @@ public class DataBaseMigrationTool implements DataBaseMigrationInterface {
         log.warn("dbmigration.skipTests (set to true)");
         log.warn("");
 
-        // aa tests
-        assertEquals("Checking number of actions...", 119, target
-            .getNumberOfRows("aa.actions"));
-        assertEquals("Checking number of method mappings...", 209, target
-            .getNumberOfRows("aa.method_mappings"));
-        assertEquals("Checking number of invocation mappings...", 209, target
-            .getNumberOfRows("aa.method_mappings"));
-        // user account escidoc:user43 has been removed
-        assertEquals("Checking number of user accounts...", source
-            .getNumberOfRows("aa.user_account") - 1, target
-            .getNumberOfRows("aa.user_account"));
-        // escidoc:role-indexer has been removed
-        assertEquals("Checking number of roles...", source
-            .getNumberOfRows("aa.escidoc_role") - 1, target
-            .getNumberOfRows("aa.escidoc_role"));
-        assertEquals("Checking number of role scope defs...", source
-            .getNumberOfRows("aa.scope_def"), target
-            .getNumberOfRows("aa.scope_def"));
+        try {
+            // aa tests
+            assertEquals("Checking number of actions...", 119, target
+                .getNumberOfRows("aa.actions"));
+            assertEquals("Checking number of method mappings...", 209, target
+                .getNumberOfRows("aa.method_mappings"));
+            assertEquals("Checking number of invocation mappings...", 209,
+                target.getNumberOfRows("aa.method_mappings"));
+            // user account escidoc:user43 has been removed
+            assertEquals("Checking number of user accounts...", source
+                .getNumberOfRows("aa.user_account") - 1, target
+                .getNumberOfRows("aa.user_account"));
+            // escidoc:role-indexer has been removed
+            assertEquals("Checking number of roles...", source
+                .getNumberOfRows("aa.escidoc_role") - 1, target
+                .getNumberOfRows("aa.escidoc_role"));
+            assertEquals("Checking number of role scope defs...", source
+                .getNumberOfRows("aa.scope_def"), target
+                .getNumberOfRows("aa.scope_def"));
 
-        // om tests
-        assertEquals("Checking number of object locks...", source
-            .getNumberOfRows("om.lockstatus"), target
-            .getNumberOfRows("om.lockstatus"));
+            // om tests
+            assertEquals("Checking number of object locks...", source
+                .getNumberOfRows("om.lockstatus"), target
+                .getNumberOfRows("om.lockstatus"));
 
-        // sm tests
-        assertEquals("Checking number of statistic data record...", source
-            .getNumberOfRows("sm.statistic_data"), target
-            .getNumberOfRows("sm.statistic_data"));
-        assertEquals("Checking number of scopes...", source
-            .getNumberOfRows("sm.scopes"), target.getNumberOfRows("sm.scopes"));
-        assertEquals("Checking number of aggregation definitions...", source
-            .getNumberOfRows("sm.aggregation_definitions"), target
-            .getNumberOfRows("sm.aggregation_definitions"));
-        // 3 report definitions have been added since build 159
-        assertEquals("Checking number of report definitions...", source
-            .getNumberOfRows("sm.report_definitions") + 3, target
-            .getNumberOfRows("sm.report_definitions"));
+            // sm tests
+            assertEquals("Checking number of statistic data record...", source
+                .getNumberOfRows("sm.statistic_data"), target
+                .getNumberOfRows("sm.statistic_data"));
+            assertEquals("Checking number of scopes...", source
+                .getNumberOfRows("sm.scopes"), target
+                .getNumberOfRows("sm.scopes"));
+            assertEquals("Checking number of aggregation definitions...",
+                source.getNumberOfRows("sm.aggregation_definitions"), target
+                    .getNumberOfRows("sm.aggregation_definitions"));
+            // 3 report definitions have been added since build 159
+            assertEquals("Checking number of report definitions...", source
+                .getNumberOfRows("sm.report_definitions") + 3, target
+                .getNumberOfRows("sm.report_definitions"));
 
-        assertTableExists("Checking table sm.ESCIDOC_SM_IDS...",
-            "sm.ESCIDOC_SM_IDS");
-        // FIXME: check aggregation data tables
+            assertTableExists("Checking table sm.ESCIDOC_SM_IDS...",
+                "sm.ESCIDOC_SM_IDS");
+            // FIXME: check aggregation data tables
 
-        // st tests
-        assertEquals("Checking number of staging files...", source
-            .getNumberOfRows("st.staging_file"), target
-            .getNumberOfRows("st.staging_file"));
+            // st tests
+            assertEquals("Checking number of staging files...", source
+                .getNumberOfRows("st.staging_file"), target
+                .getNumberOfRows("st.staging_file"));
+        }
+        catch (RuntimeException e) {
+            log.error(e.getMessage());
+            log.error("To skip the tests, set the property skipTests");
+            log.error("true in the admin-tool.properties file");
+            throw e;
+        }
     }
 
     /**
