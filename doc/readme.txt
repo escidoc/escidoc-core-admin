@@ -78,6 +78,7 @@ Regenerate cache for filter methods (fast lists)
 	Prerequisites for recaching:
     - Database has been migrated (if necessary)
     - Fedora has been migrated (if necessary)
+    - eSciDocCore Services including fedora repository are started
 
 	- Workflow:
 		- delete all containers and items from cache database
@@ -109,6 +110,7 @@ Regenerate index for search
     - Database has been migrated (if necessary)
     - Fedora has been migrated (if necessary)
     - Object cache has been regenerated (if necessary)
+    - eSciDocCore Services including fedora repository are started
 
     Use this when 
     - structure/schema of items or containers changes
