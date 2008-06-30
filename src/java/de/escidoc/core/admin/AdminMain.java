@@ -212,7 +212,7 @@ public class AdminMain {
             for (String itemHref : itemHrefs) {
                 reindexer.sendUpdateIndexMessage(itemHref);
                 try {
-					Thread.sleep(200);
+					Thread.sleep(1000);
 				} catch (InterruptedException e) {}
 //                if (i == 0) {
 //                    // wait 30 secs because if core-framework
@@ -231,7 +231,7 @@ public class AdminMain {
             for (String containerHref : containerHrefs) {
                 reindexer.sendUpdateIndexMessage(containerHref);
                 try {
-					Thread.sleep(200);
+					Thread.sleep(1000);
 				} catch (InterruptedException e) {}
             }
 
