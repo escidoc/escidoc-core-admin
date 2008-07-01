@@ -417,25 +417,34 @@ public class DataBaseMigrationTool implements DataBaseMigrationInterface {
                 .concatenateToString(
                     "INSERT INTO sm.report_definitions",
                     " (id, xml, scope_id) VALUES (",
-                    nextReportDefinitionId++,
-                    ", '<?xml version=\"1.0\" encoding=\"UTF-8\"?><report-definition xmlns=\"http://www.escidoc.de/schemas/reportdefinition/0.3\" objid=\"7\">    <name>Item retrievals, anonymous users</name>  <scope objid=\"2\" />  <sql>       select object_id as itemId, sum(requests) as itemRequests       from _1_object_statistics       where object_id = {object_id} and handler=''ItemHandler'' and request=''retrieve'' and user_id='''' group by object_id; </sql> </report-definition>',",
+                    nextReportDefinitionId,
+                    ", '<?xml version=\"1.0\" encoding=\"UTF-8\"?><report-definition xmlns=\"http://www.escidoc.de/schemas/reportdefinition/0.3\" objid=\"",
+                    nextReportDefinitionId,
+                    "\">    <name>Item retrievals, anonymous users</name>  <scope objid=\"2\" />  <sql>       select object_id as itemId, sum(requests) as itemRequests       from _1_object_statistics       where object_id = {object_id} and handler=''ItemHandler'' and request=''retrieve'' and user_id='''' group by object_id; </sql> </report-definition>',",
                     " 2);"));
+        nextReportDefinitionId++;
         target
             .executeSqlCommand(StringUtility
                 .concatenateToString(
                     "INSERT INTO sm.report_definitions",
                     " (id, xml, scope_id) VALUES (",
-                    nextReportDefinitionId++,
-                    ", '<?xml version=\"1.0\" encoding=\"UTF-8\"?><report-definition xmlns=\"http://www.escidoc.de/schemas/reportdefinition/0.3\" objid=\"8\">    <name>File downloads per Item, anonymous users</name>  <scope objid=\"2\" />  <sql>       select parent_object_id as itemId, sum(requests)    as fileRequests from _1_object_statistics       where parent_object_id = {object_id} and handler=''ItemHandler'' and request=''retrieveContent'' and user_id='''' group by parent_object_id;    </sql> </report-definition>',",
+                    nextReportDefinitionId,
+                    ", '<?xml version=\"1.0\" encoding=\"UTF-8\"?><report-definition xmlns=\"http://www.escidoc.de/schemas/reportdefinition/0.3\" objid=\"",
+                    nextReportDefinitionId,
+                    "\">    <name>File downloads per Item, anonymous users</name>  <scope objid=\"2\" />  <sql>       select parent_object_id as itemId, sum(requests)    as fileRequests from _1_object_statistics       where parent_object_id = {object_id} and handler=''ItemHandler'' and request=''retrieveContent'' and user_id='''' group by parent_object_id;    </sql> </report-definition>',",
                     " 2);"));
+        nextReportDefinitionId++;
         target
             .executeSqlCommand(StringUtility
                 .concatenateToString(
                     "INSERT INTO sm.report_definitions",
                     " (id, xml, scope_id) VALUES (",
-                    nextReportDefinitionId++,
-                    ", '<?xml version=\"1.0\" encoding=\"UTF-8\"?><report-definition xmlns=\"http://www.escidoc.de/schemas/reportdefinition/0.3\" objid=\"9\">    <name>File downloads, anonymous users</name>  <scope objid=\"2\" />   <sql>       select object_id as fileId, sum(requests) as fileRequests       from _1_object_statistics       where object_id = {object_id} and handler=''ItemHandler'' and request=''retrieveContent'' and user_id='''' group by object_id;  </sql> </report-definition>',",
+                    nextReportDefinitionId,
+                    ", '<?xml version=\"1.0\" encoding=\"UTF-8\"?><report-definition xmlns=\"http://www.escidoc.de/schemas/reportdefinition/0.3\" objid=\"",
+                    nextReportDefinitionId,
+                    "\">    <name>File downloads, anonymous users</name>  <scope objid=\"2\" />   <sql>       select object_id as fileId, sum(requests) as fileRequests       from _1_object_statistics       where object_id = {object_id} and handler=''ItemHandler'' and request=''retrieveContent'' and user_id='''' group by object_id;  </sql> </report-definition>',",
                     " 2);"));
+        nextReportDefinitionId++;
 
         // xml columns have been renamed to xml_data
         target.renameTableColumn("sm.statistic_data", "xml", "xml_data");
