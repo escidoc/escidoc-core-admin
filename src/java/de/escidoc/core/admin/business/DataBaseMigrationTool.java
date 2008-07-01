@@ -402,23 +402,39 @@ public class DataBaseMigrationTool implements DataBaseMigrationInterface {
                     "UPDATE sm.report_definitions",
                     " SET id=6, xml='<?xml version=\"1.0\" encoding=\"UTF-8\"?><report-definition xmlns=\"http://www.escidoc.de/schemas/reportdefinition/0.3\" objid=\"6\">    <name>File downloads, all users</name>  <scope objid=\"2\" /> <sql>       select object_id as fileId, sum(requests) as fileRequests       from _1_object_statistics       where object_id = {object_id} and handler=''ItemHandler'' and request=''retrieveContent'' group by object_id;   </sql> </report-definition>',",
                     " scope_id=2 WHERE id=6;"));
+
+        final Object id = target.getMaxOfColumn("sm.report_definitions", "id");
+        int nextReportDefinitionId = ((Integer) id).intValue() + 1;
+
+        if (log.isDebugEnabled()) {
+            log.debug(StringUtility.concatenateWithBrackets(
+                "Determined next available report definition id",
+                nextReportDefinitionId));
+        }
+
         target
             .executeSqlCommand(StringUtility
                 .concatenateToString(
                     "INSERT INTO sm.report_definitions",
-                    " (id, xml, scope_id) VALUES (7, '<?xml version=\"1.0\" encoding=\"UTF-8\"?><report-definition xmlns=\"http://www.escidoc.de/schemas/reportdefinition/0.3\" objid=\"7\">    <name>Item retrievals, anonymous users</name>  <scope objid=\"2\" />  <sql>       select object_id as itemId, sum(requests) as itemRequests       from _1_object_statistics       where object_id = {object_id} and handler=''ItemHandler'' and request=''retrieve'' and user_id='''' group by object_id; </sql> </report-definition>',",
+                    " (id, xml, scope_id) VALUES (",
+                    nextReportDefinitionId++,
+                    ", '<?xml version=\"1.0\" encoding=\"UTF-8\"?><report-definition xmlns=\"http://www.escidoc.de/schemas/reportdefinition/0.3\" objid=\"7\">    <name>Item retrievals, anonymous users</name>  <scope objid=\"2\" />  <sql>       select object_id as itemId, sum(requests) as itemRequests       from _1_object_statistics       where object_id = {object_id} and handler=''ItemHandler'' and request=''retrieve'' and user_id='''' group by object_id; </sql> </report-definition>',",
                     " 2);"));
         target
             .executeSqlCommand(StringUtility
                 .concatenateToString(
                     "INSERT INTO sm.report_definitions",
-                    " (id, xml, scope_id) VALUES (8, '<?xml version=\"1.0\" encoding=\"UTF-8\"?><report-definition xmlns=\"http://www.escidoc.de/schemas/reportdefinition/0.3\" objid=\"8\">    <name>File downloads per Item, anonymous users</name>  <scope objid=\"2\" />  <sql>       select parent_object_id as itemId, sum(requests)    as fileRequests from _1_object_statistics       where parent_object_id = {object_id} and handler=''ItemHandler'' and request=''retrieveContent'' and user_id='''' group by parent_object_id;    </sql> </report-definition>',",
+                    " (id, xml, scope_id) VALUES (",
+                    nextReportDefinitionId++,
+                    ", '<?xml version=\"1.0\" encoding=\"UTF-8\"?><report-definition xmlns=\"http://www.escidoc.de/schemas/reportdefinition/0.3\" objid=\"8\">    <name>File downloads per Item, anonymous users</name>  <scope objid=\"2\" />  <sql>       select parent_object_id as itemId, sum(requests)    as fileRequests from _1_object_statistics       where parent_object_id = {object_id} and handler=''ItemHandler'' and request=''retrieveContent'' and user_id='''' group by parent_object_id;    </sql> </report-definition>',",
                     " 2);"));
         target
             .executeSqlCommand(StringUtility
                 .concatenateToString(
                     "INSERT INTO sm.report_definitions",
-                    " (id, xml, scope_id) VALUES (9, '<?xml version=\"1.0\" encoding=\"UTF-8\"?><report-definition xmlns=\"http://www.escidoc.de/schemas/reportdefinition/0.3\" objid=\"9\">    <name>File downloads, anonymous users</name>  <scope objid=\"2\" />   <sql>       select object_id as fileId, sum(requests) as fileRequests       from _1_object_statistics       where object_id = {object_id} and handler=''ItemHandler'' and request=''retrieveContent'' and user_id='''' group by object_id;  </sql> </report-definition>',",
+                    " (id, xml, scope_id) VALUES (",
+                    nextReportDefinitionId++,
+                    ", '<?xml version=\"1.0\" encoding=\"UTF-8\"?><report-definition xmlns=\"http://www.escidoc.de/schemas/reportdefinition/0.3\" objid=\"9\">    <name>File downloads, anonymous users</name>  <scope objid=\"2\" />   <sql>       select object_id as fileId, sum(requests) as fileRequests       from _1_object_statistics       where object_id = {object_id} and handler=''ItemHandler'' and request=''retrieveContent'' and user_id='''' group by object_id;  </sql> </report-definition>',",
                     " 2);"));
 
         // xml columns have been renamed to xml_data
@@ -438,12 +454,18 @@ public class DataBaseMigrationTool implements DataBaseMigrationInterface {
 
         final Object maxId =
             target.getMaxOfColumn("sm.aggregation_definitions", "id");
-        final int nextId = ((Integer) maxId).intValue() + 1;
+        int nextAggregationDefinitionId = ((Integer) maxId).intValue() + 1;
+        if (log.isDebugEnabled()) {
+            log.debug(StringUtility.concatenateWithBrackets(
+                "Determined next available aggregation definition id",
+                nextAggregationDefinitionId));
+        }
+
         target
             .executeSqlCommand(StringUtility
                 .concatenateToString(
                     "INSERT INTO sm.ESCIDOC_SM_IDS (TABLENAME, ID) VALUES ('AGGREGATION_DEFINITIONS', ",
-                    nextId, ");"));
+                    nextAggregationDefinitionId++, ");"));
     }
 
     /**
