@@ -2,6 +2,7 @@
 
 <project name="eSciDoc infrastructure admin tool - main build file" default="dist" basedir=".">
 
+	<property file="admin-tool.properties" />
 	<property file="etc/${user.name}.properties" />
 	<property file="etc/project.properties" />
 
@@ -104,11 +105,27 @@
 	</target>
 
         <target name="recache">
+		<antcall target="sql_command">
+			<param name="script" value="list.drop.sql" />
+		</antcall>
+		<antcall target="sql_command">
+			<param name="script" value="list.create.sql" />
+		</antcall>
+		<antcall target="sql_command">
+			<param name="script" value="list.init.rules.sql" />
+		</antcall>
                 <java jar="${dist.build.dir}/eSciDocCoreAdmin.jar" fork="true">
                         <arg value="recache" />
                 </java>
         </target>
 
+	<target name="sql_command" description="executes an SQL command read from the given file">
+                <sql classpathref="build.classpath" driver="${new.datasource.driverClassName}" url="${new.datasource.url}" userid="${new.datasource.username}" password="${new.datasource.password}">
+                        <fileset dir="${sql.src.dir}">
+				<include name="${script}" />
+			</fileset>
+		</sql>
+	</target>
 	
 
 </project>
