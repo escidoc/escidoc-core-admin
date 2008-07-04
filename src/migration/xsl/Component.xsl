@@ -39,9 +39,9 @@
 				<xsl:when test="@ID='content'">
 					<xsl:choose>
 						<xsl:when
-							test="boolean(/foxml:digitalObject/foxml:datastream/foxml:datastreamVersion/foxml:xmlContent/rdf:RDF/rdf:Description/escidocComponents:locator-url)">
+							test="boolean(foxml:datastreamVersion/foxml:xmlContent/rdf:RDF/rdf:Description/escidocComponents:locator-url)">
 							<xsl:variable name="locatorUrl"
-								select="/foxml:digitalObject/foxml:datastream/foxml:datastreamVersion/foxml:xmlContent/rdf:RDF/rdf:Description/escidocComponents:locator-url" />
+								select="foxml:datastreamVersion/foxml:xmlContent/rdf:RDF/rdf:Description/escidocComponents:locator-url" />
 							<xsl:choose>
 								<xsl:when 
                                     test="EscidocXsltFunctions:is-valid-url($locatorUrl)">
