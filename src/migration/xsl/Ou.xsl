@@ -95,6 +95,15 @@
 											</xsl:element>
 										</xsl:if>
 										<xsl:if
+											test="foxml:xmlContent/organizational-unit:organization-details/organizational-unit:organization-type">
+											<xsl:element
+												name="organization:organization-type"
+												namespace="http://escidoc.mpg.de/metadataprofile/schema/0.1/organization">
+												<xsl:value-of
+													select="foxml:xmlContent/organizational-unit:organization-details/organization-type" />
+											</xsl:element>
+										</xsl:if>
+										<xsl:if
 											test="foxml:xmlContent/organizational-unit:organization-details/organizational-unit:external-id">
 											<xsl:element
 												name="dc:identifier"
