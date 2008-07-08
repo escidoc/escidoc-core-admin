@@ -85,13 +85,17 @@ public class Reindexer implements ReindexerInterface {
 
     private QueueConnectionFactory queueConnectionFactory;
 
-    private QueueConnection queueConnection;
+    private QueueConnection queueConnection = null;
 
     private QueueSession queueSession;
 
     private Queue indexerMessageQueue;
 
     private MessageProducer messageProducer;
+
+    private String queueUser;
+
+    private String queuePassword;
 
 
     /**
@@ -246,6 +250,9 @@ public class Reindexer implements ReindexerInterface {
     public void sendDeleteIndexMessage()
         throws ApplicationServerSystemException {
         try {
+        	if (queueConnection == null) {
+        		createQueueConnection();
+        	}
             // Delete Indexes
             ObjectMessage message = queueSession.createObjectMessage();
             message.setStringProperty(Constants.INDEXER_QUEUE_ACTION_PARAMETER,
@@ -271,6 +278,9 @@ public class Reindexer implements ReindexerInterface {
     public void sendUpdateIndexMessage(final String resource)
         throws ApplicationServerSystemException {
         try {
+        	if (queueConnection == null) {
+        		createQueueConnection();
+        	}
             // Send message to
             // Queue///////////////////////////////////////////
             ObjectMessage message = queueSession.createObjectMessage();
@@ -286,6 +296,23 @@ public class Reindexer implements ReindexerInterface {
         }
     }
 
+
+    /**
+     * create connection to SB-indexing-indexerMessageQueue.
+     * 
+     *             e
+     * @admin
+     */
+    private void createQueueConnection() throws Exception {
+		this.queueConnection = 
+			this.queueConnectionFactory.createQueueConnection(
+										queueUser, queuePassword);
+		this.queueSession =
+			this.queueConnection.createQueueSession(false,
+                Session.AUTO_ACKNOWLEDGE);
+        this.messageProducer = 
+        	queueSession.createProducer(this.indexerMessageQueue);
+    }
 
     /**
      * close connection to SB-indexing-indexerMessageQueue.
@@ -339,11 +366,6 @@ public class Reindexer implements ReindexerInterface {
 			final QueueConnectionFactory queueConnectionFactory) 
 													throws Exception {
 		this.queueConnectionFactory = queueConnectionFactory;
-		this.queueConnection = 
-			this.queueConnectionFactory.createQueueConnection();
-		this.queueSession =
-			this.queueConnection.createQueueSession(false,
-                Session.AUTO_ACKNOWLEDGE);
 	}
 
 	/**
@@ -353,8 +375,20 @@ public class Reindexer implements ReindexerInterface {
 	public void setIndexerMessageQueue(final Queue indexerMessageQueue)
 														throws Exception {
 		this.indexerMessageQueue = indexerMessageQueue;
-        this.messageProducer = 
-        	queueSession.createProducer(this.indexerMessageQueue);
+	}
+
+	/**
+	 * @param queueUser the queueUser to set
+	 */
+	public void setQueueUser(final String queueUser) {
+		this.queueUser = queueUser;
+	}
+
+	/**
+	 * @param queuePassword the queuePassword to set
+	 */
+	public void setQueuePassword(final String queuePassword) {
+		this.queuePassword = queuePassword;
 	}
 
 }

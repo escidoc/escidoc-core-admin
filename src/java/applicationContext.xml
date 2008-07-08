@@ -170,6 +170,12 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
 
 	<bean id="de.escidoc.core.admin.Reindexer"
 		class="de.escidoc.core.admin.business.Reindexer">
+		<property name="queueUser">
+			<value>${indexerQueueUser}</value>
+		</property>
+		<property name="queuePassword">
+			<value>${indexerQueuePassword}</value>
+		</property>
 		<property name="escidocCoreHandler">
 			<ref bean="de.escidoc.core.admin.EscidocCoreHandler" />
 		</property>
