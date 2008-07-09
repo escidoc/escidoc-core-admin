@@ -13,14 +13,14 @@
 	xmlns:escidocComponents="http://www.escidoc.de/schemas/components/0.3/"
 	xmlns:escidocRelations="http://www.nsdl.org/ontologies/relationships/"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:eidt="http://escidoc.mpg.de/metadataprofile/schema/0.1/idtypes"
+	xmlns:eidt="http://escidoc.mpg.de/metadataprofile/schema/0.1/idtype"
 	xmlns:EscidocXsltFunctions="java:de.escidoc.core.admin.business.EscidocXsltFunctions"
-    exclude-result-prefixes="EscidocXsltFunctions fedoraxsi xsl types rdf dcterms audit escidocComponents">
-	
+	exclude-result-prefixes="EscidocXsltFunctions fedoraxsi xsl types rdf dcterms audit escidocComponents">
+
 	<xsl:import href="contentDigest.xsl" />
-    <xsl:import href="ElementWithCorrectContentDigest.xsl" />
-    
-       
+	<xsl:import href="ElementWithCorrectContentDigest.xsl" />
+
+
 	<xsl:output encoding="utf-8" method="xml" />
 	<!--    
 		<xsl:template match="/">
@@ -31,71 +31,164 @@
 	<xsl:template name="componentTemplate">
 		<!-- hier wird das neue XML erzeugt -->
 		<xsl:for-each select="foxml:datastream">
+		
 			<xsl:choose>
-				<!-- falls DC, dann nicht tun -->
+				<!-- falls DC, dann nichts tun -->
 				<xsl:when
 					test="foxml:datastreamVersion/foxml:xmlContent/oai_dc:dc">
 				</xsl:when>
+				
 				<xsl:when test="@ID='content'">
 					<xsl:choose>
+					
 						<xsl:when
-							test="boolean(foxml:datastreamVersion/foxml:xmlContent/rdf:RDF/rdf:Description/escidocComponents:locator-url)">
+							test="boolean(/foxml:digitalObject/foxml:datastream/foxml:datastreamVersion[position()=last()]/foxml:xmlContent/rdf:RDF/rdf:Description/escidocComponents:locator-url)">
 							<xsl:variable name="locatorUrl"
-								select="foxml:datastreamVersion/foxml:xmlContent/rdf:RDF/rdf:Description/escidocComponents:locator-url" />
+								select="/foxml:digitalObject/foxml:datastream/foxml:datastreamVersion[position()=last()]/foxml:xmlContent/rdf:RDF/rdf:Description/escidocComponents:locator-url" />
 							<xsl:choose>
-								<xsl:when 
-                                    test="EscidocXsltFunctions:is-valid-url($locatorUrl)">
+								<xsl:when
+									test="EscidocXsltFunctions:is-valid-url($locatorUrl)">
+									<!-- external content URL auf den Wert von locator-url setzen -->
 									<xsl:copy copy-namespaces="no">
-                                        <xsl:for-each select="@*">
-                                            <xsl:variable name="name"
-                                                select="local-name()" />
-                                            <xsl:choose>
-                                                <xsl:when
-                                                    test="$name='CONTROL_GROUP'">
-                                                    <xsl:attribute
-                                                        name="CONTROL_GROUP" select="'R'"/>
-                                                </xsl:when>
-                                                <xsl:otherwise>
-                                                    <xsl:copy />
-                                                </xsl:otherwise>
-                                            </xsl:choose>
-                                        </xsl:for-each>
-                                        <xsl:for-each
-                                            select="foxml:datastreamVersion">
-                                            <xsl:copy
-                                                copy-namespaces="no">
-                                                <xsl:for-each
-                                                    select="@*">
-                                                    <xsl:copy />
-                                                </xsl:for-each>
-                                                <xsl:call-template
-                                                    name="contentDigestTemplate" />
-                                                <xsl:element
-                                                    name="foxml:contentLocation"
-                                                    namespace="info:fedora/fedora-system:def/foxml#">
-                                                    <xsl:attribute
-                                                        name="REF">
+										<xsl:for-each select="@*">
+											<xsl:variable name="name"
+												select="local-name()" />
+											<xsl:choose>
+												<xsl:when
+													test="$name='CONTROL_GROUP'">
+													<xsl:attribute
+														name="CONTROL_GROUP" select="'R'" />
+												</xsl:when>
+												<xsl:otherwise>
+													<xsl:copy />
+												</xsl:otherwise>
+											</xsl:choose>
+										</xsl:for-each>
+										<xsl:for-each
+											select="foxml:datastreamVersion[position()=last()]">
+											<xsl:copy
+												copy-namespaces="no">
+												<xsl:for-each
+													select="@*">
+													<xsl:variable
+														name="name" select="local-name()" />
+													<xsl:choose>
+														<xsl:when
+															test="$name='CREATED'">
+															<xsl:attribute
+																name="CREATED"
+																select="/foxml:digitalObject/foxml:datastream[@ID='content']/foxml:datastreamVersion[position()=1]/@CREATED" />
+														</xsl:when>
+														<xsl:when
+															test="$name='ID'">
+															<xsl:attribute
+																name="ID" select="'content.0'" />
+														</xsl:when>
+														<xsl:otherwise>
+															<xsl:copy />
+														</xsl:otherwise>
+													</xsl:choose>
+												</xsl:for-each>
+												<xsl:call-template
+													name="contentDigestTemplate" />
+												<xsl:element
+													name="foxml:contentLocation"
+													namespace="info:fedora/fedora-system:def/foxml#">
+													<xsl:attribute
+														name="REF">
                                         <xsl:value-of
-                                                            select="$locatorUrl" />
+															select="$locatorUrl" />
                         </xsl:attribute>
-                                                    <xsl:attribute
-                                                        name="TYPE" select="'URL'"/>
-                                                </xsl:element>
-                                            </xsl:copy>
-                                        </xsl:for-each>
-                                    </xsl:copy>
+													<xsl:attribute
+														name="TYPE" select="'URL'" />
+												</xsl:element>
+											</xsl:copy>
+										</xsl:for-each>
+									</xsl:copy>
 								</xsl:when>
 								<xsl:otherwise>
-								    <!-- content data stream einfach kopieren -->
-                                    <xsl:call-template
-                                        name="elementWithCorrectContentDigestTemplate" />
+									<!-- letzte version von content data stream einfach kopieren und teitstampel der ersten version eintragen-->
+									<xsl:copy copy-namespaces="no">
+										<xsl:for-each select="@*">
+											<xsl:copy />
+										</xsl:for-each>
+										<xsl:for-each
+											select="foxml:datastreamVersion[position()=last()]">
+											<xsl:copy
+												copy-namespaces="no">
+												<xsl:for-each
+													select="@*">
+													<xsl:variable
+														name="name" select="local-name()" />
+													<xsl:choose>
+														<xsl:when
+															test="$name='CREATED'">
+															<xsl:attribute
+																name="CREATED"
+																select="/foxml:digitalObject/foxml:datastream[@ID='content']/foxml:datastreamVersion[position()=1]/@CREATED" />
+														</xsl:when>
+														<xsl:when
+															test="$name='ID'">
+															<xsl:attribute
+																name="ID" select="'content.0'" />
+														</xsl:when>
+														<xsl:otherwise>
+															<xsl:copy />
+														</xsl:otherwise>
+													</xsl:choose>
+												</xsl:for-each>
+												<xsl:call-template
+													name="contentDigestTemplate" />
+												<xsl:for-each
+													select="*[local-name() != 'contentDigest']">
+													<xsl:copy-of
+														select="." copy-namespaces="no" />
+												</xsl:for-each>
+											</xsl:copy>
+										</xsl:for-each>
+									</xsl:copy>
 								</xsl:otherwise>
 							</xsl:choose>
 						</xsl:when>
 						<xsl:otherwise>
-							<!-- content data stream einfach kopieren -->
-							<xsl:call-template
-								name="elementWithCorrectContentDigestTemplate" />
+							<!-- letzte version von content data stream einfach kopieren und teitstampel der ersten version eintragen -->
+							<xsl:copy copy-namespaces="no">
+								<xsl:for-each select="@*">
+									<xsl:copy />
+								</xsl:for-each>
+								<xsl:for-each
+									select="foxml:datastreamVersion[position()=last()]">
+									<xsl:copy copy-namespaces="no">
+										<xsl:for-each select="@*">
+											<xsl:variable name="name"
+												select="local-name()" />
+											<xsl:choose>
+												<xsl:when
+													test="$name='CREATED'">
+													<xsl:attribute
+														name="CREATED"
+														select="/foxml:digitalObject/foxml:datastream[@ID='content']/foxml:datastreamVersion[position()=1]/@CREATED" />
+												</xsl:when>
+												<xsl:when
+													test="$name='ID'">
+													<xsl:attribute
+														name="ID" select="'content.0'" />
+												</xsl:when>
+												<xsl:otherwise>
+													<xsl:copy />
+												</xsl:otherwise>
+											</xsl:choose>
+										</xsl:for-each>
+										<xsl:call-template
+											name="contentDigestTemplate" />
+										<xsl:for-each
+											select="*[local-name() != 'contentDigest']">
+											<xsl:copy-of select="."
+												copy-namespaces="no" />
+										</xsl:for-each>
+									</xsl:copy>
+								</xsl:for-each>
+							</xsl:copy>
 						</xsl:otherwise>
 					</xsl:choose>
 				</xsl:when>
@@ -109,13 +202,29 @@
 							<xsl:copy />
 						</xsl:for-each>
 						<xsl:for-each
-							select="foxml:datastreamVersion">
+							select="foxml:datastreamVersion[position()=last()]">
 							<!--  dann das Tagging teilweise original übernehmen -->
 							<xsl:element name="foxml:datastreamVersion"
 								namespace="info:fedora/fedora-system:def/foxml#">
 								<!-- Attribute übernehmen -->
 								<xsl:for-each select="@*">
-									<xsl:copy />
+									<xsl:variable name="name"
+										select="local-name()" />
+									<xsl:choose>
+										<xsl:when
+											test="$name='CREATED'">
+											<xsl:attribute
+												name="CREATED"
+												select="/foxml:digitalObject/foxml:datastream[@ID='RELS-EXT']/foxml:datastreamVersion[position()=1]/@CREATED" />
+										</xsl:when>
+										<xsl:when test="$name='ID'">
+											<xsl:attribute name="ID"
+												select="'RELS-EXT.0'" />
+										</xsl:when>
+										<xsl:otherwise>
+											<xsl:copy />
+										</xsl:otherwise>
+									</xsl:choose>
 								</xsl:for-each>
 								<!-- diesen Tag original übernehmen -->
 								<xsl:call-template
@@ -237,16 +346,14 @@
 							</xsl:choose>
 						</xsl:for-each>
 						<xsl:for-each
-							select="foxml:datastreamVersion">
-							<xsl:variable name="counter"
-								select="position() -1" />
+							select="foxml:datastreamVersion[position()=last()]">
 							<!-- zunächst XML umbauen -->
 							<xsl:element name="foxml:datastreamVersion"
 								namespace="info:fedora/fedora-system:def/foxml#">
 								<xsl:attribute name="CREATED"
-									select="@CREATED" />
+									select="/foxml:digitalObject/foxml:datastream[@ID='RELS-EXT']/foxml:datastreamVersion[position()=1]/@CREATED" />
 								<xsl:attribute name="ID"
-									select="concat('DC.',$counter)" />
+									select="'DC.0'" />
 								<xsl:attribute name="LABEL" select="''" />
 								<xsl:attribute name="MIMETYPE"
 									select="'text/xml'" />
@@ -286,8 +393,9 @@
 														name="dc:identifier"
 														namespace="http://purl.org/dc/elements/1.1/">
 														<xsl:attribute
-												name="xsi:type"
-												namespace="http://www.w3.org/2001/XMLSchema-instance" select="'eidt:ESCIDOC'"/>
+															name="xsi:type"
+															namespace="http://www.w3.org/2001/XMLSchema-instance"
+															select="'eidt:ESCIDOC'" />
 														<xsl:value-of
 															select="text()" />
 													</xsl:element>
@@ -298,8 +406,9 @@
 														name="dc:format"
 														namespace="http://purl.org/dc/elements/1.1/">
 														<xsl:attribute
-												name="xsi:type"
-												namespace="http://www.w3.org/2001/XMLSchema-instance" select="'dcterms:IMT'"/>
+															name="xsi:type"
+															namespace="http://www.w3.org/2001/XMLSchema-instance"
+															select="'dcterms:IMT'" />
 														<xsl:value-of
 															select="text()" />
 													</xsl:element>
@@ -344,16 +453,14 @@
 							</xsl:choose>
 						</xsl:for-each>
 						<xsl:for-each
-							select="foxml:datastreamVersion">
-							<xsl:variable name="counter"
-								select="position() -1" />
+							select="foxml:datastreamVersion[position()=last()]">
 							<!-- zunächst XML umbauen -->
 							<xsl:element name="foxml:datastreamVersion"
 								namespace="info:fedora/fedora-system:def/foxml#">
 								<xsl:attribute name="CREATED"
-									select="@CREATED" />
+									select="/foxml:digitalObject/foxml:datastream[@ID='RELS-EXT']/foxml:datastreamVersion[position()=1]/@CREATED" />
 								<xsl:attribute name="ID"
-									select="concat('escidoc.',$counter)" />
+									select="'escidoc.0'" />
 								<xsl:attribute name="LABEL" select="''" />
 								<xsl:attribute name="MIMETYPE"
 									select="'text/xml'" />
@@ -362,53 +469,61 @@
 								<xsl:element name="foxml:xmlContent"
 									namespace="info:fedora/fedora-system:def/foxml#">
 									<xsl:element name="file:file"
-										namespace="http://escidoc.mpg.de/metadataprofile/schema/0.1/file">											
+										namespace="http://escidoc.mpg.de/metadataprofile/schema/0.1/file">
 										<xsl:element name="dc:title"
 											namespace="http://purl.org/dc/elements/1.1/">
 											<xsl:value-of
 												select="foxml:xmlContent/rdf:RDF/rdf:Description/escidocComponents:file-name" />
 										</xsl:element>
-										<xsl:if test="foxml:xmlContent/rdf:RDF/rdf:Description/escidocComponents:description">
-										<xsl:element
-											name="dc:description"
-											namespace="http://purl.org/dc/elements/1.1/">
-											<xsl:value-of
-												select="foxml:xmlContent/rdf:RDF/rdf:Description/escidocComponents:description" />
-										</xsl:element>
+										<xsl:if
+											test="foxml:xmlContent/rdf:RDF/rdf:Description/escidocComponents:description">
+											<xsl:element
+												name="dc:description"
+												namespace="http://purl.org/dc/elements/1.1/">
+												<xsl:value-of
+													select="foxml:xmlContent/rdf:RDF/rdf:Description/escidocComponents:description" />
+											</xsl:element>
 										</xsl:if>
-										<xsl:if test="foxml:xmlContent/rdf:RDF/rdf:Description/escidocComponents:pid">
-										<xsl:element
-											name="dc:identifier"
-											namespace="http://purl.org/dc/elements/1.1/">
-											<xsl:attribute
-												name="xsi:type"
-												namespace="http://www.w3.org/2001/XMLSchema-instance" select="'eidt:ESCIDOC'"/>
-											<xsl:value-of
-												select="foxml:xmlContent/rdf:RDF/rdf:Description/escidocComponents:pid" />
-										</xsl:element>
+										<xsl:if
+											test="foxml:xmlContent/rdf:RDF/rdf:Description/escidocComponents:pid">
+											<xsl:element
+												name="dc:identifier"
+												namespace="http://purl.org/dc/elements/1.1/">
+												<xsl:attribute
+													name="xsi:type"
+													namespace="http://www.w3.org/2001/XMLSchema-instance"
+													select="'eidt:ESCIDOC'" />
+												<xsl:value-of
+													select="foxml:xmlContent/rdf:RDF/rdf:Description/escidocComponents:pid" />
+											</xsl:element>
 										</xsl:if>
 										<xsl:element
-											name="file:content-category" namespace="http://escidoc.mpg.de/metadataprofile/schema/0.1/file">
+											name="file:content-category"
+											namespace="http://escidoc.mpg.de/metadataprofile/schema/0.1/file">
 											<xsl:value-of
 												select="foxml:xmlContent/rdf:RDF/rdf:Description/escidocComponents:content-category" />
 										</xsl:element>
-										<xsl:if test="foxml:xmlContent/rdf:RDF/rdf:Description/escidocComponents:mime-type">
-										<xsl:element name="dc:format"
-											namespace="http://purl.org/dc/elements/1.1/">
-											<xsl:attribute
-												name="xsi:type"
-												namespace="http://www.w3.org/2001/XMLSchema-instance" select="'dcterms:IMT'"/>
-											<xsl:value-of
-												select="foxml:xmlContent/rdf:RDF/rdf:Description/escidocComponents:mime-type" />
-										</xsl:element>
+										<xsl:if
+											test="foxml:xmlContent/rdf:RDF/rdf:Description/escidocComponents:mime-type">
+											<xsl:element
+												name="dc:format"
+												namespace="http://purl.org/dc/elements/1.1/">
+												<xsl:attribute
+													name="xsi:type"
+													namespace="http://www.w3.org/2001/XMLSchema-instance"
+													select="'dcterms:IMT'" />
+												<xsl:value-of
+													select="foxml:xmlContent/rdf:RDF/rdf:Description/escidocComponents:mime-type" />
+											</xsl:element>
 										</xsl:if>
-										<xsl:if test="foxml:xmlContent/rdf:RDF/rdf:Description/escidocComponents:file-size">
-										<xsl:element
-											name="dcterms:extent"
-											namespace="http://purl.org/dc/terms/">
-											<xsl:value-of
-												select="foxml:xmlContent/rdf:RDF/rdf:Description/escidocComponents:file-size" />
-										</xsl:element>
+										<xsl:if
+											test="foxml:xmlContent/rdf:RDF/rdf:Description/escidocComponents:file-size">
+											<xsl:element
+												name="dcterms:extent"
+												namespace="http://purl.org/dc/terms/">
+												<xsl:value-of
+													select="foxml:xmlContent/rdf:RDF/rdf:Description/escidocComponents:file-size" />
+											</xsl:element>
 										</xsl:if>
 									</xsl:element>
 								</xsl:element>
