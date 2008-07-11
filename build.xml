@@ -111,9 +111,6 @@
 		<antcall target="sql_command">
 			<param name="script" value="list.create.sql" />
 		</antcall>
-		<antcall target="sql_command">
-			<param name="script" value="list.init.rules.sql" />
-		</antcall>
                 <java jar="${dist.build.dir}/eSciDocCoreAdmin.jar" fork="true">
                         <arg value="recache" />
                 </java>
