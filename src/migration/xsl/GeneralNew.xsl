@@ -28,15 +28,13 @@
 				<xsl:for-each select="foxml:objectProperties">
 					<xsl:element name="foxml:objectProperties"
 						namespace="info:fedora/fedora-system:def/foxml#">
-						<xsl:for-each select="foxml:property">
-						<xsl:if test="@NAME!='info:fedora/fedora-system:def/model#contentModel'">
+						<xsl:for-each select="foxml:property[(@NAME!='info:fedora/fedora-system:def/model#contentModel') and (@NAME!='http://www.w3.org/1999/02/22-rdf-syntax-ns#type')]">
 							<xsl:element name="foxml:property"
 								namespace="info:fedora/fedora-system:def/foxml#">
 								<xsl:for-each select="@*">
 									<xsl:copy />
 								</xsl:for-each>
-							</xsl:element>
-							</xsl:if>
+							</xsl:element>	
 						</xsl:for-each>
 					</xsl:element>
 				</xsl:for-each>
