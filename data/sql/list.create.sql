@@ -1,5 +1,3 @@
-CREATE SCHEMA list;
-
 CREATE TABLE list.container (
   id				TEXT NOT NULL,
   content_model_id		TEXT,
@@ -104,11 +102,4 @@ CREATE TABLE list.ou (
   primary key (id),
   CONSTRAINT FK_OU_CREATOR_ID FOREIGN KEY (created_by_id) REFERENCES aa.user_account(id),
   CONSTRAINT FK_OU_MODIFIER_ID FOREIGN KEY (modified_by_id) REFERENCES aa.user_account(id)
-);
-
-CREATE TABLE list.filter (
-  role_id			TEXT,
-  type				TEXT NOT NULL,
-  rule				TEXT NOT NULL,
-  CONSTRAINT FK_FILTER_ROLE_ID FOREIGN KEY (role_id) REFERENCES aa.escidoc_role(id)
 );
