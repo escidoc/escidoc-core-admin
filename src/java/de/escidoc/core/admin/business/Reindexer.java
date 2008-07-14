@@ -62,10 +62,16 @@ public class Reindexer implements ReindexerInterface {
 
     private final String CONTAINER_FILTER_URL = "/ir/containers/filter";
 
+    private final String ORG_UNIT_FILTER_URL = 
+    			"/oum/organizational-units/filter";
+
     private final String RELEASED_ITEMS_FILTER =
         "<param><filter name=\"http://escidoc.de/core/01/properties/public-status\">released</filter></param>";
 
     private final String RELEASED_CONTAINERS_FILTER =
+        "<param><filter name=\"http://escidoc.de/core/01/properties/public-status\">released</filter></param>";
+    
+    private final String OPEN_ORG_UNITS_FILTER =
         "<param><filter name=\"http://escidoc.de/core/01/properties/public-status\">released</filter></param>";
     
     private final String FEDORA_ACCESS_DEVIATION_HANDLER_TARGET_NAMESPACE =
@@ -115,9 +121,9 @@ public class Reindexer implements ReindexerInterface {
      * @throws ApplicationServerSystemException
      *             e
      * @admin
-     * @see de.escidoc.core.admin.business.interfaces.ReindexerInterface#getReleasedItems()
+     * @see de.escidoc.core.admin.business.interfaces.ReindexerInterface#getPublicItems()
      */
-    public Vector<String> getReleasedItems()
+    public Vector<String> getPublicItems()
         throws ApplicationServerSystemException {
         try {
             String result =
@@ -146,13 +152,44 @@ public class Reindexer implements ReindexerInterface {
      * @throws ApplicationServerSystemException
      *             e
      * @admin
-     * @see de.escidoc.core.admin.business.interfaces.ReindexerInterface#getReleasedContainers()
+     * @see de.escidoc.core.admin.business.interfaces.ReindexerInterface#getPublicContainers()
      */
-    public Vector<String> getReleasedContainers()
+    public Vector<String> getPublicContainers()
         throws ApplicationServerSystemException {
         try {
             String result =
                 escidocCoreHandler.postRequestEscidoc(CONTAINER_FILTER_URL,
+                    RELEASED_CONTAINERS_FILTER);
+
+            StaxParser sp = new StaxParser();
+            ContainerHrefHandler handler = new ContainerHrefHandler(sp);
+            sp.addHandler(handler);
+
+            sp.parse(new ByteArrayInputStream(result
+                .getBytes(XmlUtility.CHARACTER_ENCODING)));
+
+            return handler.getHrefs();
+        }
+        catch (Exception e) {
+            log.error(e);
+            throw new ApplicationServerSystemException(e);
+        }
+    }
+
+    /**
+     * 
+     * @return Vector<String> org-unit-hrefs
+     * 
+     * @throws ApplicationServerSystemException
+     *             e
+     * @admin
+     * @see de.escidoc.core.admin.business.interfaces.ReindexerInterface#getPublicOrganizationalUnits()
+     */
+    public Vector<String> getPublicOrganizationalUnits()
+        throws ApplicationServerSystemException {
+        try {
+            String result =
+                escidocCoreHandler.postRequestEscidoc(ORG_UNIT_FILTER_URL,
                     RELEASED_CONTAINERS_FILTER);
 
             StaxParser sp = new StaxParser();
