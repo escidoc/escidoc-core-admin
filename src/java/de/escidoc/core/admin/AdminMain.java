@@ -194,9 +194,9 @@ public class AdminMain {
 
         try {
             // Get all released Items
-            Vector<String> itemHrefs = reindexer.getReleasedItems();
+            Vector<String> itemHrefs = reindexer.getPublicItems();
             // Get all released Containers
-            Vector<String> containerHrefs = reindexer.getReleasedContainers();
+            Vector<String> containerHrefs = reindexer.getPublicContainers();
 
             // Delete index
             reindexer.sendDeleteIndexMessage();
