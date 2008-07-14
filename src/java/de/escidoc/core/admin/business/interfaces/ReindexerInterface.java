@@ -41,7 +41,8 @@ public interface ReindexerInterface {
     void close();
 
     /**
-     * Get all released Items from OM and put hrefs into Vector.
+     * Get all publicly available Items 
+     * from OM and put hrefs into Vector.
      * 
      * @return Vector<String> item-hrefs
      * 
@@ -49,11 +50,12 @@ public interface ReindexerInterface {
      *             e
      * @admin
      */
-    Vector<String> getReleasedItems()
+    Vector<String> getPublicItems()
         throws ApplicationServerSystemException;
 
     /**
-     * Get all released Containers from OM and put hrefs into Vector.
+     * Get all publicly available Containers 
+     * from OM and put hrefs into Vector.
      * 
      * @return Vector<String> container-hrefs
      * 
@@ -61,7 +63,20 @@ public interface ReindexerInterface {
      *             e
      * @admin
      */
-    Vector<String> getReleasedContainers()
+    Vector<String> getPublicContainers()
+        throws ApplicationServerSystemException;
+
+    /**
+     * Get all publicly available Organizational Units 
+     * from OUM and put hrefs into Vector.
+     * 
+     * @return Vector<String> org-unit-hrefs
+     * 
+     * @throws ApplicationServerSystemException
+     *             e
+     * @admin
+     */
+    Vector<String> getPublicOrganizationalUnits()
         throws ApplicationServerSystemException;
 
     /**
