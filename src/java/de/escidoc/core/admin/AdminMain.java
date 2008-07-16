@@ -40,6 +40,7 @@ import de.escidoc.core.admin.business.interfaces.DataBaseMigrationInterface;
 import de.escidoc.core.admin.business.interfaces.RecacheInterface;
 import de.escidoc.core.admin.business.interfaces.ReindexerInterface;
 import de.escidoc.core.admin.common.util.spring.SpringConstants;
+import de.escidoc.core.common.business.Constants;
 import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException;
 import de.escidoc.core.common.exceptions.system.IntegritySystemException;
 import de.escidoc.core.common.util.logger.AppLogger;
@@ -193,6 +194,10 @@ public class AdminMain {
                 .getBean(SpringConstants.ID_REINDEXER);
 
         try {
+        	String containerResourceName = 
+        		Constants.CONTAINER_OBJECT_TYPE.replaceAll(".*/", "");
+        	String itemResourceName = 
+        		Constants.ITEM_OBJECT_TYPE.replaceAll(".*/", "");
             // Get all released Items
             Vector<String> itemHrefs = reindexer.getPublicItems();
             // Get all released Containers
@@ -209,7 +214,7 @@ public class AdminMain {
 
             // Reindex released items
             for (String itemHref : itemHrefs) {
-                reindexer.sendUpdateIndexMessage(itemHref);
+                reindexer.sendUpdateIndexMessage(itemHref, itemResourceName);
                 try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e) {}
@@ -217,7 +222,8 @@ public class AdminMain {
 
             // reindex released containers
             for (String containerHref : containerHrefs) {
-                reindexer.sendUpdateIndexMessage(containerHref);
+                reindexer.sendUpdateIndexMessage(
+                		containerHref, containerResourceName);
                 try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e) {}

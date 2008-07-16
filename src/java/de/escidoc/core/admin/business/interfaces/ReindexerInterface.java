@@ -135,12 +135,15 @@ public interface ReindexerInterface {
      * 
      * @param resource
      *            String resource.
+     * @param resourceName
+     *            String resourceName (Item, Container...).
      * 
      * @throws ApplicationServerSystemException
      *             e
      * @admin
      */
-    void sendUpdateIndexMessage(final String resource)
+    void sendUpdateIndexMessage(final String resource, 
+    						final String resourceName)
         throws ApplicationServerSystemException;
 
 }

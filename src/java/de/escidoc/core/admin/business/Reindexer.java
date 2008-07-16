@@ -312,7 +312,8 @@ public class Reindexer implements ReindexerInterface {
      * @admin
      * @see de.escidoc.core.admin.business.interfaces.ReindexerInterface#sendUpdateIndexMessage(String)
      */
-    public void sendUpdateIndexMessage(final String resource)
+    public void sendUpdateIndexMessage(final String resource, 
+    									final String resourceName)
         throws ApplicationServerSystemException {
         try {
         	if (queueConnection == null) {
@@ -325,6 +326,9 @@ public class Reindexer implements ReindexerInterface {
                 Constants.INDEXER_QUEUE_ACTION_PARAMETER_UPDATE_VALUE);
             message.setStringProperty(
                 Constants.INDEXER_QUEUE_RESOURCE_PARAMETER, resource);
+            message.setStringProperty(
+                    Constants.INDEXER_QUEUE_RESOURCE_NAME_PARAMETER
+                    , resourceName);
             messageProducer.send(message);
         }
         catch (Exception e) {
