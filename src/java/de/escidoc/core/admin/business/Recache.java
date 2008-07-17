@@ -83,19 +83,19 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
     private static final String DELETE_ALL_OUS = "DELETE FROM list.ou";
 
     private static final String INSERT_CONTAINER =
-        "INSERT INTO list.container (id, content_model_id, content_model_title, context_id, context_title, created_by_id, created_by_title, creation_date, description, last_modification_date, modified_by_id, modified_by_title, pid, public_status, title, version_number, version_status, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        "INSERT INTO list.container (id, content_model_id, content_model_title, context_id, context_title, created_by_id, created_by_title, creation_date, description, last_modification_date, modified_by_id, modified_by_title, pid, public_status, public_status_comment, title, version_number, version_status, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     private static final String INSERT_CONTEXT =
-        "INSERT INTO list.context (id, created_by_id, created_by_title, creation_date, description, last_modification_date, modified_by_id, modified_by_title, ou, public_status, title, type, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        "INSERT INTO list.context (id, created_by_id, created_by_title, creation_date, description, last_modification_date, modified_by_id, modified_by_title, ou, public_status, public_status_comment, title, type, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     private static final String INSERT_ITEM =
-        "INSERT INTO list.item (id, content_model_id, content_model_title, context_id, context_title, created_by_id, created_by_title, creation_date, description, last_modification_date, modified_by_id, modified_by_title, pid, public_status, title, version_number, version_status, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        "INSERT INTO list.item (id, content_model_id, content_model_title, context_id, context_title, created_by_id, created_by_title, creation_date, description, last_modification_date, modified_by_id, modified_by_title, pid, public_status, public_status_comment, title, version_number, version_status, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     private static final String INSERT_MEMBER =
         "INSERT INTO list.member (member, parent) VALUES (?, ?)";
 
     private static final String INSERT_OU =
-        "INSERT INTO list.ou (id, created_by_id, created_by_title, creation_date, description, last_modification_date, modified_by_id, modified_by_title, public_status, title, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        "INSERT INTO list.ou (id, created_by_id, created_by_title, creation_date, description, last_modification_date, modified_by_id, modified_by_title, public_status, public_status_comment, title, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     /**
      * SQL date formats.
@@ -156,6 +156,9 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
 
     private static final String PROP_PUBLIC_STATUS =
         "<http://escidoc.de/core/01/properties/public-status>";
+
+    private static final String PROP_PUBLIC_STATUS_COMMENT =
+        "<http://escidoc.de/core/01/properties/public-status-comment>";
 
     private static final String PROP_VERSION_NUMBER =
         "<http://escidoc.de/core/01/properties/version/number>";
@@ -697,6 +700,7 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
                     properties.get(PROP_MODIFIED_BY_TITLE),
                     properties.get(PROP_PID),
                     properties.get(PROP_PUBLIC_STATUS),
+                    properties.get(PROP_PUBLIC_STATUS_COMMENT),
                     properties.get(PROP_DC_TITLE),
                     properties.get(PROP_VERSION_NUMBER),
                     properties.get(PROP_VERSION_STATUS), xmlDataRest,
@@ -740,6 +744,7 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
                 properties.get(PROP_MODIFIED_BY_TITLE),
                 getStringId(properties, PROP_ORGANIZATIONAL_UNIT),
                 properties.get(PROP_PUBLIC_STATUS),
+                properties.get(PROP_PUBLIC_STATUS_COMMENT),
                 properties.get(PROP_DC_TITLE),
                 properties.get(PROP_CONTEXT_TYPE), xmlDataRest, xmlDataSoap });
     }
@@ -782,6 +787,7 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
                     properties.get(PROP_MODIFIED_BY_TITLE),
                     properties.get(PROP_PID),
                     properties.get(PROP_PUBLIC_STATUS),
+                    properties.get(PROP_PUBLIC_STATUS_COMMENT),
                     properties.get(PROP_DC_TITLE),
                     properties.get(PROP_VERSION_NUMBER),
                     properties.get(PROP_VERSION_STATUS), xmlDataRest,
@@ -820,6 +826,7 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
                 getStringId(properties, PROP_MODIFIED_BY_ID),
                 properties.get(PROP_MODIFIED_BY_TITLE),
                 properties.get(PROP_PUBLIC_STATUS),
+                properties.get(PROP_PUBLIC_STATUS_COMMENT),
                 properties.get(PROP_DC_TITLE), xmlDataRest, xmlDataSoap });
         for (String parent : getParents(id)) {
             getJdbcTemplate().update(INSERT_MEMBER,
