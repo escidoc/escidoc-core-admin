@@ -243,7 +243,7 @@
 															select="/foxml:digitalObject/foxml:datastream[@ID='version-history']/foxml:datastreamVersion[position()= last()]/foxml:xmlContent/escidocVersions:version-history/escidocVersions:version[position()=last()]/escidocVersions:events/premis:event/premis:eventDetail" />
 													</xsl:element>
 													</xsl:if>
-													<xsl:if test =".='submitted'">
+													<xsl:if test =".='submitted' or .='in-revision'">
 													<xsl:element
 														name="prop:public-status-comment"
 														namespace="http://escidoc.de/core/01/properties/">

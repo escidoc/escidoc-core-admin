@@ -183,7 +183,7 @@
 														<xsl:value-of
 															select="." />
 													</xsl:element>
-													<xsl:if test =".='pending'">
+													<xsl:if test =".='pending' or .='in-revision'">
 													<xsl:element
 														name="prop:public-status-comment"
 														namespace="http://escidoc.de/core/01/properties/">
