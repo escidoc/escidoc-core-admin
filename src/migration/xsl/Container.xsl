@@ -248,7 +248,7 @@
 														name="prop:public-status-comment"
 														namespace="http://escidoc.de/core/01/properties/">
 														<xsl:value-of
-															select="/foxml:digitalObject/foxml:datastream[@ID='version-history']/foxml:datastreamVersion[position()= last()]/foxml:xmlContent/escidocVersions:version-history/escidocVersions:version[escidocVersions:events[count(premis:event)>1]]/escidocVersions:events/premis:event[position()=1]/premis:eventDetail" />
+															select="/foxml:digitalObject/foxml:datastream[@ID='version-history']/foxml:datastreamVersion[position()= last()]/foxml:xmlContent/escidocVersions:version-history/escidocVersions:version[escidocVersions:events[count(premis:event)>1]][position()=1]/escidocVersions:events/premis:event[position()=1]/premis:eventDetail" />
 													</xsl:element>
 													</xsl:if>
 												</xsl:if>
