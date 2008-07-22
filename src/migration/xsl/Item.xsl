@@ -10,6 +10,9 @@
 	xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
 	xmlns:types="http://escidoc.mpg.de/metadataprofile/schema/0.1/types"
 	xmlns:dcterms="http://purl.org/dc/terms/"
+	xmlns:escidocVersions="http://www.escidoc.de/schemas/versionhistory/0.3"
+	xmlns:premis="http://www.loc.gov/standards/premis/v1"
+	xmlns:item="http://www.escidoc.de/schemas/item/0.3/"
 	exclude-result-prefixes="fedoraxsi xsl types rdf dcterms audit">
 	<xsl:import href="ElementWithCorrectContentDigest.xsl" />
 	<xsl:import href="contentDigest.xsl" />
@@ -126,7 +129,8 @@
 							<xsl:copy />
 						</xsl:for-each>
 						<xsl:for-each
-							select="foxml:datastreamVersion">
+							select="foxml:datastreamVersion"><xsl:variable name="versionDate" select="foxml:xmlContent/rdf:RDF/rdf:Description/item:latest-version.date" />
+							<xsl:variable name="publicStatus" select="foxml:xmlContent/rdf:RDF/rdf:Description/item:public-status" />
 							<!--  dann das Tagging teilweise original übernehmen -->
 							<xsl:element name="foxml:datastreamVersion"
 								namespace="info:fedora/fedora-system:def/foxml#">
@@ -179,6 +183,22 @@
 														<xsl:value-of
 															select="." />
 													</xsl:element>
+													<xsl:if test =".='pending'">
+													<xsl:element
+														name="prop:public-status-comment"
+														namespace="http://escidoc.de/core/01/properties/">
+														<xsl:value-of
+															select="/foxml:digitalObject/foxml:datastream[@ID='version-history']/foxml:datastreamVersion[position()= last()]/foxml:xmlContent/escidocVersions:version-history/escidocVersions:version[position()=last()]/escidocVersions:events/premis:event/premis:eventDetail" />
+													</xsl:element>
+													</xsl:if>
+													<xsl:if test =".='submitted'">
+													<xsl:element
+														name="prop:public-status-comment"
+														namespace="http://escidoc.de/core/01/properties/">
+														<xsl:value-of
+															select="/foxml:digitalObject/foxml:datastream[@ID='version-history']/foxml:datastreamVersion[position()= last()]/foxml:xmlContent/escidocVersions:version-history/escidocVersions:version[escidocVersions:events[count(premis:event)>1]]/escidocVersions:events/premis:event[position()=1]/premis:eventDetail" />
+													</xsl:element>
+													</xsl:if>
 												</xsl:if>
 												<xsl:if
 													test="$name='context-title'">
@@ -321,12 +341,23 @@
 												</xsl:if>
 												<xsl:if
 													test="$name='latest-release.number'">
+													<xsl:variable
+													name="releaseNumber" select="." />
 													<xsl:element
 														name="release:number"
 														namespace="http://escidoc.de/core/01/properties/release/">
 														<xsl:value-of
 															select="." />
 													</xsl:element>
+													<xsl:if
+													test="$publicStatus='released' or $publicStatus='withdrawn'">
+													<xsl:element
+														name="prop:public-status-comment"
+														namespace="http://escidoc.de/core/01/properties/">
+														<xsl:value-of
+															select="/foxml:digitalObject/foxml:datastream[@ID='version-history']/foxml:datastreamVersion[position()= last()]/foxml:xmlContent/escidocVersions:version-history/escidocVersions:version[escidocVersions:version-number=$releaseNumber]/escidocVersions:events/premis:event[position()= 1]/premis:eventDetail" />
+													</xsl:element>
+													</xsl:if>
 												</xsl:if>
 												<xsl:if
 													test="$name='latest-release.date'">
