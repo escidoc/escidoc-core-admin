@@ -15,6 +15,7 @@
 	xmlns:item="http://www.escidoc.de/schemas/item/0.3/"
 	exclude-result-prefixes="fedoraxsi xsl types rdf dcterms audit">
 	<xsl:import href="ElementWithCorrectContentDigest.xsl" />
+	<xsl:import href="VersionHistory.xsl" />
 	<xsl:import href="contentDigest.xsl" />
 	<xsl:output encoding="utf-8" method="xml" />
 	<!--  
@@ -72,52 +73,7 @@
 				</xsl:when>
 				<!-- falls version-history, dann Inhalt der letzten Version kopieren  -->
 				<xsl:when test="@ID='version-history'">
-					<xsl:copy copy-namespaces="no">
-						<xsl:for-each select="@*">
-							<xsl:variable name="name"
-								select="local-name()" />
-							<!-- das Attribute "TYPE" muss auf dem Wert "DISABLED" gesetzt werden -->
-							<xsl:choose>
-								<xsl:when
-									test="$name = 'VERSIONABLE'">
-									<xsl:attribute name="VERSIONABLE">false</xsl:attribute>
-								</xsl:when>
-								<xsl:otherwise>
-									<xsl:attribute name="{$name}"><xsl:value-of
-											select="." />
-											</xsl:attribute>
-								</xsl:otherwise>
-							</xsl:choose>
-						</xsl:for-each>
-						<xsl:for-each
-							select="foxml:datastreamVersion[position()= last()]">
-							<xsl:copy copy-namespaces="no">
-								<xsl:for-each select="@*">
-									<xsl:variable name="name"
-										select="local-name()" />
-									<!-- das Attribute "TYPE" muss auf dem Wert "DISABLED" gesetzt werden -->
-									<xsl:choose>
-										<xsl:when test="$name = 'ID'">
-											<xsl:attribute
-												name="ID">version-history.1</xsl:attribute>
-										</xsl:when>
-										<xsl:otherwise>
-											<xsl:attribute
-												name="{$name}"><xsl:value-of
-													select="." />
-											</xsl:attribute>
-										</xsl:otherwise>
-									</xsl:choose>
-								</xsl:for-each>
-								<xsl:call-template name="contentDigestTemplate" />
-								<xsl:for-each
-									select="*[local-name() != 'contentDigest']">
-									<xsl:copy-of select="."
-										copy-namespaces="no" />
-								</xsl:for-each>
-							</xsl:copy>
-						</xsl:for-each>
-					</xsl:copy>
+					<xsl:call-template name="VersionHistoryTemplate" />
 				</xsl:when>
 				<!-- falls RELS-EXT, dann Inhalt anpassen  -->
 				<xsl:when
@@ -191,12 +147,12 @@
 															select="/foxml:digitalObject/foxml:datastream[@ID='version-history']/foxml:datastreamVersion[position()= last()]/foxml:xmlContent/escidocVersions:version-history/escidocVersions:version[position()=last()]/escidocVersions:events/premis:event/premis:eventDetail" />
 													</xsl:element>
 													</xsl:if>
-													<xsl:if test =".='submitted' or .='in-revision'">
+													<xsl:if test =".='submitted'">
 													<xsl:element
 														name="prop:public-status-comment"
 														namespace="http://escidoc.de/core/01/properties/">
 														<xsl:value-of
-															select="/foxml:digitalObject/foxml:datastream[@ID='version-history']/foxml:datastreamVersion[position()= last()]/foxml:xmlContent/escidocVersions:version-history/escidocVersions:version[escidocVersions:events[count(premis:event)>1]][position()=1]/escidocVersions:events/premis:event[position()=1]/premis:eventDetail" />
+															select="/foxml:digitalObject/foxml:datastream[@ID='version-history']/foxml:datastreamVersion[position()= last()]/foxml:xmlContent/escidocVersions:version-history/escidocVersions:version[escidocVersions:events[count(premis:event)>1]]/escidocVersions:events/premis:event[position()=1]/premis:eventDetail" />
 													</xsl:element>
 													</xsl:if>
 												</xsl:if>
