@@ -1,3 +1,4 @@
+CREATE SCHEMA list;
 CREATE TABLE list.container (
   id				TEXT NOT NULL,
   content_model_id		TEXT,
