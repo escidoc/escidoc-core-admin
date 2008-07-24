@@ -152,8 +152,9 @@ public class DataBaseMigrationTool implements DataBaseMigrationInterface {
             copyTableData("om.lockstatus");
 
             // create object cache data
+            //target.dropSchema("list");
             target.executeCreateScript("list");
-            target.executeSqlScript("list.init.rules.sql");
+            //target.executeSqlScript("list.init.rules.sql");
 
             // st schema has not been changed since 159, can be left as
             // copied from the source database
