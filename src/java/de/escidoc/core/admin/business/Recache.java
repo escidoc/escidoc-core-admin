@@ -30,6 +30,7 @@ package de.escidoc.core.admin.business;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URLEncoder;
 import java.sql.Timestamp;
@@ -46,12 +47,16 @@ import java.util.regex.Pattern;
 
 import javax.sql.DataSource;
 
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 import org.springframework.jdbc.core.support.JdbcDaoSupport;
+import org.springframework.test.jdbc.SimpleJdbcTestUtils;
 
 import de.escidoc.core.admin.business.interfaces.RecacheInterface;
 import de.escidoc.core.admin.common.util.EscidocCoreHandler;
 import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException;
 import de.escidoc.core.common.util.logger.AppLogger;
+import de.escidoc.core.common.util.string.StringUtility;
 import fedora.client.FedoraClient;
 
 /**
@@ -70,18 +75,6 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
     /**
      * SQL statements.
      */
-    private static final String DELETE_ALL_CONTAINERS =
-        "DELETE FROM list.container";
-
-    private static final String DELETE_ALL_CONTEXTS =
-        "DELETE FROM list.context";
-
-    private static final String DELETE_ALL_ITEMS = "DELETE FROM list.item";
-
-    private static final String DELETE_ALL_MEMBERS = "DELETE FROM list.member";
-
-    private static final String DELETE_ALL_OUS = "DELETE FROM list.ou";
-
     private static final String INSERT_CONTAINER =
         "INSERT INTO list.container (id, content_model_id, content_model_title, context_id, context_title, created_by_id, created_by_title, creation_date, description, last_modification_date, modified_by_id, modified_by_title, pid, public_status, public_status_comment, title, version_number, version_status, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
@@ -222,9 +215,8 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
     private static final String OU_URL = "/oum/organizational-unit/";
 
     /**
-     * Pattern to identify body of resource representation
+     * Pattern to identify body of resource representation.
      */
-
     private static final Pattern PATTERN_BODY =
         Pattern.compile("(<[^?].*)", Pattern.MULTILINE | Pattern.DOTALL);
 
@@ -266,13 +258,32 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
 
     /**
      * Clear all resources from cache.
+     *
+     * @throws IOException Thrown if an I/O error occurred.
      */
-    public void clearCache() {
-        getJdbcTemplate().update(DELETE_ALL_MEMBERS);
-        getJdbcTemplate().update(DELETE_ALL_CONTAINERS);
-        getJdbcTemplate().update(DELETE_ALL_CONTEXTS);
-        getJdbcTemplate().update(DELETE_ALL_ITEMS);
-        getJdbcTemplate().update(DELETE_ALL_OUS);
+    public void clearCache() throws IOException {
+        executeSqlScript("list.drop.sql");
+        executeSqlScript("list.create.sql");
+    }
+
+    /**
+     * Execute an SQL script, continue on error.
+     *
+     * @param scriptName SQL script name (loaded from classpath)
+     *
+     * @throws IOException Thrown if an I/O error occurred.
+     */
+    private void executeSqlScript(final String scriptName) throws IOException {
+        InputStream resource =
+            getClass().getClassLoader().getResourceAsStream(scriptName);
+
+        if (resource == null) {
+            throw new IOException(StringUtility
+                .concatenateWithBracketsToString("Resource not found",
+                    scriptName));
+        }
+        SimpleJdbcTestUtils.executeSqlScript(new SimpleJdbcTemplate(
+            getJdbcTemplate()), new InputStreamResource(resource), true);
     }
 
     /**

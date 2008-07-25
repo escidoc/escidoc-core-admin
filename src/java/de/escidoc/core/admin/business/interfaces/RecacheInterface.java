@@ -42,8 +42,10 @@ public interface RecacheInterface {
 
     /**
      * Clear all resources from cache.
+     *
+     * @throws IOException Thrown if an I/O error occurred.
      */
-    void clearCache();
+    void clearCache() throws IOException;
 
     /**
      * Store all available resources in the database cache.
