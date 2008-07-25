@@ -1,4 +1,11 @@
 CREATE SCHEMA list;
+CREATE TABLE IF NOT EXISTS list.filter (
+  role_id			TEXT,
+  type				TEXT NOT NULL,
+  rule				TEXT NOT NULL,
+  CONSTRAINT FK_FILTER_ROLE_ID FOREIGN KEY (role_id) REFERENCES aa.escidoc_role(id)
+);
+
 CREATE TABLE list.container (
   id				TEXT NOT NULL,
   content_model_id		TEXT,
