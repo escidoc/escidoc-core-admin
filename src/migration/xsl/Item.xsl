@@ -28,14 +28,67 @@
 		<!-- hier wird das neue XML erzeugt -->
 		<xsl:for-each select="foxml:datastream">
 			<xsl:choose>
-				<!-- falls DC, dann Inhalt kopieren -->
+				<!-- falls DC, dann nichts machen -->
 				<xsl:when
-					test="foxml:datastreamVersion/foxml:xmlContent/oai_dc:dc">
-					<xsl:call-template name="elementWithCorrectContentDigestTemplate" />
-				</xsl:when>
+					test="foxml:datastreamVersion/foxml:xmlContent/oai_dc:dc"/>
+					
 
 				<!-- falls Escidoc, dann Inhalt kopieren  -->
+				
 				<xsl:when test="@ID='escidoc'">
+					<xsl:element name="foxml:datastream"
+						namespace="info:fedora/fedora-system:def/foxml#">
+						<xsl:for-each select="@*">
+							<xsl:variable name="name"
+								select="local-name()" />
+							<!-- die ID muss hier analog zum Tagging in datastreamVersion in DC geändert werden, die restlichen Attribute übernehmen -->
+							<xsl:choose>
+								<xsl:when test="$name = 'ID'">
+									<xsl:attribute name="ID">DC</xsl:attribute>
+								</xsl:when>
+								<xsl:otherwise>
+									<xsl:attribute name="{$name}"><xsl:value-of
+											select="." />
+											</xsl:attribute>
+								</xsl:otherwise>
+							</xsl:choose>
+						</xsl:for-each>
+						<xsl:for-each
+							select="foxml:datastreamVersion">
+							<xsl:variable name="counter"
+								select="position() -1" />
+							<!-- zunächst XML umbauen -->
+							<xsl:element name="foxml:datastreamVersion"
+								namespace="info:fedora/fedora-system:def/foxml#">
+								<xsl:attribute name="CREATED"
+									select="@CREATED" />
+								<xsl:attribute name="ID"
+									select="concat('DC.',$counter)" />
+								<xsl:attribute name="LABEL" select="''" />
+								<xsl:attribute name="MIMETYPE"
+									select="'text/xml'" />
+								<xsl:call-template name="contentDigestTemplate" />
+								<xsl:element name="foxml:xmlContent"
+									namespace="info:fedora/fedora-system:def/foxml#">
+
+									<xsl:for-each
+										select="foxml:xmlContent">
+										<xsl:choose>
+											<xsl:when
+												test="*[namespace-uri() = 'http://escidoc.mpg.de/metadataprofile/schema/0.1/']">
+												<xsl:call-template
+													name="mpdlMapping" />
+											</xsl:when>
+											<xsl:otherwise>
+												<xsl:call-template
+													name="genericMapping" />
+											</xsl:otherwise>
+										</xsl:choose>
+									</xsl:for-each>
+								</xsl:element>
+							</xsl:element>
+						</xsl:for-each>
+					</xsl:element>
 					<!-- escidoc data stream einfach kopieren -->
 					<xsl:call-template name="elementWithCorrectContentDigestTemplate" />
 				</xsl:when>
@@ -343,6 +396,194 @@
 				</xsl:when>
 			</xsl:choose>
 		</xsl:for-each>
+	</xsl:template>
+<xsl:template name="mpdlMapping">
+		<xsl:element name="oai_dc:dc"
+			namespace="http://www.openarchives.org/OAI/2.0/oai_dc/">
+
+			<xsl:copy-of select="*/dc:title" copy-namespaces="no" />
+			<xsl:call-template name="creators" />
+			<xsl:copy-of select="*/dc:subject" copy-namespaces="no" />
+			<xsl:copy-of select="*/dc:description" copy-namespaces="no" />
+			<xsl:copy-of
+				select="*/*[local-name() = 'publishing-info']/dc:publisher"
+				copy-namespaces="no" />
+			<xsl:call-template name="contributors" />
+			<xsl:choose>
+				<xsl:when test="*/dc:date">
+					<xsl:element name="dc:date"
+						namespace="http://purl.org/dc/elements/1.1">
+						<xsl:value-of select="*/dc:date" />
+					</xsl:element>
+				</xsl:when>
+				<xsl:when test="*/dcterms:created">
+					<dc:date>
+						<xsl:value-of select="*/dcterms:created" />
+					</dc:date>
+				</xsl:when>
+				<xsl:when test="*/dcterms:modified">
+					<xsl:element name="dc:date"
+						namespace="http://purl.org/dc/elements/1.1">
+
+						<xsl:value-of select="*/dcterms:modified" />
+					</xsl:element>
+				</xsl:when>
+				<xsl:when test="*/dcterms:dateSubmitted">
+					<xsl:element name="dc:date"
+						namespace="http://purl.org/dc/elements/1.1">
+						<xsl:value-of select="*/dcterms:dateSubmitted" />
+					</xsl:element>
+				</xsl:when>
+				<xsl:when test="*/dcterms:dateAccepted">
+					<xsl:element name="dc:date"
+						namespace="http://purl.org/dc/elements/1.1">
+						<xsl:value-of select="*/dcterms:dateAccepted" />
+					</xsl:element>
+				</xsl:when>
+				<xsl:when test="*/dcterms:issued">
+					<xsl:element name="dc:date"
+						namespace="http://purl.org/dc/elements/1.1">
+						<xsl:value-of select="*/dcterms:issued" />
+					</xsl:element>
+				</xsl:when>
+			</xsl:choose>
+			<!--
+				type => will be defined later
+				format => will be defined later
+			-->
+			<xsl:copy-of select="*/dc:identifier" copy-namespaces="no" />
+			<dc:identifier>
+				<xsl:value-of select="/foxml:digitalObject/@PID" />
+			</dc:identifier>
+			<xsl:call-template name="source" />
+			<xsl:copy-of select="*/dc:language" copy-namespaces="no" />
+			<!--
+				relation => will be defined later
+				coverage => will be defined later
+				rights => will be defined later
+			-->
+		</xsl:element>
+
+	</xsl:template>
+	<xsl:template name="creators">
+		<xsl:for-each
+			select="*/*[local-name() = 'creator' and @role='author'][1]">
+			<xsl:element name="dc:creator"
+				namespace="http://purl.org/dc/elements/1.1">
+				<xsl:choose>
+					<xsl:when test="./types:person">
+						<xsl:value-of
+							select="./types:person/types:given-name" />
+						<xsl:text> </xsl:text>
+						<xsl:value-of
+							select="./types:person/types:family-name" />
+					</xsl:when>
+					<xsl:when test="./types:organization">
+						<xsl:value-of
+							select="./types:organization/types:organization-name" />
+					</xsl:when>
+					<xsl:otherwise>
+						<xsl:value-of select="." />
+					</xsl:otherwise>
+				</xsl:choose>
+			</xsl:element>
+		</xsl:for-each>
+	</xsl:template>
+	<xsl:template name="contributors">
+		<xsl:for-each
+			select="*/*[local-name() = 'creator' and @role!='author']">
+			<xsl:element name="dc:contributor"
+				namespace="http://purl.org/dc/elements/1.1">
+				<xsl:choose>
+					<xsl:when test="./types:person">
+						<xsl:value-of
+							select="./types:person/types:given-name" />
+						<xsl:text> </xsl:text>
+						<xsl:value-of
+							select="./types:person/types:family-name" />
+					</xsl:when>
+					<xsl:when test="./types:organization">
+						<xsl:value-of
+							select="./types:organization/types:organization-name" />
+					</xsl:when>
+					<xsl:otherwise>
+						<xsl:value-of select="." />
+					</xsl:otherwise>
+				</xsl:choose>
+			</xsl:element>
+		</xsl:for-each>
+	</xsl:template>
+	<xsl:template name="source">
+		<xsl:for-each select="*/*[local-name() = 'source'][1]">
+			<xsl:element name="dc:source"
+				namespace="http://purl.org/dc/elements/1.1">
+				<xsl:for-each select="./dc:title/@*">
+					<xsl:copy />
+				</xsl:for-each>
+				<xsl:value-of select="./dc:title" />
+			</xsl:element>
+		</xsl:for-each>
+	</xsl:template>
+	<xsl:template name="genericMapping">
+		<!-- if there is an element in the dc-elements namespace, do something -->
+		<xsl:if
+			test=".//*[namespace-uri() = 'http://purl.org/dc/elements/1.1/']">
+			<oai_dc:dc
+				xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/"
+				xmlns:dc="http://purl.org/dc/elements/1.1/">
+				<!-- select a value for dc:title, fallback is "eSciDoc Object [id]" -->
+				<xsl:choose>
+					<xsl:when test=".//dc:title">
+						<xsl:copy-of select=".//dc:title"
+							copy-namespaces="no" />
+					</xsl:when>
+					<xsl:when test="./*/*[local-name() = 'name']">
+						<xsl:element name="dc:title"
+							namespace="http://purl.org/dc/elements/1.1">
+							<xsl:value-of
+								select="./*/*[local-name() = 'name']" />
+						</xsl:element>
+					</xsl:when>
+					<xsl:when test="./*/*[local-name() = 'title']">
+						<xsl:element name="dc:title"
+							namespace="http://purl.org/dc/elements/1.1">
+							<xsl:value-of
+								select="./*/*[local-name() = 'title']" />
+						</xsl:element>
+					</xsl:when>
+					<xsl:otherwise>
+						<xsl:element name="dc:title"
+							namespace="http://purl.org/dc/elements/1.1">
+							eSciDoc Object
+							<xsl:value-of
+								select="/foxml:digitalObject/@PID" />
+						</xsl:element>
+					</xsl:otherwise>
+				</xsl:choose>
+
+				<xsl:choose>
+					<xsl:when test=".//dc:description">
+						<xsl:copy-of select=".//dc:description"
+							copy-namespaces="no" />
+					</xsl:when>
+					<xsl:when
+						test="./*/*[local-name() = 'description']">
+						<xsl:element name="dc:description"
+							namespace="http://purl.org/dc/elements/1.1">
+							<xsl:value-of
+								select="./*/*[local-name() = 'description']" />
+						</xsl:element>
+					</xsl:when>
+				</xsl:choose>
+				<xsl:element name="dc:identifier"
+					namespace="http://purl.org/dc/elements/1.1">
+					<xsl:value-of select="/foxml:digitalObject/@PID" />
+				</xsl:element>
+				<xsl:copy-of
+					select="./*/*[namespace-uri() = 'http://purl.org/dc/elements/1.1/' and local-name() != 'title' and local-name() != 'description']"
+					copy-namespaces="no" />
+			</oai_dc:dc>
+		</xsl:if>
 	</xsl:template>
 
 </xsl:stylesheet>
