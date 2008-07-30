@@ -48,16 +48,21 @@
 						<xsl:for-each
 							select="/foxml:digitalObject/foxml:datastream[@ID='version-history']/foxml:datastreamVersion[position()= last()]/foxml:xmlContent/escidocVersions:version-history">
 
-							<xsl:variable name="releaseComment"
-								select="escidocVersions:version[position()=1]/escidocVersions:events/premis:event[position()=2]/premis:eventDetail " />
+							
 							<xsl:copy copy-namespaces="no">
 
 								<xsl:for-each select="@*">
 									<xsl:copy />
 								</xsl:for-each>
 
-								<xsl:variable name="releaseComment"
+								<xsl:variable name="versionComment"
 									select="escidocVersions:version[position()=1]/escidocVersions:events/premis:event[position()=2]/premis:eventDetail" />
+								<xsl:variable name="versionStatus"
+									select="escidocVersions:version[position()=1]/escidocVersions:events/premis:event[position()=2]/premis:eventType" />
+									
+									<xsl:variable name="count"
+									select="count(escidocVersions:version[position()=1]/escidocVersions:events/premis:event)" />		
+									
 								<xsl:choose>
 									<xsl:when
 										test="escidocVersions:version[position()=1]/escidocVersions:version-status='withdrawn'">
@@ -74,12 +79,24 @@
 													<xsl:choose>
 														<xsl:when
 															test="local-name()='version-status'">
+															<xsl:choose>
+															<xsl:when test="$count > 2">
 															<xsl:element
 																name="escidocVersions:version-status"
 																namespace="http://www.escidoc.de/schemas/versionhistory/0.3">
 																<xsl:value-of
-																	select="'released'" />
+																	select="$versionStatus" />
+																	</xsl:element>
+															</xsl:when>
+															<xsl:otherwise>
+															<xsl:element
+																name="escidocVersions:version-status"
+																namespace="http://www.escidoc.de/schemas/versionhistory/0.3">
+																<xsl:value-of
+																	select="'pending'" />
 															</xsl:element>
+															</xsl:otherwise>
+															</xsl:choose>
 														</xsl:when>
 														<xsl:when
 															test="local-name()='comment'">
@@ -87,7 +104,7 @@
 																name="escidocVersions:comment"
 																namespace="http://www.escidoc.de/schemas/versionhistory/0.3">
 																<xsl:value-of
-																	select="$releaseComment" />
+																	select="$versionComment" />
 															</xsl:element>
 														</xsl:when>
 														<xsl:otherwise>

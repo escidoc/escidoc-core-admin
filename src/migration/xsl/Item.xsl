@@ -30,11 +30,11 @@
 			<xsl:choose>
 				<!-- falls DC, dann nichts machen -->
 				<xsl:when
-					test="foxml:datastreamVersion/foxml:xmlContent/oai_dc:dc"/>
-					
+					test="foxml:datastreamVersion/foxml:xmlContent/oai_dc:dc" />
+
 
 				<!-- falls Escidoc, dann Inhalt kopieren  -->
-				
+
 				<xsl:when test="@ID='escidoc'">
 					<xsl:element name="foxml:datastream"
 						namespace="info:fedora/fedora-system:def/foxml#">
@@ -67,7 +67,8 @@
 								<xsl:attribute name="LABEL" select="''" />
 								<xsl:attribute name="MIMETYPE"
 									select="'text/xml'" />
-								<xsl:call-template name="contentDigestTemplate" />
+								<xsl:call-template
+									name="contentDigestTemplate" />
 								<xsl:element name="foxml:xmlContent"
 									namespace="info:fedora/fedora-system:def/foxml#">
 
@@ -90,7 +91,8 @@
 						</xsl:for-each>
 					</xsl:element>
 					<!-- escidoc data stream einfach kopieren -->
-					<xsl:call-template name="elementWithCorrectContentDigestTemplate" />
+					<xsl:call-template
+						name="elementWithCorrectContentDigestTemplate" />
 				</xsl:when>
 				<!-- falls content-model-specific, dann Inhalt bis auf Element content-model-specific kopieren  -->
 				<xsl:when test="@ID='content-model-specific'">
@@ -104,7 +106,8 @@
 								<xsl:for-each select="@*">
 									<xsl:copy />
 								</xsl:for-each>
-								<xsl:call-template name="contentDigestTemplate" />
+								<xsl:call-template
+									name="contentDigestTemplate" />
 								<xsl:element name="foxml:xmlContent"
 									namespace="info:fedora/fedora-system:def/foxml#">
 									<xsl:for-each
@@ -138,8 +141,11 @@
 							<xsl:copy />
 						</xsl:for-each>
 						<xsl:for-each
-							select="foxml:datastreamVersion"><xsl:variable name="versionDate" select="foxml:xmlContent/rdf:RDF/rdf:Description/item:latest-version.date" />
-							<xsl:variable name="publicStatus" select="foxml:xmlContent/rdf:RDF/rdf:Description/item:public-status" />
+							select="foxml:datastreamVersion">
+							<xsl:variable name="versionDate"
+								select="foxml:xmlContent/rdf:RDF/rdf:Description/item:latest-version.date" />
+							<xsl:variable name="publicStatus"
+								select="foxml:xmlContent/rdf:RDF/rdf:Description/item:public-status" />
 							<!--  dann das Tagging teilweise original übernehmen -->
 							<xsl:element name="foxml:datastreamVersion"
 								namespace="info:fedora/fedora-system:def/foxml#">
@@ -148,7 +154,8 @@
 									<xsl:copy />
 								</xsl:for-each>
 								<!-- diesen Tag original übernehmen -->
-								<xsl:call-template name="contentDigestTemplate" />
+								<xsl:call-template
+									name="contentDigestTemplate" />
 								<xsl:element name="foxml:xmlContent"
 									namespace="info:fedora/fedora-system:def/foxml#">
 									<xsl:element name="rdf:RDF"
@@ -192,21 +199,23 @@
 														<xsl:value-of
 															select="." />
 													</xsl:element>
-													<xsl:if test =".='pending'">
-													<xsl:element
-														name="prop:public-status-comment"
-														namespace="http://escidoc.de/core/01/properties/">
-														<xsl:value-of
-															select="/foxml:digitalObject/foxml:datastream[@ID='version-history']/foxml:datastreamVersion[position()= last()]/foxml:xmlContent/escidocVersions:version-history/escidocVersions:version[position()=last()]/escidocVersions:events/premis:event/premis:eventDetail" />
-													</xsl:element>
+													<xsl:if
+														test=".='pending'">
+														<xsl:element
+															name="prop:public-status-comment"
+															namespace="http://escidoc.de/core/01/properties/">
+															<xsl:value-of
+																select="/foxml:digitalObject/foxml:datastream[@ID='version-history']/foxml:datastreamVersion[position()= last()]/foxml:xmlContent/escidocVersions:version-history/escidocVersions:version[position()=last()]/escidocVersions:events/premis:event/premis:eventDetail" />
+														</xsl:element>
 													</xsl:if>
-													<xsl:if test =".='submitted'">
-													<xsl:element
-														name="prop:public-status-comment"
-														namespace="http://escidoc.de/core/01/properties/">
-														<xsl:value-of
-															select="/foxml:digitalObject/foxml:datastream[@ID='version-history']/foxml:datastreamVersion[position()= last()]/foxml:xmlContent/escidocVersions:version-history/escidocVersions:version[escidocVersions:events[count(premis:event)>1]]/escidocVersions:events/premis:event[position()=1]/premis:eventDetail" />
-													</xsl:element>
+													<xsl:if
+														test=".='submitted'">
+														<xsl:element
+															name="prop:public-status-comment"
+															namespace="http://escidoc.de/core/01/properties/">
+															<xsl:value-of
+																select="/foxml:digitalObject/foxml:datastream[@ID='version-history']/foxml:datastreamVersion[position()= last()]/foxml:xmlContent/escidocVersions:version-history/escidocVersions:version[escidocVersions:events[count(premis:event)>1]]/escidocVersions:events/premis:event[position()=1]/premis:eventDetail" />
+														</xsl:element>
 													</xsl:if>
 												</xsl:if>
 												<xsl:if
@@ -323,21 +332,72 @@
 												</xsl:if>
 												<xsl:if
 													test="$name='latest-version.status'">
-													<xsl:element
-														name="version:status"
-														namespace="http://escidoc.de/core/01/properties/version/">
-														<xsl:value-of
-															select="." />
-													</xsl:element>
+													<xsl:choose>
+														<xsl:when
+															test="$publicStatus='withdrawn'">
+
+															<xsl:variable
+																name="versionStatus"
+																select="/foxml:digitalObject/foxml:datastream[@ID='version-history']/foxml:datastreamVersion[position()= last()]/foxml:xmlContent/escidocVersions:version-history/escidocVersions:version[position()=1]/escidocVersions:events/premis:event[position()=2]/premis:eventType" />
+
+															<xsl:variable
+																name="count"
+																select="count(/foxml:digitalObject/foxml:datastream[@ID='version-history']/foxml:datastreamVersion[position()= last()]/foxml:xmlContent/escidocVersions:version-history/escidocVersions:version[position()=1]/escidocVersions:events/premis:event)" />
+															<xsl:choose>
+																<xsl:when
+																	test="$count > 2">
+																	<xsl:element
+																		name="version:status"
+																		namespace="http://escidoc.de/core/01/properties/version/">
+																		<xsl:value-of
+																			select="$versionStatus" />
+																	</xsl:element>
+																</xsl:when>
+																<xsl:otherwise>
+																	<xsl:element
+																		name="version:status"
+																		namespace="http://escidoc.de/core/01/properties/version/">
+																		<xsl:value-of
+																			select="'pending'" />
+																	</xsl:element>
+																</xsl:otherwise>
+															</xsl:choose>
+														</xsl:when>
+														<xsl:otherwise>
+															<xsl:element
+																name="version:status"
+																namespace="http://escidoc.de/core/01/properties/version/">
+																<xsl:value-of
+																	select="." />
+															</xsl:element>
+														</xsl:otherwise>
+													</xsl:choose>
 												</xsl:if>
+
 												<xsl:if
 													test="$name='latest-version.comment'">
-													<xsl:element
-														name="version:comment"
-														namespace="http://escidoc.de/core/01/properties/version/">
-														<xsl:value-of
-															select="." />
-													</xsl:element>
+													<xsl:variable
+														name="versionComment"
+														select="/foxml:digitalObject/foxml:datastream[@ID='version-history']/foxml:datastreamVersion[position()= last()]/foxml:xmlContent/escidocVersions:version-history/escidocVersions:version[position()=1]/escidocVersions:events/premis:event[position()=2]/premis:eventDetail" />
+													<xsl:choose>
+														<xsl:when
+															test="$publicStatus='withdrawn'">
+															<xsl:element
+																name="version:comment"
+																namespace="http://escidoc.de/core/01/properties/version/">
+																<xsl:value-of
+																	select="$versionComment" />
+															</xsl:element>
+														</xsl:when>
+														<xsl:otherwise>
+															<xsl:element
+																name="version:comment"
+																namespace="http://escidoc.de/core/01/properties/version/">
+																<xsl:value-of
+																	select="." />
+															</xsl:element>
+														</xsl:otherwise>
+													</xsl:choose>
 												</xsl:if>
 												<xsl:if
 													test="$name='latest-release.pid'">
@@ -351,7 +411,7 @@
 												<xsl:if
 													test="$name='latest-release.number'">
 													<xsl:variable
-													name="releaseNumber" select="." />
+														name="releaseNumber" select="." />
 													<xsl:element
 														name="release:number"
 														namespace="http://escidoc.de/core/01/properties/release/">
@@ -359,13 +419,13 @@
 															select="." />
 													</xsl:element>
 													<xsl:if
-													test="$publicStatus='released' or $publicStatus='withdrawn'">
-													<xsl:element
-														name="prop:public-status-comment"
-														namespace="http://escidoc.de/core/01/properties/">
-														<xsl:value-of
-															select="/foxml:digitalObject/foxml:datastream[@ID='version-history']/foxml:datastreamVersion[position()= last()]/foxml:xmlContent/escidocVersions:version-history/escidocVersions:version[escidocVersions:version-number=$releaseNumber]/escidocVersions:events/premis:event[position()= 1]/premis:eventDetail" />
-													</xsl:element>
+														test="$publicStatus='released' or $publicStatus='withdrawn'">
+														<xsl:element
+															name="prop:public-status-comment"
+															namespace="http://escidoc.de/core/01/properties/">
+															<xsl:value-of
+																select="/foxml:digitalObject/foxml:datastream[@ID='version-history']/foxml:datastreamVersion[position()= last()]/foxml:xmlContent/escidocVersions:version-history/escidocVersions:version[escidocVersions:version-number=$releaseNumber]/escidocVersions:events/premis:event[position()= 1]/premis:eventDetail" />
+														</xsl:element>
 													</xsl:if>
 												</xsl:if>
 												<xsl:if
@@ -397,7 +457,7 @@
 			</xsl:choose>
 		</xsl:for-each>
 	</xsl:template>
-<xsl:template name="mpdlMapping">
+	<xsl:template name="mpdlMapping">
 		<xsl:element name="oai_dc:dc"
 			namespace="http://www.openarchives.org/OAI/2.0/oai_dc/">
 

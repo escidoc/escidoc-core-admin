@@ -322,21 +322,72 @@
 												</xsl:if>
 												<xsl:if
 													test="$name='latest-version.status'">
-													<xsl:element
-														name="version:status"
-														namespace="http://escidoc.de/core/01/properties/version/">
-														<xsl:value-of
-															select="." />
-													</xsl:element>
+													<xsl:choose>
+														<xsl:when
+															test="$publicStatus='withdrawn'">
+
+															<xsl:variable
+																name="versionStatus"
+																select="/foxml:digitalObject/foxml:datastream[@ID='version-history']/foxml:datastreamVersion[position()= last()]/foxml:xmlContent/escidocVersions:version-history/escidocVersions:version[position()=1]/escidocVersions:events/premis:event[position()=2]/premis:eventType" />
+
+															<xsl:variable
+																name="count"
+																select="count(/foxml:digitalObject/foxml:datastream[@ID='version-history']/foxml:datastreamVersion[position()= last()]/foxml:xmlContent/escidocVersions:version-history/escidocVersions:version[position()=1]/escidocVersions:events/premis:event)" />
+															<xsl:choose>
+																<xsl:when
+																	test="$count > 2">
+																	<xsl:element
+																		name="version:status"
+																		namespace="http://escidoc.de/core/01/properties/version/">
+																		<xsl:value-of
+																			select="$versionStatus" />
+																	</xsl:element>
+																</xsl:when>
+																<xsl:otherwise>
+																	<xsl:element
+																		name="version:status"
+																		namespace="http://escidoc.de/core/01/properties/version/">
+																		<xsl:value-of
+																			select="'pending'" />
+																	</xsl:element>
+																</xsl:otherwise>
+															</xsl:choose>
+														</xsl:when>
+														<xsl:otherwise>
+															<xsl:element
+																name="version:status"
+																namespace="http://escidoc.de/core/01/properties/version/">
+																<xsl:value-of
+																	select="." />
+															</xsl:element>
+														</xsl:otherwise>
+													</xsl:choose>
 												</xsl:if>
+
 												<xsl:if
 													test="$name='latest-version.comment'">
-													<xsl:element
-														name="version:comment"
-														namespace="http://escidoc.de/core/01/properties/version/">
-														<xsl:value-of
-															select="." />
-													</xsl:element>
+													<xsl:variable
+														name="versionComment"
+														select="/foxml:digitalObject/foxml:datastream[@ID='version-history']/foxml:datastreamVersion[position()= last()]/foxml:xmlContent/escidocVersions:version-history/escidocVersions:version[position()=1]/escidocVersions:events/premis:event[position()=2]/premis:eventDetail" />
+													<xsl:choose>
+														<xsl:when
+															test="$publicStatus='withdrawn'">
+															<xsl:element
+																name="version:comment"
+																namespace="http://escidoc.de/core/01/properties/version/">
+																<xsl:value-of
+																	select="$versionComment" />
+															</xsl:element>
+														</xsl:when>
+														<xsl:otherwise>
+															<xsl:element
+																name="version:comment"
+																namespace="http://escidoc.de/core/01/properties/version/">
+																<xsl:value-of
+																	select="." />
+															</xsl:element>
+														</xsl:otherwise>
+													</xsl:choose>
 												</xsl:if>
 												<xsl:if
 													test="$name='latest-release.pid'">
