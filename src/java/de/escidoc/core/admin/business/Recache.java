@@ -33,10 +33,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URLEncoder;
-import java.sql.Timestamp;
 import java.text.MessageFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -49,12 +47,14 @@ import javax.sql.DataSource;
 
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
-import org.springframework.jdbc.core.support.JdbcDaoSupport;
 import org.springframework.test.jdbc.SimpleJdbcTestUtils;
 
 import de.escidoc.core.admin.business.interfaces.RecacheInterface;
 import de.escidoc.core.admin.common.util.EscidocCoreHandler;
+import de.escidoc.core.common.business.fedora.TripleStoreUtility;
+import de.escidoc.core.common.business.fedora.resources.DbResourceCache;
 import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException;
+import de.escidoc.core.common.exceptions.system.SystemException;
 import de.escidoc.core.common.util.logger.AppLogger;
 import de.escidoc.core.common.util.string.StringUtility;
 import fedora.client.FedoraClient;
@@ -66,7 +66,7 @@ import fedora.client.FedoraClient;
  * 
  * @admin
  */
-public class Recache extends JdbcDaoSupport implements RecacheInterface {
+public class Recache extends DbResourceCache implements RecacheInterface {
 
     private static final String CHARSET = "UTF-8";
 
@@ -89,75 +89,6 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
 
     private static final String INSERT_OU =
         "INSERT INTO list.ou (id, created_by_id, created_by_title, creation_date, description, last_modification_date, modified_by_id, modified_by_title, public_status, public_status_comment, title, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-    /**
-     * SQL date formats.
-     */
-    private final SimpleDateFormat dateFormat1 =
-        new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.S'Z'");
-
-    private final SimpleDateFormat dateFormat2 =
-        new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-
-    /**
-     * Triplestore properties.
-     */
-    private static final String PROP_CONTENT_MODEL_ID =
-        "<http://escidoc.de/core/01/structural-relations/content-model>";
-
-    private static final String PROP_CONTENT_MODEL_TITLE =
-        "<http://escidoc.de/core/01/properties/content-model-title>";
-
-    private static final String PROP_CONTEXT_ID =
-        "<http://escidoc.de/core/01/structural-relations/context>";
-
-    private static final String PROP_CONTEXT_TITLE =
-        "<http://escidoc.de/core/01/properties/context-title>";
-
-    private static final String PROP_CONTEXT_TYPE =
-        "<http://escidoc.de/core/01/properties/type>";
-
-    private static final String PROP_CREATED_BY_ID =
-        "<http://escidoc.de/core/01/structural-relations/created-by>";
-
-    private static final String PROP_CREATED_BY_TITLE =
-        "<http://escidoc.de/core/01/properties/created-by-title>";
-
-    private static final String PROP_CREATION_DATE =
-        "<info:fedora/fedora-system:def/model#createdDate>";
-
-    private static final String PROP_DC_DESCRIPTION =
-        "<http://purl.org/dc/elements/1.1/description>";
-
-    private static final String PROP_DC_TITLE =
-        "<http://purl.org/dc/elements/1.1/title>";
-
-    private static final String PROP_LAST_MODIFICATION_DATE =
-        "<info:fedora/fedora-system:def/view#lastModifiedDate>";
-
-    private static final String PROP_MODIFIED_BY_ID =
-        "<http://escidoc.de/core/01/structural-relations/modified-by>";
-
-    private static final String PROP_MODIFIED_BY_TITLE =
-        "<http://escidoc.de/core/01/properties/modified-by-title>";
-
-    private static final String PROP_ORGANIZATIONAL_UNIT =
-        "<http://escidoc.de/core/01/structural-relations/organizational-unit>";
-
-    private static final String PROP_PID =
-        "<http://escidoc.de/core/01/properties/pid>";
-
-    private static final String PROP_PUBLIC_STATUS =
-        "<http://escidoc.de/core/01/properties/public-status>";
-
-    private static final String PROP_PUBLIC_STATUS_COMMENT =
-        "<http://escidoc.de/core/01/properties/public-status-comment>";
-
-    private static final String PROP_VERSION_NUMBER =
-        "<http://escidoc.de/core/01/properties/version/number>";
-
-    private static final String PROP_VERSION_STATUS =
-        "<http://escidoc.de/core/01/properties/version/status>";
 
     /**
      * Triplestore queries.
@@ -267,9 +198,18 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
     }
 
     /**
+     * Delete a resource from the database cache.
+     *
+     * @param id
+     *            resource id
+     */
+    protected void deleteResource(final String id) {
+    }
+
+    /**
      * Execute an SQL script, continue on error.
      *
-     * @param scriptName SQL script name (loaded from classpath)
+     * @param scriptName SQL script name (loaded from class path)
      *
      * @throws IOException Thrown if an I/O error occurred.
      */
@@ -494,46 +434,6 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
     }
 
     /**
-     * Create a timestamp from the given string. Two different date formats are
-     * supported.
-     * 
-     * @param properties
-     *            map containing all properties
-     * @param property
-     *            string containing a date
-     * 
-     * @return the timestamp object
-     * @throws ParseException
-     *             The given string cannot be parsed.
-     */
-    private Timestamp getTimestamp(
-        final Map<String, String> properties, final String property)
-        throws ParseException {
-        Timestamp result = null;
-        String object = properties.get(property);
-
-        if (object != null) {
-            java.util.Date date = null;
-            String dateString = null;
-
-            if (object.indexOf('"') > 0) {
-                dateString = object.substring(0, object.indexOf('"'));
-            }
-            else {
-                dateString = object;
-            }
-            try {
-                date = dateFormat1.parse(dateString);
-            }
-            catch (ParseException e) {
-                date = dateFormat2.parse(dateString);
-            }
-            result = new Timestamp(date.getTime());
-        }
-        return result;
-    }
-
-    /**
      * Retrieve a single resource from eSciDoc (REST form).
      * 
      * @param url
@@ -698,24 +598,28 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
             .update(
                 INSERT_CONTAINER,
                 new Object[] { id,
-                    getStringId(properties, PROP_CONTENT_MODEL_ID),
-                    properties.get(PROP_CONTENT_MODEL_TITLE),
-                    getStringId(properties, PROP_CONTEXT_ID),
-                    properties.get(PROP_CONTEXT_TITLE),
-                    getStringId(properties, PROP_CREATED_BY_ID),
-                    properties.get(PROP_CREATED_BY_TITLE),
-                    getTimestamp(properties, PROP_CREATION_DATE),
-                    properties.get(PROP_DC_DESCRIPTION),
-                    getTimestamp(properties, PROP_LAST_MODIFICATION_DATE),
-                    getStringId(properties, PROP_MODIFIED_BY_ID),
-                    properties.get(PROP_MODIFIED_BY_TITLE),
-                    properties.get(PROP_PID),
-                    properties.get(PROP_PUBLIC_STATUS),
-                    properties.get(PROP_PUBLIC_STATUS_COMMENT),
-                    properties.get(PROP_DC_TITLE),
-                    properties.get(PROP_VERSION_NUMBER),
-                    properties.get(PROP_VERSION_STATUS), xmlDataRest,
-                    xmlDataSoap });
+                    getStringId(properties,
+                        TripleStoreUtility.PROP_CONTENT_MODEL_ID),
+                    properties.get(TripleStoreUtility.PROP_CONTENT_MODEL_TITLE),
+                    getStringId(properties, TripleStoreUtility.PROP_CONTEXT_ID),
+                    properties.get(TripleStoreUtility.PROP_CONTEXT_TITLE),
+                    getStringId(properties, TripleStoreUtility.PROP_CREATED_BY_ID),
+                    properties.get(TripleStoreUtility.PROP_CREATED_BY_TITLE),
+                    getTimestamp(properties.get(
+                        TripleStoreUtility.PROP_CREATION_DATE)),
+                    properties.get(TripleStoreUtility.PROP_DC_DESCRIPTION),
+                    getTimestamp(properties.get(
+                        TripleStoreUtility.PROP_LAST_MODIFICATION_DATE)),
+                    getStringId(properties,
+                        TripleStoreUtility.PROP_MODIFIED_BY_ID),
+                    properties.get(TripleStoreUtility.PROP_MODIFIED_BY_TITLE),
+                    properties.get(TripleStoreUtility.PROP_OBJECT_PID),
+                    properties.get(TripleStoreUtility.PROP_PUBLIC_STATUS),
+                    properties.get(TripleStoreUtility.PROP_PUBLIC_STATUS_COMMENT),
+                    properties.get(TripleStoreUtility.PROP_DC_TITLE),
+                    properties.get(TripleStoreUtility.PROP_VERSION_NUMBER),
+                    properties.get(TripleStoreUtility.PROP_VERSION_STATUS),
+                    xmlDataRest, xmlDataSoap });
         for (String member : getMembers(id)) {
             getJdbcTemplate().update(INSERT_MEMBER,
                 new Object[] { getIdFromUri(member), id });
@@ -746,18 +650,22 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
         getJdbcTemplate().update(
             INSERT_CONTEXT,
             new Object[] { id,
-                getStringId(properties, PROP_CREATED_BY_ID),
-                properties.get(PROP_CREATED_BY_TITLE),
-                getTimestamp(properties, PROP_CREATION_DATE),
-                properties.get(PROP_DC_DESCRIPTION),
-                getTimestamp(properties, PROP_LAST_MODIFICATION_DATE),
-                getStringId(properties, PROP_MODIFIED_BY_ID),
-                properties.get(PROP_MODIFIED_BY_TITLE),
-                getStringId(properties, PROP_ORGANIZATIONAL_UNIT),
-                properties.get(PROP_PUBLIC_STATUS),
-                properties.get(PROP_PUBLIC_STATUS_COMMENT),
-                properties.get(PROP_DC_TITLE),
-                properties.get(PROP_CONTEXT_TYPE), xmlDataRest, xmlDataSoap });
+                getStringId(properties, TripleStoreUtility.PROP_CREATED_BY_ID),
+                properties.get(TripleStoreUtility.PROP_CREATED_BY_TITLE),
+                getTimestamp(properties.get(
+                    TripleStoreUtility.PROP_CREATION_DATE)),
+                properties.get(TripleStoreUtility.PROP_DC_DESCRIPTION),
+                getTimestamp(properties.get(
+                    TripleStoreUtility.PROP_LAST_MODIFICATION_DATE)),
+                getStringId(properties, TripleStoreUtility.PROP_MODIFIED_BY_ID),
+                properties.get(TripleStoreUtility.PROP_MODIFIED_BY_TITLE),
+                getStringId(properties,
+                    TripleStoreUtility.PROP_ORGANIZATIONAL_UNIT),
+                properties.get(TripleStoreUtility.PROP_PUBLIC_STATUS),
+                properties.get(TripleStoreUtility.PROP_PUBLIC_STATUS_COMMENT),
+                properties.get(TripleStoreUtility.PROP_DC_TITLE),
+                properties.get(TripleStoreUtility.PROP_CONTEXT_TYPE),
+                xmlDataRest, xmlDataSoap });
     }
 
     /**
@@ -785,24 +693,28 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
             .update(
                 INSERT_ITEM,
                 new Object[] { id,
-                    getStringId(properties, PROP_CONTENT_MODEL_ID),
-                    properties.get(PROP_CONTENT_MODEL_TITLE),
-                    getStringId(properties, PROP_CONTEXT_ID),
-                    properties.get(PROP_CONTEXT_TITLE),
-                    getStringId(properties, PROP_CREATED_BY_ID),
-                    properties.get(PROP_CREATED_BY_TITLE),
-                    getTimestamp(properties, PROP_CREATION_DATE),
-                    properties.get(PROP_DC_DESCRIPTION),
-                    getTimestamp(properties, PROP_LAST_MODIFICATION_DATE),
-                    getStringId(properties, PROP_MODIFIED_BY_ID),
-                    properties.get(PROP_MODIFIED_BY_TITLE),
-                    properties.get(PROP_PID),
-                    properties.get(PROP_PUBLIC_STATUS),
-                    properties.get(PROP_PUBLIC_STATUS_COMMENT),
-                    properties.get(PROP_DC_TITLE),
-                    properties.get(PROP_VERSION_NUMBER),
-                    properties.get(PROP_VERSION_STATUS), xmlDataRest,
-                    xmlDataSoap });
+                    getStringId(properties,
+                        TripleStoreUtility.PROP_CONTENT_MODEL_ID),
+                    properties.get(TripleStoreUtility.PROP_CONTENT_MODEL_TITLE),
+                    getStringId(properties, TripleStoreUtility.PROP_CONTEXT_ID),
+                    properties.get(TripleStoreUtility.PROP_CONTEXT_TITLE),
+                    getStringId(properties, TripleStoreUtility.PROP_CREATED_BY_ID),
+                    properties.get(TripleStoreUtility.PROP_CREATED_BY_TITLE),
+                    getTimestamp(properties.get(
+                        TripleStoreUtility.PROP_CREATION_DATE)),
+                    properties.get(TripleStoreUtility.PROP_DC_DESCRIPTION),
+                    getTimestamp(properties.get(
+                        TripleStoreUtility.PROP_LAST_MODIFICATION_DATE)),
+                    getStringId(properties,
+                        TripleStoreUtility.PROP_MODIFIED_BY_ID),
+                    properties.get(TripleStoreUtility.PROP_MODIFIED_BY_TITLE),
+                    properties.get(TripleStoreUtility.PROP_OBJECT_PID),
+                    properties.get(TripleStoreUtility.PROP_PUBLIC_STATUS),
+                    properties.get(TripleStoreUtility.PROP_PUBLIC_STATUS_COMMENT),
+                    properties.get(TripleStoreUtility.PROP_DC_TITLE),
+                    properties.get(TripleStoreUtility.PROP_VERSION_NUMBER),
+                    properties.get(TripleStoreUtility.PROP_VERSION_STATUS),
+                    xmlDataRest, xmlDataSoap });
     }
 
     /**
@@ -829,20 +741,41 @@ public class Recache extends JdbcDaoSupport implements RecacheInterface {
         getJdbcTemplate().update(
             INSERT_OU,
             new Object[] { id,
-                getStringId(properties, PROP_CREATED_BY_ID),
-                properties.get(PROP_CREATED_BY_TITLE),
-                getTimestamp(properties, PROP_CREATION_DATE),
-                properties.get(PROP_DC_DESCRIPTION),
-                getTimestamp(properties, PROP_LAST_MODIFICATION_DATE),
-                getStringId(properties, PROP_MODIFIED_BY_ID),
-                properties.get(PROP_MODIFIED_BY_TITLE),
-                properties.get(PROP_PUBLIC_STATUS),
-                properties.get(PROP_PUBLIC_STATUS_COMMENT),
-                properties.get(PROP_DC_TITLE), xmlDataRest, xmlDataSoap });
+                getStringId(properties, TripleStoreUtility.PROP_CREATED_BY_ID),
+                properties.get(TripleStoreUtility.PROP_CREATED_BY_TITLE),
+                getTimestamp(properties.get(
+                    TripleStoreUtility.PROP_CREATION_DATE)),
+                properties.get(TripleStoreUtility.PROP_DC_DESCRIPTION),
+                getTimestamp(properties.get(
+                    TripleStoreUtility.PROP_LAST_MODIFICATION_DATE)),
+                getStringId(properties, TripleStoreUtility.PROP_MODIFIED_BY_ID),
+                properties.get(TripleStoreUtility.PROP_MODIFIED_BY_TITLE),
+                properties.get(TripleStoreUtility.PROP_PUBLIC_STATUS),
+                properties.get(TripleStoreUtility.PROP_PUBLIC_STATUS_COMMENT),
+                properties.get(TripleStoreUtility.PROP_DC_TITLE), xmlDataRest,
+                xmlDataSoap });
         for (String parent : getParents(id)) {
             getJdbcTemplate().update(INSERT_MEMBER,
                 new Object[] {id, getIdFromUri(parent)});
         }
+    }
+
+    /**
+     * Store the resource in the database cache.
+     *
+     * @param id
+     *            resource id
+     * @param restXml
+     *            complete resource as REST XML
+     * @param soapXml
+     *            complete resource as SOAP XML
+     *
+     * @throws SystemException
+     *             A date string cannot be parsed.
+     */
+    protected void storeResource(
+        final String id, final String restXml, final String soapXml)
+        throws SystemException {
     }
 
     /**
