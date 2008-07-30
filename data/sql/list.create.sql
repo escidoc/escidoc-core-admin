@@ -1,5 +1,5 @@
 CREATE SCHEMA list;
-CREATE TABLE IF NOT EXISTS list.filter (
+CREATE TABLE list.filter (
   role_id			TEXT,
   type				TEXT NOT NULL,
   rule				TEXT NOT NULL,
