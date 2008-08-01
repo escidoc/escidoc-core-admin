@@ -353,7 +353,11 @@ public class Recache extends DbResourceCache implements RecacheInterface {
             String[] tokens = triple.split(" ", count);
 
             if ((tokens != null) && tokens.length == count) {
-                result = tokens[1];
+                StringBuffer sb = new StringBuffer(tokens[1]);
+
+                sb.deleteCharAt(0);
+                sb.deleteCharAt(sb.length() - 1);
+                result = sb.toString();
             }
         }
         return result;
@@ -617,8 +621,8 @@ public class Recache extends DbResourceCache implements RecacheInterface {
                     properties.get(TripleStoreUtility.PROP_PUBLIC_STATUS),
                     properties.get(TripleStoreUtility.PROP_PUBLIC_STATUS_COMMENT),
                     properties.get(TripleStoreUtility.PROP_DC_TITLE),
-                    properties.get(TripleStoreUtility.PROP_VERSION_NUMBER),
-                    properties.get(TripleStoreUtility.PROP_VERSION_STATUS),
+                    properties.get(TripleStoreUtility.PROP_LATEST_VERSION_NUMBER),
+                    properties.get(TripleStoreUtility.PROP_LATEST_VERSION_STATUS),
                     xmlDataRest, xmlDataSoap });
         for (String member : getMembers(id)) {
             getJdbcTemplate().update(INSERT_MEMBER,
@@ -712,8 +716,8 @@ public class Recache extends DbResourceCache implements RecacheInterface {
                     properties.get(TripleStoreUtility.PROP_PUBLIC_STATUS),
                     properties.get(TripleStoreUtility.PROP_PUBLIC_STATUS_COMMENT),
                     properties.get(TripleStoreUtility.PROP_DC_TITLE),
-                    properties.get(TripleStoreUtility.PROP_VERSION_NUMBER),
-                    properties.get(TripleStoreUtility.PROP_VERSION_STATUS),
+                    properties.get(TripleStoreUtility.PROP_LATEST_VERSION_NUMBER),
+                    properties.get(TripleStoreUtility.PROP_LATEST_VERSION_STATUS),
                     xmlDataRest, xmlDataSoap });
     }
 
