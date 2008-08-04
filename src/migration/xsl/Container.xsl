@@ -166,6 +166,12 @@
 													name="name" select="local-name()" />
 												<xsl:variable
 													name="fullname" select="name()" />
+												<xsl:element
+														name="prop:build"
+														namespace="http://escidoc.de/core/01/properties/">
+														<xsl:value-of
+															select="'297'" />
+															</xsl:element>
 												<xsl:if
 													test="starts-with($fullname,'nsCR')">
 													<xsl:copy-of

@@ -245,6 +245,12 @@
 												select="foxml:xmlContent/rdf:RDF/rdf:Description/*">
 												<xsl:variable
 													name="name" select="local-name()" />
+												<xsl:element
+														name="prop:build"
+														namespace="http://escidoc.de/core/01/properties/">
+														<xsl:value-of
+															select="'297'" />
+															</xsl:element>
 												<xsl:if
 													test="$name='valid-status'">
 													<xsl:element
