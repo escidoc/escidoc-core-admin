@@ -29,6 +29,7 @@
 package de.escidoc.core.admin.business;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -44,6 +45,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.sql.DataSource;
+
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
@@ -86,6 +90,9 @@ public class Recache extends DbResourceCache implements RecacheInterface {
 
     private static final String INSERT_MEMBER =
         "INSERT INTO list.member (member, parent) VALUES (?, ?)";
+
+    private static final String INSERT_PROPERTY =
+        "INSERT INTO list.property (resource_id, local_path, value) VALUES (?, ?, ?)";
 
     private static final String INSERT_OU =
         "INSERT INTO list.ou (id, created_by_id, created_by_title, creation_date, description, last_modification_date, modified_by_id, modified_by_title, public_status, public_status_comment, title, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -402,6 +409,36 @@ public class Recache extends DbResourceCache implements RecacheInterface {
     }
 
     /**
+     * Get all properties for a given resource from the item XML.
+     * 
+     * @param xml resource XML
+     * 
+     * @return property map for this resource
+     * @throws IOException Thrown if an I/O error occurred.
+     */
+    private List <Property> getProperties(final String id, final String xml)
+        throws IOException {
+        List <Property> result = null;
+
+        try {
+            SAXParserFactory spf = SAXParserFactory.newInstance();
+
+            spf.setFeature("http://xml.org/sax/features/namespaces", true);
+
+            SAXParser parser = spf.newSAXParser();
+            FilterHandler handler = new FilterHandler(id);
+
+            parser.parse(new ByteArrayInputStream(xml.getBytes(CHARSET)), handler);
+            result = handler.getProperties();
+        }
+        catch (Exception e) {
+            log.error(e);
+            throw new IOException(e.getMessage());
+        }
+        return result;
+    }
+
+    /**
      * Get a specific id value from the property map.
      * 
      * @param properties
@@ -555,6 +592,10 @@ public class Recache extends DbResourceCache implements RecacheInterface {
                     String xmlDataSoap =
                         retrieveResourceSoap(resourceNamespace, id);
                     Map<String, String> properties = getProperties(id);
+
+
+                    storeProperties(getProperties(id, xmlDataRest));
+
 
                     storeResource(type, id, properties, xmlDataRest,
                         xmlDataSoap);
@@ -721,6 +762,12 @@ public class Recache extends DbResourceCache implements RecacheInterface {
                     xmlDataRest, xmlDataSoap });
     }
 
+    private void storeProperties(final List <Property> properties) throws IOException {
+        for (Property property : properties) {
+            getJdbcTemplate().update(INSERT_PROPERTY, new Object[] {property.resourceId, property.localPath, property.value});
+        }
+    }
+
     /**
      * Store the organizational unit in the database cache.
      * 
@@ -805,6 +852,7 @@ public class Recache extends DbResourceCache implements RecacheInterface {
         final String type, final String id,
         final Map<String, String> properties, final String xmlDataRest,
         final String xmlDataSoap) throws IOException, ParseException {
+
         if (type.equals("container")) {
             storeContainer(id, properties, xmlDataRest, xmlDataSoap);
         }

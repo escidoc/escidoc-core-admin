@@ -1,4 +1,5 @@
 CREATE SCHEMA list;
+
 CREATE TABLE list.filter (
   role_id			TEXT,
   type				TEXT NOT NULL,
@@ -114,4 +115,10 @@ CREATE TABLE list.ou (
   primary key (id),
   CONSTRAINT FK_OU_CREATOR_ID FOREIGN KEY (created_by_id) REFERENCES aa.user_account(id),
   CONSTRAINT FK_OU_MODIFIER_ID FOREIGN KEY (modified_by_id) REFERENCES aa.user_account(id)
+);
+
+CREATE TABLE list.property (
+  resource_id			TEXT NOT NULL,
+  local_path			TEXT NOT NULL,
+  value				TEXT NOT NULL
 );
