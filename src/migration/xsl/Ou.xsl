@@ -313,16 +313,17 @@
 												namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><xsl:value-of
 													select="foxml:xmlContent/rdf:RDF/rdf:Description/@rdf:about" />
 											</xsl:attribute>
-											<xsl:for-each
-												select="foxml:xmlContent/rdf:RDF/rdf:Description/*">
-												<xsl:variable
-													name="name" select="local-name()" />
-												<xsl:element
+											<xsl:element
 														name="prop:build"
 														namespace="http://escidoc.de/core/01/properties/">
 														<xsl:value-of
 															select="'297'" />
 															</xsl:element>
+											<xsl:for-each
+												select="foxml:xmlContent/rdf:RDF/rdf:Description/*">
+												<xsl:variable
+													name="name" select="local-name()" />
+												
 												<xsl:if
 													test="$name='hasParent'">
 													<xsl:element
