@@ -170,9 +170,9 @@
 													</xsl:attribute>
 													<xsl:element
 														name="prop:build"
-														namespace="http://escidoc.de/core/01/properties/">
+														namespace="http://escidoc.de/core/01/system/">
 														<xsl:value-of
-															select="'297'" />
+															select="'299'" />
 															</xsl:element>
 											<xsl:for-each
 												select="foxml:xmlContent/rdf:RDF/rdf:Description/*">

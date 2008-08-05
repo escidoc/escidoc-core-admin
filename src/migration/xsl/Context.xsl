@@ -82,9 +82,9 @@
 												<xsl:attribute name="rdf:about" namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><xsl:value-of select="foxml:xmlContent/rdf:RDF/rdf:Description/@rdf:about"/></xsl:attribute>
 												<xsl:element
 														name="prop:build"
-														namespace="http://escidoc.de/core/01/properties/">
+														namespace="http://escidoc.de/core/01/system/">
 														<xsl:value-of
-															select="'297'" />
+															select="'299'" />
 															</xsl:element>
 												<xsl:for-each select="foxml:xmlContent/rdf:RDF/rdf:Description/*">
 													<xsl:variable name="name" select="local-name()"/>
