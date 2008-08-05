@@ -411,6 +411,7 @@ public class Recache extends DbResourceCache implements RecacheInterface {
     /**
      * Get all properties for a given resource from the item XML.
      * 
+     * @param id resource id
      * @param xml resource XML
      * 
      * @return property map for this resource
@@ -762,9 +763,19 @@ public class Recache extends DbResourceCache implements RecacheInterface {
                     xmlDataRest, xmlDataSoap });
     }
 
-    private void storeProperties(final List <Property> properties) throws IOException {
+    /**
+     * Store the resource properties and meta data in a separate database table.
+     *
+     * @param properties resource properties and meta data
+     *
+     * @throws IOException Thrown if an I/O error occurred.
+     */
+    private void storeProperties(final List <Property> properties)
+    throws IOException {
         for (Property property : properties) {
-            getJdbcTemplate().update(INSERT_PROPERTY, new Object[] {property.resourceId, property.localPath, property.value});
+            getJdbcTemplate().update(INSERT_PROPERTY,
+                new Object[] {property.resourceId,
+                property.localPath, property.value});
         }
     }
 
