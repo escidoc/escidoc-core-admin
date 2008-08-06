@@ -61,6 +61,7 @@ import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException
 import de.escidoc.core.common.exceptions.system.SystemException;
 import de.escidoc.core.common.util.logger.AppLogger;
 import de.escidoc.core.common.util.string.StringUtility;
+import de.escidoc.core.common.util.xml.XmlUtility;
 import fedora.client.FedoraClient;
 
 /**
@@ -71,8 +72,6 @@ import fedora.client.FedoraClient;
  * @admin
  */
 public class Recache extends DbResourceCache implements RecacheInterface {
-
-    private static final String CHARSET = "UTF-8";
 
     private static AppLogger log = new AppLogger(Recache.class.getName());
 
@@ -394,7 +393,7 @@ public class Recache extends DbResourceCache implements RecacheInterface {
                 input =
                     new BufferedReader(new InputStreamReader(fc.get(
                         queryFormat.format(new Object[] { URLEncoder.encode(id,
-                            CHARSET) }), true)));
+                            XmlUtility.CHARACTER_ENCODING) }), true)));
                 while ((line = input.readLine()) != null) {
                     result.put(getPredicate(line), getObject(line));
                 }
@@ -429,7 +428,8 @@ public class Recache extends DbResourceCache implements RecacheInterface {
             SAXParser parser = spf.newSAXParser();
             FilterHandler handler = new FilterHandler(id);
 
-            parser.parse(new ByteArrayInputStream(xml.getBytes(CHARSET)), handler);
+            parser.parse(new ByteArrayInputStream(xml.getBytes(
+                XmlUtility.CHARACTER_ENCODING)), handler);
             result = handler.getProperties();
         }
         catch (Exception e) {
