@@ -161,7 +161,7 @@
 													select="foxml:xmlContent/rdf:RDF/rdf:Description/@rdf:about" />
 													</xsl:attribute>
 											<xsl:element
-														name="prop:build"
+														name="system:build"
 														namespace="http://escidoc.de/core/01/system/">
 														<xsl:value-of
 															select="'299'" />
