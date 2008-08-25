@@ -43,6 +43,7 @@ import de.escidoc.core.admin.business.interfaces.ReindexerInterface;
 import de.escidoc.core.admin.common.util.EscidocCoreHandler;
 import de.escidoc.core.admin.common.util.stax.handler.ContainerHrefHandler;
 import de.escidoc.core.admin.common.util.stax.handler.ItemHrefHandler;
+import de.escidoc.core.admin.common.util.stax.handler.OrgUnitHrefHandler;
 import de.escidoc.core.common.business.Constants;
 import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException;
 import de.escidoc.core.common.util.logger.AppLogger;
@@ -71,8 +72,11 @@ public class Reindexer implements ReindexerInterface {
     private final String RELEASED_CONTAINERS_FILTER =
         "<param><filter name=\"http://escidoc.de/core/01/properties/public-status\">released</filter></param>";
     
-    private final String OPEN_ORG_UNITS_FILTER =
-        "<param><filter name=\"http://escidoc.de/core/01/properties/public-status\">released</filter></param>";
+    private final String OPEN_CLOSED_ORG_UNITS_FILTER =
+        "<param>"
+        + "<filter name=\"http://escidoc.de/core/01/properties/public-status\">opened</filter>"
+        + "<filter name=\"http://escidoc.de/core/01/properties/public-status\">closed</filter>"
+        + "</param>";
     
     private final String FEDORA_ACCESS_DEVIATION_HANDLER_TARGET_NAMESPACE =
     	"http://localhost:8080/axis/services/access";
@@ -190,10 +194,10 @@ public class Reindexer implements ReindexerInterface {
         try {
             String result =
                 escidocCoreHandler.postRequestEscidoc(ORG_UNIT_FILTER_URL,
-                    RELEASED_CONTAINERS_FILTER);
+                        OPEN_CLOSED_ORG_UNITS_FILTER);
 
             StaxParser sp = new StaxParser();
-            ContainerHrefHandler handler = new ContainerHrefHandler(sp);
+            OrgUnitHrefHandler handler = new OrgUnitHrefHandler(sp);
             sp.addHandler(handler);
 
             sp.parse(new ByteArrayInputStream(result
@@ -306,6 +310,8 @@ public class Reindexer implements ReindexerInterface {
     /**
      * @param resource
      *            String resource.
+     * @param resourceName
+     *            name of the resource.
      * 
      * @throws ApplicationServerSystemException
      *             e

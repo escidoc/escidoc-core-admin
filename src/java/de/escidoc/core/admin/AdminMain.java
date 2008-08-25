@@ -62,6 +62,8 @@ public class AdminMain {
     private final BeanFactory beanFactory =
         beanFactoryLocator.useBeanFactory(
             SpringConstants.ID_APPLICATION_CONTEXT).getFactory();
+    
+    private final int REINDEXER_WAIT_TIME = 1000;
 
     /**
      * Main Method, depends on args[0] which method is executed.
@@ -198,10 +200,16 @@ public class AdminMain {
         		Constants.CONTAINER_OBJECT_TYPE.replaceAll(".*/", "");
         	String itemResourceName = 
         		Constants.ITEM_OBJECT_TYPE.replaceAll(".*/", "");
+            String orgUnitResourceName = 
+                Constants.
+                   ORGANIZATIONAL_UNIT_OBJECT_TYPE.replaceAll(".*/", "");
             // Get all released Items
             Vector<String> itemHrefs = reindexer.getPublicItems();
             // Get all released Containers
             Vector<String> containerHrefs = reindexer.getPublicContainers();
+            // Get all public viewable organizational-units
+            Vector<String> orgUnitHrefs = 
+                reindexer.getPublicOrganizationalUnits();
 
             // Delete index
             reindexer.sendDeleteIndexMessage();
@@ -211,12 +219,14 @@ public class AdminMain {
                     + " items for reindexing");
             log.info("scheduling " + containerHrefs.size()
                 + " containers for reindexing");
+            log.info("scheduling " + orgUnitHrefs.size()
+                    + " organizational-units for reindexing");
 
             // Reindex released items
             for (String itemHref : itemHrefs) {
                 reindexer.sendUpdateIndexMessage(itemHref, itemResourceName);
                 try {
-					Thread.sleep(1000);
+					Thread.sleep(REINDEXER_WAIT_TIME);
 				} catch (InterruptedException e) {}
             }
 
@@ -225,8 +235,17 @@ public class AdminMain {
                 reindexer.sendUpdateIndexMessage(
                 		containerHref, containerResourceName);
                 try {
-					Thread.sleep(1000);
+					Thread.sleep(REINDEXER_WAIT_TIME);
 				} catch (InterruptedException e) {}
+            }
+
+            // reindex public viewable organizational-units
+            for (String orgUnitHref : orgUnitHrefs) {
+                reindexer.sendUpdateIndexMessage(
+                        orgUnitHref, orgUnitResourceName);
+                try {
+                    Thread.sleep(REINDEXER_WAIT_TIME);
+                } catch (InterruptedException e) {}
             }
 
         }
