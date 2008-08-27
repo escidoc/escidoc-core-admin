@@ -90,9 +90,6 @@ public class Recache extends DbResourceCache implements RecacheInterface {
     private static final String INSERT_MEMBER =
         "INSERT INTO list.member (member, parent) VALUES (?, ?)";
 
-    private static final String INSERT_PROPERTY =
-        "INSERT INTO list.property (resource_id, local_path, value) VALUES (?, ?, ?)";
-
     private static final String INSERT_OU =
         "INSERT INTO list.ou (id, created_by_id, created_by_title, creation_date, description, last_modification_date, modified_by_id, modified_by_title, public_status, public_status_comment, title, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
@@ -166,6 +163,8 @@ public class Recache extends DbResourceCache implements RecacheInterface {
 
     private final String fedoraUrl;
 
+    private final String scriptPrefix;
+
     /**
      * Spring beans.
      */
@@ -185,12 +184,15 @@ public class Recache extends DbResourceCache implements RecacheInterface {
      *            password of a privileged Fedora user
      * @param fedoraUrl
      *            Fedora base URL
+     * @param scriptPrefix
+     *            prefix for database script names (mainly for MySQL)
      */
     public Recache(final String fedoraUser, final String fedoraPassword,
-        final String fedoraUrl) {
+        final String fedoraUrl, final String scriptPrefix) {
         this.fedoraUser = fedoraUser;
         this.fedoraPassword = fedoraPassword;
         this.fedoraUrl = fedoraUrl;
+        this.scriptPrefix = scriptPrefix;
     }
 
     /**
@@ -199,8 +201,8 @@ public class Recache extends DbResourceCache implements RecacheInterface {
      * @throws IOException Thrown if an I/O error occurred.
      */
     public void clearCache() throws IOException {
-        executeSqlScript("list.drop.sql");
-        executeSqlScript("list.create.sql");
+        executeSqlScript(scriptPrefix + "list.drop.sql");
+        executeSqlScript(scriptPrefix + "list.create.sql");
     }
 
     /**
@@ -594,10 +596,6 @@ public class Recache extends DbResourceCache implements RecacheInterface {
                         retrieveResourceSoap(resourceNamespace, id);
                     Map<String, String> properties = getProperties(id);
 
-
-                    storeProperties(getProperties(id, xmlDataRest));
-
-
                     storeResource(type, id, properties, xmlDataRest,
                         xmlDataSoap);
                     count++;
@@ -761,22 +759,6 @@ public class Recache extends DbResourceCache implements RecacheInterface {
                     properties.get(TripleStoreUtility.PROP_LATEST_VERSION_NUMBER),
                     properties.get(TripleStoreUtility.PROP_LATEST_VERSION_STATUS),
                     xmlDataRest, xmlDataSoap });
-    }
-
-    /**
-     * Store the resource properties and meta data in a separate database table.
-     *
-     * @param properties resource properties and meta data
-     *
-     * @throws IOException Thrown if an I/O error occurred.
-     */
-    private void storeProperties(final List <Property> properties)
-    throws IOException {
-        for (Property property : properties) {
-            getJdbcTemplate().update(INSERT_PROPERTY,
-                new Object[] {property.resourceId,
-                property.localPath, property.value});
-        }
     }
 
     /**

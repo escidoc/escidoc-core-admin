@@ -1,4 +1,4 @@
-CREATE SCHEMA list;
+CREATE SCHEMA IF NOT EXISTS list;
 
 CREATE TABLE list.container (
   id				TEXT NOT NULL,
@@ -24,9 +24,9 @@ CREATE TABLE list.container (
   version_status		TEXT,
   rest_content			TEXT NOT NULL,
   soap_content			TEXT NOT NULL,
-  primary key (id),
-  CONSTRAINT FK_CONTAINER_CREATOR_ID FOREIGN KEY (created_by_id) REFERENCES aa.user_account(id),
-  CONSTRAINT FK_CONTAINER_MODIFIER_ID FOREIGN KEY (modified_by_id) REFERENCES aa.user_account(id)
+  primary key (id(30)),
+  CONSTRAINT FK_CONTAINER_CREATOR_ID FOREIGN KEY (created_by_id(30)) REFERENCES aa.user_account(id),
+  CONSTRAINT FK_CONTAINER_MODIFIER_ID FOREIGN KEY (modified_by_id(30)) REFERENCES aa.user_account(id)
 );
 
 CREATE TABLE list.context (
@@ -48,9 +48,9 @@ CREATE TABLE list.context (
   type				TEXT,
   rest_content			TEXT NOT NULL,
   soap_content			TEXT NOT NULL,
-  primary key (id),
-  CONSTRAINT FK_CONTEXT_CREATOR_ID FOREIGN KEY (created_by_id) REFERENCES aa.user_account(id),
-  CONSTRAINT FK_CONTEXT_MODIFIER_ID FOREIGN KEY (modified_by_id) REFERENCES aa.user_account(id)
+  primary key (id(30)),
+  CONSTRAINT FK_CONTEXT_CREATOR_ID FOREIGN KEY (created_by_id(30)) REFERENCES aa.user_account(id),
+  CONSTRAINT FK_CONTEXT_MODIFIER_ID FOREIGN KEY (modified_by_id(30)) REFERENCES aa.user_account(id)
 );
 
 CREATE TABLE list.item (
@@ -77,15 +77,15 @@ CREATE TABLE list.item (
   version_status		TEXT,
   rest_content			TEXT NOT NULL,
   soap_content			TEXT NOT NULL,
-  primary key (id),
-  CONSTRAINT FK_ITEM_CREATOR_ID FOREIGN KEY (created_by_id) REFERENCES aa.user_account(id),
-  CONSTRAINT FK_ITEM_MODIFIER_ID FOREIGN KEY (modified_by_id) REFERENCES aa.user_account(id)
+  primary key (id(30)),
+  CONSTRAINT FK_ITEM_CREATOR_ID FOREIGN KEY (created_by_id(30)) REFERENCES aa.user_account(id),
+  CONSTRAINT FK_ITEM_MODIFIER_ID FOREIGN KEY (modified_by_id(30)) REFERENCES aa.user_account(id)
 );
 
 CREATE TABLE list.member (
   member			TEXT NOT NULL,
   parent			TEXT NOT NULL,
-  primary key (member, parent)
+  primary key (member(30), parent(30))
 );
 
 CREATE TABLE list.ou (
@@ -105,14 +105,14 @@ CREATE TABLE list.ou (
   title				TEXT,
   rest_content			TEXT NOT NULL,
   soap_content			TEXT NOT NULL,
-  primary key (id),
-  CONSTRAINT FK_OU_CREATOR_ID FOREIGN KEY (created_by_id) REFERENCES aa.user_account(id),
-  CONSTRAINT FK_OU_MODIFIER_ID FOREIGN KEY (modified_by_id) REFERENCES aa.user_account(id)
+  primary key (id(30)),
+  CONSTRAINT FK_OU_CREATOR_ID FOREIGN KEY (created_by_id(30)) REFERENCES aa.user_account(id),
+  CONSTRAINT FK_OU_MODIFIER_ID FOREIGN KEY (modified_by_id(30)) REFERENCES aa.user_account(id)
 );
 
-CREATE TABLE list.filter (
+CREATE TABLE IF NOT EXISTS list.filter (
   role_id			TEXT,
   type				TEXT NOT NULL,
   rule				TEXT NOT NULL,
-  CONSTRAINT FK_FILTER_ROLE_ID FOREIGN KEY (role_id) REFERENCES aa.escidoc_role(id)
+  CONSTRAINT FK_FILTER_ROLE_ID FOREIGN KEY (role_id(30)) REFERENCES aa.escidoc_role(id)
 );

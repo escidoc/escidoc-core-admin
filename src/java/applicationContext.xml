@@ -124,6 +124,7 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
 		<constructor-arg value="${fedora.user}" />
 		<constructor-arg value="${fedora.password}" />
 		<constructor-arg value="${fedora.url}" />
+                <constructor-arg value="${new.datasource.script.prefix}" />
 		<property name="dataSource">
 			<ref bean="de.escidoc.core.admin.DataSource" />
 		</property>
