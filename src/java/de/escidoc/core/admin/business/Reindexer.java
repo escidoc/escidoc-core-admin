@@ -67,16 +67,16 @@ public class Reindexer implements ReindexerInterface {
     			"/oum/organizational-units/filter";
 
     private final String RELEASED_ITEMS_FILTER =
-        "<param><filter name=\"http://escidoc.de/core/01/properties/public-status\">released</filter></param>";
+        "<param><filter name=\"http://escidoc.de/core/01/properties/public-status\">released</filter><limit>0</limit></param>";
 
     private final String RELEASED_CONTAINERS_FILTER =
-        "<param><filter name=\"http://escidoc.de/core/01/properties/public-status\">released</filter></param>";
+        "<param><filter name=\"http://escidoc.de/core/01/properties/public-status\">released</filter><limit>0</limit></param>";
     
     private final String OPEN_CLOSED_ORG_UNITS_FILTER =
         "<param>"
         + "<filter name=\"http://escidoc.de/core/01/properties/public-status\">opened</filter>"
         + "<filter name=\"http://escidoc.de/core/01/properties/public-status\">closed</filter>"
-        + "</param>";
+        + "<limit>0</limit></param>";
     
     private final String FEDORA_ACCESS_DEVIATION_HANDLER_TARGET_NAMESPACE =
     	"http://localhost:8080/axis/services/access";
