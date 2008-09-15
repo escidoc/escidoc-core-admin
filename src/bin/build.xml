@@ -56,7 +56,7 @@
 
 	<target name="foxml-migration" depends="prepare-foxml-migration">
 		<echo>Starting migration of fedora repository</echo>
-		<xslt basedir="${foxml.src.dir}" destdir="${foxml.target.dir}" style="xsl/GeneralNew.xsl" force="true">
+		<xslt basedir="${foxml.src.dir}" destdir="${foxml.target.dir}" style="xsl/GeneralToFedora30.xsl" force="true">
 			<classpath refid="build.classpath" />
 			<mapper type="identity" />
 		</xslt>
