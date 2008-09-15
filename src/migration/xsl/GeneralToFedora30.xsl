@@ -80,7 +80,7 @@
 													<xsl:element
 														name="rdf:Description"
 														namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-														<xsl:attribute name="rdf:about" namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><xsl:value-of select="$objectId"/></xsl:attribute>
+														<xsl:attribute name="rdf:about" namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><xsl:value-of select="foxml:xmlContent/rdf:RDF/rdf:Description/@rdf:about"/></xsl:attribute>
 														<xsl:element
 															name="system:build"
 															namespace="http://escidoc.de/core/01/system/">
