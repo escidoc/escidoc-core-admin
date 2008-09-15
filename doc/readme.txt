@@ -43,12 +43,12 @@ Migrate the fedora content of a eSciDoc repository from build 0.9.0159 to Releas
 
 This tool first backups the folder fedora3.home/data/datastreams and copies 
 the datatstreams folder from the existing Fedora 2 repository.
-Afterwards the tool migrates all relevant foxml files from the existing Fedora 2 
-repository to the new Fedora 3.0b repository.
+Afterwards the tool migrates all relevant foxml files from the existing Fedora 3.0b 
+repository to the new Fedora 3.0 repository.
 
     Prerequisites:
     - Ant in version 1.7.0
-    - Newly installed Fedora 3.0b repository in directory fedora3.home
+    - Newly installed Fedora 3.0 repository in directory fedora3.home
 
     - Usage:
         - Modify admin-tool.properties to define the values for properties fedora-2.home and fedora-3.home
@@ -58,7 +58,7 @@ repository to the new Fedora 3.0b repository.
           The admin-tool.properties must be placed in the directory from that 
           the admin tool is executed.
           
-        - Rebuild the Fedora 3.0b resource index and SQL database. 
+        - Rebuild the Fedora 3.0 resource index and SQL database. 
           To do that you have to call fedora-rebuild script located in 
           fedora3.home/server/bin and follow the instructions.
         - check the higestid value for escidoc in the fedora 3 database, 
