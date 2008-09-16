@@ -104,7 +104,7 @@ the objects itself.
           and database, or set this to a value higher than the maximum id.
 
 
-2.) Regenerate cache for filter methods (fast lists)
+3.) Regenerate cache for filter methods (fast lists)
 ------------------------------------------------
 
 	Use this when 
@@ -139,7 +139,7 @@ the objects itself.
           the admin tool is executed.
 
 
-3.) Regenerate index for search
+4.) Regenerate index for search
 --------------------------------
 
     Prerequisites for reindexing:
