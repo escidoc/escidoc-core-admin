@@ -72,7 +72,7 @@ the objects itself.
 	      - define the location of the old repository in the property fedora-src.home
 	      	e.g. fedora-src.home=/repository/fedora30b1 
 	      	or on Windows
-	      	fedora-current.home=C:/repository/fedora30b1 
+	      	fedora-src.home=C:/repository/fedora30b1 
 	      - define the location of the new repository in the property fedora-target.home
 	      	e.g. fedora-target.home=/repository/fedora30
         
