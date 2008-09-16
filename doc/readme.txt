@@ -69,12 +69,12 @@ the objects itself.
 	
     - Usage:
 	    1) Modify admin-tool.properties
-	      - define the location of the old repository in the property fedora-30b.home
-	      	e.g. fedora-30b.home=/repository/fedora30b1 
+	      - define the location of the old repository in the property fedora-src.home
+	      	e.g. fedora-src.home=/repository/fedora30b1 
 	      	or on Windows
-	      	fedora-30b.home=C:/repository/fedora30b1 
-	      - define the location of the new repository in the property fedora-3.home
-	      	e.g. fedora-3.home=/repository/fedora30
+	      	fedora-current.home=C:/repository/fedora30b1 
+	      - define the location of the new repository in the property fedora-target.home
+	      	e.g. fedora-target.home=/repository/fedora30
         
         2) Increase the available memory by setting the system property ANT_OPTS.
           At least to following values:
