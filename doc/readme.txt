@@ -72,18 +72,18 @@ Regenerate cache for filter methods (fast lists)
 ------------------------------------------------
 
 	Use this when 
-	- structure/schema of containers or items changed,
+	- structure/schema of containers, contexts, items or organizational units changed,
 	- structure of cache database changed
 	
 	Prerequisites for recaching:
-    - Database has been migrated (if necessary)
-    - Fedora has been migrated (if necessary)
-    - eSciDocCore Services including fedora repository are started
+        - Database has been migrated (if necessary)
+        - Fedora has been migrated (if necessary)
+        - eSciDocCore Services including fedora repository are started
 
 	- Workflow:
-		- delete all containers and items from cache database
-		- get all containers and items from om
-		- put these containers and items into the cache database
+		- delete all resources from cache database
+		- get all resources from eSciDoc
+		- put these resources into the cache database
 
 	- Usage:
 		- modify admin-tool.properties:
