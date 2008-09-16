@@ -6,7 +6,7 @@ of object representation and migration of the Fedora repository.
  
 Reindex and recache might by necessary without updating eSciDoc. E.g. the used 
 hardware or OS infrastructure has changed. Therefore are these task separated 
-into diffenten sub task for migration.
+into different sub task for migration.
 
 Index
 	1.) Migration of the eSciDoc Core Infrastructure
