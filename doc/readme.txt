@@ -1,7 +1,7 @@
 eSciDoc Infrastructure Administration Tool
 ===========================================
 
-The Administration Tool supports update of cache, reindex for search migration 
+The Administration Tool supports update of cache, reindex for search, migration 
 of object representation and migration of the Fedora repository. 
  
 Reindex and recache might by necessary without updating eSciDoc. E.g. the used 
