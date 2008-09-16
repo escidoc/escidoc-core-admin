@@ -52,11 +52,11 @@ of Fedora 3.0 (final release).
 
 2.) Migration of Fedora Repository 
 ------------------------------------
-Fedora 3.0beta2 -> Fedora 3.0
+Fedora 3.0beta1 -> Fedora 3.0
 eSciDoc 1.0beta3 -> eSciDoc 1.0beta4
 
 The migration procedure first backups the folder 
-${FEDORA_HOME}/data/datastreams from the existing Fedora repository. All 
+${FEDORA_HOME}/data/datastreams from the new Fedora repository. All 
 relevant FOXML files from the existing Fedora are migrated afterwards to the 
 new Fedora repository. The migration may also contain an transformation of 
 the objects itself. 
@@ -85,10 +85,11 @@ the objects itself.
           Execute target foxml-migration of ant file build.xml
           
        	4) Rebuild the Fedora 3.0 resource index and SQL database. 
-       	   It is assumed that the new Fedora make usage of the same Fedora database 
-       	   like the old Fedora. Therefore is the index table from Fedora database 
-       	   to drop. This step is not necessary if a new database is used.
-       	   Connect to the Fedora database and drop the index table.
+       	   It is assumed that the new Fedora make usage of the same Fedora 
+       	   database like the old Fedora installation. Therefore all tables from
+       	   Fedora database to drop and automatically recreated during the 
+       	   rebuild procedure. This step is not necessary if a new database is 
+       	   used. Connect to your Fedora database and drop all tables.
        	   
           The index and SQL database rebuild is supported by tools from Fedora.
           Call fedora-rebuild script, located in 
