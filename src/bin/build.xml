@@ -8,12 +8,26 @@
 	    <fileset dir="." includes="lib/saxon8.jar" />
 	</path>
 
+	<macrodef name="largecopy">
+		<attribute name="fromdir"/>
+		<attribute name="todir"/>
+		<sequential>
+			<exec executable="cp" osfamily="unix">
+				<arg line="-r @{fromdir} @{todir}"/>
+			</exec>
+			<exec executable="xcopy" osfamily="windows">
+				<arg line="/Y @{fromdir} @{todir}"/>
+			</exec>
+		</sequential>
+	</macrodef>
+
 	<macrodef name="largemove">
 		<attribute name="fromdir"/>
 		<attribute name="todir"/>
 		<sequential>
+                        <delete dir="@{todir}"/>
 			<exec executable="mv" osfamily="unix">
-				<arg line="--force @{fromdir} @{todir}"/>
+				<arg line="-f @{fromdir} @{todir}"/>
 			</exec>
 			<exec executable="move" osfamily="windows">
 				<arg line="/Y @{fromdir} @{todir}"/>
@@ -99,9 +113,7 @@
 		<mkdir dir="${foxml.target.dir}" />
 		<largemove fromdir="${datastreams.target.dir}" todir="${datastreams.target.dir}.bak"/>
 		<mkdir dir="${datastreams.target.dir}" />
-		<copy todir="${datastreams.target.dir}" failonerror="false">
-			<fileset dir="${datastreams.src.dir}" />
-		</copy>
+		<largecopy fromdir="${datastreams.src.dir}" todir="${data.target.dir}"/>
 		<echo>Finished</echo>
 	</target>
 </project>
