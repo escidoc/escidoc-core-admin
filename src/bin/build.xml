@@ -8,6 +8,19 @@
 	    <fileset dir="." includes="lib/saxon8.jar" />
 	</path>
 
+	<macrodef name="largemove">
+		<attribute name="fromdir"/>
+		<attribute name="todir"/>
+		<sequential>
+			<exec executable="mv" osfamily="unix">
+				<arg line="--force @{fromdir} @{todir}"/>
+			</exec>
+			<exec executable="move" osfamily="windows">
+				<arg line="/Y @{fromdir} @{todir}"/>
+			</exec>
+		</sequential>
+	</macrodef>
+
 	<target name="test">
 		<java jar="eSciDocCoreAdmin.jar" fork="true">
 			<arg value="test" />
@@ -56,11 +69,18 @@
 
 	<target name="foxml-migration" depends="prepare-foxml-migration">
 		<echo>Starting migration of fedora repository</echo>
-		<xslt basedir="${foxml.src.dir}" destdir="${foxml.target.dir}" style="xsl/GeneralToFedora30.xsl" force="true">
-			<classpath refid="build.classpath" />
-			<mapper type="identity" />
-		</xslt>
+		<java jar="eSciDocCoreAdmin.jar" fork="true">
+			<arg value="foxml-migration"/>
+			<arg value="${foxml.src.dir}"/>
+			<arg value="${foxml.target.dir}"/>
+			<arg value="xsl/GeneralToFedora30.xsl"/>
+			<classpath>
+				<path refid="build.classpath"/>
+			</classpath>
+		</java>
 		<!-- delete all FOXML files with 0 bytes length -->
+                <!-- Unfortunately this doesn't work with directories containing a lot of files. -->
+<!--
 		<delete>
 			<restrict>
 				<fileset dir="${foxml.target.dir}" includes="**/*">
@@ -69,18 +89,15 @@
 				</fileset>
 			</restrict>
 		</delete>
+-->
 		<echo>Finished</echo>
 	</target>
 
 	<target name="prepare-foxml-migration">
 		<echo>Preparing migration of fedora repository</echo>
-		<move todir="${foxml.target.dir}.bak" failonerror="false">
-			<fileset dir="${foxml.target.dir}" />
-		</move>
+		<largemove fromdir="${foxml.target.dir}" todir="${foxml.target.dir}.bak"/>
 		<mkdir dir="${foxml.target.dir}" />
-		<move todir="${datastreams.target.dir}.bak" failonerror="false">
-			<fileset dir="${datastreams.target.dir}" />
-		</move>
+		<largemove fromdir="${datastreams.target.dir}" todir="${datastreams.target.dir}.bak"/>
 		<mkdir dir="${datastreams.target.dir}" />
 		<copy todir="${datastreams.target.dir}" failonerror="false">
 			<fileset dir="${datastreams.src.dir}" />
