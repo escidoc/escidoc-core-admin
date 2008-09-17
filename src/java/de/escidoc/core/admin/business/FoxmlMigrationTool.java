@@ -28,6 +28,8 @@
  */
 package de.escidoc.core.admin.business;
 
+import de.escidoc.core.common.util.logger.AppLogger;
+
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -48,6 +50,12 @@ public class FoxmlMigrationTool {
      * Print the number of already processed files for every SHOW_COUNT files.
      */
     private static final int SHOW_COUNT = 100;
+
+    /**
+     * The logger.
+     */
+    private static AppLogger log =
+        new AppLogger(FoxmlMigrationTool.class.getName());
 
     private final String srcDirectory;
     private final String destDirectory;
@@ -149,7 +157,7 @@ public class FoxmlMigrationTool {
             transformer.transform(new StreamSource(source), new StreamResult(result));
         }
         catch (Exception e) {
-            System.err.println("failed to transform " + file);
+            log.error("failed to transform " + file, e);
             throw new Exception(e);
         }
         finally {
