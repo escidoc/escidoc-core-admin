@@ -49,10 +49,9 @@ public class FoxmlMigrationTool {
      */
     private static final int SHOW_COUNT = 100;
 
-    private static final String STYLESHEET = "xsl/GeneralToFedora30.xsl";
-
     private final String srcDirectory;
     private final String destDirectory;
+    private final String stylesheet;
     private final Transformer transformer;
 
     private int count = 0;
@@ -65,16 +64,19 @@ public class FoxmlMigrationTool {
      * @param destDirectory base directory where the transformed Foxml files
      *                      will be placed (the directory will be created
      *                      automatically if needed)
+     * @param stylesheet XSL stylesheet to use for transformation
+     *
      * @throws Exception thrown if the XSL transformation failed
      */
     public FoxmlMigrationTool(final String srcDirectory,
-        final String destDirectory) throws Exception {
+        final String destDirectory, final String stylesheet) throws Exception {
         this.srcDirectory  = srcDirectory;
         this.destDirectory = destDirectory;
+        this.stylesheet    = stylesheet;
 
         TransformerFactory factory = TransformerFactory.newInstance();
 
-        transformer = factory.newTransformer(new StreamSource(STYLESHEET));
+        transformer = factory.newTransformer(new StreamSource(stylesheet));
         scanDir(srcDirectory);
     }
 
@@ -141,9 +143,17 @@ public class FoxmlMigrationTool {
         FileReader source = new FileReader(file);
         FileWriter result = new FileWriter(target);
 
-        transformer.transform(new StreamSource(source), new StreamResult(result));
-        source.close();
-        result.close();
+        try {
+            transformer.transform(new StreamSource(source), new StreamResult(result));
+        }
+        catch (Exception e) {
+            System.err.println("failed to transform " + file);
+            throw new Exception(e);
+        }
+        finally {
+            source.close();
+            result.close();
+        }
         count++;
         if (count % SHOW_COUNT == 0) {
             System.out.println("processed " + count + " files");
@@ -153,17 +163,19 @@ public class FoxmlMigrationTool {
     /**
      * Main method to start the XSL transformation.
      *
-     * @param args expected two arguments: source directory and target directory
+     * @param args expected three arguments: source directory, target directory and
+     *             XSL stylesheet
      *
      * @throws Exception thrown if the XSL transformation failed
      */
     public static void main(final String [] args) throws Exception {
-        if (args.length == 2) {
-            new FoxmlMigrationTool(args [0], args[1]);
+        if (args.length == 3) {
+            new FoxmlMigrationTool(args [0], args[1], args[2]);
         }
         else {
             System.err.println(
-                "usage: FoxmlMigration <src directory> <dest directory>");
+                "usage: FoxmlMigration <src directory> <dest directory> " +
+                "<XSL stylesheet>");
         }
     }
 }
