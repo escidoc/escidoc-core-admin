@@ -114,14 +114,16 @@ public class FoxmlMigrationTool {
         File directory = new File(dirName);
         String [] files = directory.list();
 
-        for (String f : files) {
-            File file = new File(directory, f);
+        if (files != null) {
+            for (String f : files) {
+                File file = new File(directory, f);
 
-            if (file.isDirectory()) {
-                scanDir(file.getPath());
-            }
-            else {
-                transform(file);
+                if (file.isDirectory()) {
+                    scanDir(file.getPath());
+                }
+                else {
+                    transform(file);
+                }
             }
         }
     }

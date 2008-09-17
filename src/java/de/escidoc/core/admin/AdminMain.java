@@ -36,6 +36,7 @@ import org.springframework.beans.factory.access.BeanFactoryLocator;
 import org.springframework.beans.factory.access.SingletonBeanFactoryLocator;
 import org.springframework.transaction.CannotCreateTransactionException;
 
+import de.escidoc.core.admin.business.FoxmlMigrationTool;
 import de.escidoc.core.admin.business.interfaces.DataBaseMigrationInterface;
 import de.escidoc.core.admin.business.interfaces.RecacheInterface;
 import de.escidoc.core.admin.business.interfaces.ReindexerInterface;
@@ -86,6 +87,9 @@ public class AdminMain {
             }
             else if (args[0].equals("db-migration")) {
                 admin.migrateDataBase(args);
+            }
+            else if (args[0].equals("foxml-migration")) {
+                admin.migrateFoxml(args);
             }
             else {
                 log.error("method-argument unknown: " + args[0]);
@@ -144,6 +148,22 @@ public class AdminMain {
                     return;
                 }
             }
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Migrate the Fedora Foxml files.
+     * 
+     * @param args The arguments.
+     */
+    private void migrateFoxml(final String[] args) {
+
+        log.info("Foxml migration invoked");
+        try {
+            new FoxmlMigrationTool(args[1], args[2], args[3]);
+        }
+        catch (Exception e) {
             log.error(e.getMessage(), e);
         }
     }
