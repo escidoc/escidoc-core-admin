@@ -16,21 +16,7 @@
 				<arg line="-r @{fromdir} @{todir}"/>
 			</exec>
 			<exec executable="xcopy" osfamily="windows">
-				<arg line="/Y @{fromdir} @{todir}"/>
-			</exec>
-		</sequential>
-	</macrodef>
-
-	<macrodef name="largemove">
-		<attribute name="fromdir"/>
-		<attribute name="todir"/>
-		<sequential>
-                        <delete dir="@{todir}"/>
-			<exec executable="mv" osfamily="unix">
-				<arg line="-f @{fromdir} @{todir}"/>
-			</exec>
-			<exec executable="move" osfamily="windows">
-				<arg line="/Y @{fromdir} @{todir}"/>
+				<arg line="/I /S /Y @{fromdir} @{todir}/datastreams"/>
 			</exec>
 		</sequential>
 	</macrodef>
@@ -109,9 +95,9 @@
 
 	<target name="prepare-foxml-migration">
 		<echo>Preparing migration of fedora repository</echo>
-		<largemove fromdir="${foxml.target.dir}" todir="${foxml.target.dir}.bak"/>
+		<move file="${foxml.target.dir}" todir="${foxml.target.dir}.bak" failonerror="false"/>
 		<mkdir dir="${foxml.target.dir}" />
-		<largemove fromdir="${datastreams.target.dir}" todir="${datastreams.target.dir}.bak"/>
+		<move file="${datastreams.target.dir}" todir="${datastreams.target.dir}.bak" failonerror="false"/>
 		<mkdir dir="${datastreams.target.dir}" />
 		<largecopy fromdir="${datastreams.src.dir}" todir="${data.target.dir}"/>
 		<echo>Finished</echo>
