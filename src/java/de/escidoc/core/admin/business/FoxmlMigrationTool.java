@@ -59,7 +59,6 @@ public class FoxmlMigrationTool {
 
     private final String srcDirectory;
     private final String destDirectory;
-    private final String stylesheet;
     private final Transformer transformer;
 
     private int count = 0;
@@ -72,7 +71,7 @@ public class FoxmlMigrationTool {
      * @param destDirectory base directory where the transformed Foxml files
      *                      will be placed (the directory will be created
      *                      automatically if needed)
-     * @param stylesheet XSL stylesheet to use for transformation
+     * @param stylesheet XSL style sheet to use for transformation
      *
      * @throws Exception thrown if the XSL transformation failed
      */
@@ -80,7 +79,6 @@ public class FoxmlMigrationTool {
         final String destDirectory, final String stylesheet) throws Exception {
         this.srcDirectory  = srcDirectory;
         this.destDirectory = destDirectory;
-        this.stylesheet    = stylesheet;
 
         TransformerFactory factory = TransformerFactory.newInstance();
 
@@ -154,7 +152,8 @@ public class FoxmlMigrationTool {
         FileWriter result = new FileWriter(target);
 
         try {
-            transformer.transform(new StreamSource(source), new StreamResult(result));
+            transformer.transform(new StreamSource(source),
+                new StreamResult(result));
         }
         catch (Exception e) {
             log.error("failed to transform " + file, e);
@@ -184,8 +183,8 @@ public class FoxmlMigrationTool {
         }
         else {
             System.err.println(
-                "usage: FoxmlMigration <src directory> <dest directory> " +
-                "<XSL stylesheet>");
+                "usage: FoxmlMigration <src directory> <dest directory> "
+                + "<XSL stylesheet>");
         }
     }
 }
