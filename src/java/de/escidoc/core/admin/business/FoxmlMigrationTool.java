@@ -31,8 +31,12 @@ package de.escidoc.core.admin.business;
 import de.escidoc.core.common.util.logger.AppLogger;
 
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.Reader;
+import java.io.Writer;
 
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
@@ -50,6 +54,11 @@ public class FoxmlMigrationTool {
      * Print the number of already processed files for every SHOW_COUNT files.
      */
     private static final int SHOW_COUNT = 100;
+
+    /**
+     * Charset used for file I/O.
+     */
+    private static final String CHARSET = "utf-8";
 
     /**
      * The logger.
@@ -148,8 +157,9 @@ public class FoxmlMigrationTool {
 
         createParentDirectories(target);
 
-        FileReader source = new FileReader(file);
-        FileWriter result = new FileWriter(target);
+        Reader source = new InputStreamReader(new FileInputStream(file), CHARSET);
+        Writer result = new OutputStreamWriter(new FileOutputStream(target),
+            CHARSET);
 
         try {
             transformer.transform(new StreamSource(source),
