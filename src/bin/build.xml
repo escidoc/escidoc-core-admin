@@ -12,11 +12,23 @@
 		<attribute name="fromdir"/>
 		<attribute name="todir"/>
 		<sequential>
+			<pathconvert property="fromdir.local">
+				<path location="@{fromdir}"/>
+			</pathconvert>
+			<pathconvert property="todir.local">
+				<path location="@{todir}"/>
+			</pathconvert>
 			<exec executable="cp" osfamily="unix">
-				<arg line="-r @{fromdir} @{todir}"/>
+				<arg value="-r"/>
+				<arg value="${fromdir.local}"/>
+				<arg value="${todir.local}"/>
 			</exec>
 			<exec executable="xcopy" osfamily="windows">
-				<arg line="/I /S /Y @{fromdir} @{todir}/datastreams"/>
+				<arg value="/I"/>
+				<arg value="/S"/>
+				<arg value="/Y"/>
+				<arg value="${fromdir.local}"/>
+				<arg value="${todir.local}\datastreams"/>
 			</exec>
 		</sequential>
 	</macrodef>
