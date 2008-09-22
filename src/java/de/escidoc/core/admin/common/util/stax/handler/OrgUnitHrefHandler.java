@@ -52,6 +52,8 @@ public class OrgUnitHrefHandler extends DefaultHandler {
 
     private Vector<String> hrefs = new Vector<String>();
 
+    private int numberOfRecords = -1;
+
     private static AppLogger log =
         new AppLogger(OrgUnitHrefHandler.class.getName());
 
@@ -78,6 +80,7 @@ public class OrgUnitHrefHandler extends DefaultHandler {
      * 
      * @admin
      */
+    @Override
     public StartElement startElement(final StartElement element)
         throws MissingAttributeValueException {
 

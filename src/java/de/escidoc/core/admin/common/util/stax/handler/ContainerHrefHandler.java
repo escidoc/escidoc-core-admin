@@ -52,6 +52,8 @@ public class ContainerHrefHandler extends DefaultHandler {
 
     protected Vector<String> hrefs = new Vector<String>();
 
+    private int numberOfRecords = -1;
+
     private static AppLogger log =
         new AppLogger(ContainerHrefHandler.class.getName());
 

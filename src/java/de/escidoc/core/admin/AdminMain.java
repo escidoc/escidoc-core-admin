@@ -64,7 +64,7 @@ public class AdminMain {
         beanFactoryLocator.useBeanFactory(
             SpringConstants.ID_APPLICATION_CONTEXT).getFactory();
     
-    private final int REINDEXER_WAIT_TIME = 1000;
+    private static final int REINDEXER_WAIT_TIME = 1000;
 
     /**
      * Main Method, depends on args[0] which method is executed.
@@ -105,7 +105,8 @@ public class AdminMain {
      * 
      * @param args
      *            The arguments.
-     * @see de.escidoc.core.admin.business.interfaces.DataBaseMigrationInterface#migrate()
+     * @see de.escidoc.core.admin.business
+     *  .interfaces.DataBaseMigrationInterface#migrate()
      */
     private void migrateDataBase(final String[] args) {
 
@@ -224,12 +225,12 @@ public class AdminMain {
                 Constants.
                    ORGANIZATIONAL_UNIT_OBJECT_TYPE.replaceAll(".*/", "");
             // Get all released Items
-            Vector<String> itemHrefs = reindexer.getPublicItems();
+            Vector<String> itemHrefs = reindexer.getFilteredItems();
             // Get all released Containers
-            Vector<String> containerHrefs = reindexer.getPublicContainers();
+            Vector<String> containerHrefs = reindexer.getFilteredContainers();
             // Get all public viewable organizational-units
             Vector<String> orgUnitHrefs = 
-                reindexer.getPublicOrganizationalUnits();
+                reindexer.getFilteredOrganizationalUnits();
 
             // Delete index
             reindexer.sendDeleteIndexMessage();

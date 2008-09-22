@@ -38,43 +38,68 @@ import de.escidoc.core.common.util.xml.stax.events.StartElement;
 import de.escidoc.core.common.util.xml.stax.handler.DefaultHandler;
 
 /**
- * Extracts hrefs to component-content out of item.
+ * Extracts hrefs to objects out of filtered List.
  * 
  * @author Michael Hoppe
  * 
  */
-public class ComponentContentHrefHandler extends DefaultHandler {
+public class ListHrefHandler extends DefaultHandler {
     public static final String XLINK_PREFIX = "xlink";
 
     public static final String XLINK_URI = "http://www.w3.org/1999/xlink";
 
-    protected StaxParser parser;
+    private StaxParser parser;
+    
+    private String listName;
+    
+    private String listElementName;
 
-    protected Vector<String> hrefs = new Vector<String>();
+    private Vector<String> hrefs = new Vector<String>();
+
+    private int numberOfRecords = -1;
 
     private static AppLogger log =
-        new AppLogger(ComponentContentHrefHandler.class.getName());
+        new AppLogger(ListHrefHandler.class.getName());
 
     /**
      * initialize handler with StaxParser.
      * 
      * @param parser
      *            StaxParser parser.
+     * @param listName
+     *            root-element name of the List.
+     * @param listElementName
+     *            element-name of one entry of the list.
      * 
      * @admin
      */
-    public ComponentContentHrefHandler(StaxParser parser) {
+    public ListHrefHandler(final StaxParser parser,
+                                final String listName,
+                                final String listElementName) {
         this.parser = parser;
+        this.listName = listName;
+        this.listElementName = listElementName;
 
     }
 
     @Override
-    public StartElement startElement(StartElement element)
+    public StartElement startElement(final StartElement element)
         throws MissingAttributeValueException {
 
-        String itemRefPath = "/item/components/component/content";
+        String itemRefPath = "/" + listName + "/" + listElementName;
+        String itemListPath = "/" + listName;
         String currentPath = parser.getCurPath();
 
+        if (itemListPath.equals(currentPath)) {
+            int indexOfNumberOfRecords = element.indexOfAttribute(
+                                            null, "number-of-records");
+            if (indexOfNumberOfRecords != (-1)) {
+                Attribute recordNumberAttribute = 
+                    element.getAttribute(indexOfNumberOfRecords);
+                numberOfRecords = Integer.parseInt(
+                        recordNumberAttribute.getValue());
+            }
+        }
         if (itemRefPath.equals(currentPath)) {
             int indexOfHref = element.indexOfAttribute(XLINK_URI, "href");
             if (indexOfHref != (-1)) {
@@ -90,6 +115,13 @@ public class ComponentContentHrefHandler extends DefaultHandler {
      */
     public Vector<String> getHrefs() {
         return hrefs;
+    }
+
+    /**
+     * @return the numberOfRecords
+     */
+    public int getNumberOfRecords() {
+        return numberOfRecords;
     }
 
 }

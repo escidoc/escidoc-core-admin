@@ -48,9 +48,11 @@ public class ItemHrefHandler extends DefaultHandler {
 
     public static final String XLINK_URI = "http://www.w3.org/1999/xlink";
 
-    protected StaxParser parser;
+    private StaxParser parser;
 
-    protected Vector<String> hrefs = new Vector<String>();
+    private Vector<String> hrefs = new Vector<String>();
+
+    private int numberOfRecords = -1;
 
     private static AppLogger log =
         new AppLogger(ItemHrefHandler.class.getName());
@@ -63,18 +65,29 @@ public class ItemHrefHandler extends DefaultHandler {
      * 
      * @admin
      */
-    public ItemHrefHandler(StaxParser parser) {
+    public ItemHrefHandler(final StaxParser parser) {
         this.parser = parser;
 
     }
 
     @Override
-    public StartElement startElement(StartElement element)
+    public StartElement startElement(final StartElement element)
         throws MissingAttributeValueException {
 
         String itemRefPath = "/item-list/item";
+        String itemListPath = "/item-list";
         String currentPath = parser.getCurPath();
 
+        if (itemListPath.equals(currentPath)) {
+            int indexOfNumberOfRecords = element.indexOfAttribute(
+                                            null, "number-of-records");
+            if (indexOfNumberOfRecords != (-1)) {
+                Attribute recordNumberAttribute = 
+                    element.getAttribute(indexOfNumberOfRecords);
+                numberOfRecords = Integer.parseInt(
+                        recordNumberAttribute.getValue());
+            }
+        }
         if (itemRefPath.equals(currentPath)) {
             int indexOfHref = element.indexOfAttribute(XLINK_URI, "href");
             if (indexOfHref != (-1)) {
@@ -90,6 +103,13 @@ public class ItemHrefHandler extends DefaultHandler {
      */
     public Vector<String> getHrefs() {
         return hrefs;
+    }
+
+    /**
+     * @return the numberOfRecords
+     */
+    public int getNumberOfRecords() {
+        return numberOfRecords;
     }
 
 }

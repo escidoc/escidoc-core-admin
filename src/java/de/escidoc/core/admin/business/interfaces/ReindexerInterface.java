@@ -50,7 +50,7 @@ public interface ReindexerInterface {
      *             e
      * @admin
      */
-    Vector<String> getPublicItems()
+    Vector<String> getFilteredItems()
         throws ApplicationServerSystemException;
 
     /**
@@ -63,7 +63,7 @@ public interface ReindexerInterface {
      *             e
      * @admin
      */
-    Vector<String> getPublicContainers()
+    Vector<String> getFilteredContainers()
         throws ApplicationServerSystemException;
 
     /**
@@ -76,7 +76,7 @@ public interface ReindexerInterface {
      *             e
      * @admin
      */
-    Vector<String> getPublicOrganizationalUnits()
+    Vector<String> getFilteredOrganizationalUnits()
         throws ApplicationServerSystemException;
 
     /**
