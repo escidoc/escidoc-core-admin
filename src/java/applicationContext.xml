@@ -178,7 +178,7 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
 			<value>${indexerQueuePassword}</value>
 		</property>
 		<property name="escidocCoreHandler">
-			<ref bean="de.escidoc.core.admin.EscidocCoreHandler" />
+			<ref bean="de.escidoc.core.admin.EscidocCoreHandlerWithSecurity" />
 		</property>
 		<property name="queueConnectionFactory">
 			<ref bean="de.escidoc.core.admin.QueueConnectionFactory" />

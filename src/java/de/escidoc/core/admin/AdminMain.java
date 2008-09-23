@@ -217,13 +217,6 @@ public class AdminMain {
                 .getBean(SpringConstants.ID_REINDEXER);
 
         try {
-        	String containerResourceName = 
-        		Constants.CONTAINER_OBJECT_TYPE.replaceAll(".*/", "");
-        	String itemResourceName = 
-        		Constants.ITEM_OBJECT_TYPE.replaceAll(".*/", "");
-            String orgUnitResourceName = 
-                Constants.
-                   ORGANIZATIONAL_UNIT_OBJECT_TYPE.replaceAll(".*/", "");
             // Get all released Items
             Vector<String> itemHrefs = reindexer.getFilteredItems();
             // Get all released Containers
@@ -245,7 +238,8 @@ public class AdminMain {
 
             // Reindex released items
             for (String itemHref : itemHrefs) {
-                reindexer.sendUpdateIndexMessage(itemHref, itemResourceName);
+                reindexer.sendUpdateIndexMessage(itemHref, 
+                                    Constants.ITEM_OBJECT_TYPE);
                 try {
 					Thread.sleep(REINDEXER_WAIT_TIME);
 				} catch (InterruptedException e) {}
@@ -254,7 +248,7 @@ public class AdminMain {
             // reindex released containers
             for (String containerHref : containerHrefs) {
                 reindexer.sendUpdateIndexMessage(
-                		containerHref, containerResourceName);
+                		containerHref, Constants.CONTAINER_OBJECT_TYPE);
                 try {
 					Thread.sleep(REINDEXER_WAIT_TIME);
 				} catch (InterruptedException e) {}
@@ -263,7 +257,8 @@ public class AdminMain {
             // reindex public viewable organizational-units
             for (String orgUnitHref : orgUnitHrefs) {
                 reindexer.sendUpdateIndexMessage(
-                        orgUnitHref, orgUnitResourceName);
+                        orgUnitHref, 
+                        Constants.ORGANIZATIONAL_UNIT_OBJECT_TYPE);
                 try {
                     Thread.sleep(REINDEXER_WAIT_TIME);
                 } catch (InterruptedException e) {}

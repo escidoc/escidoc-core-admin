@@ -101,7 +101,7 @@ public class Reindexer implements ReindexerInterface {
         + "</filter>"
         + "<limit>0</limit><offset>0</offset></param>";
     
-    private static final int FILTER_LIMIT = 3;
+    private static final int FILTER_LIMIT = 5000;
     
     private static final String 
         FEDORA_ACCESS_DEVIATION_HANDLER_TARGET_NAMESPACE =
@@ -213,6 +213,14 @@ public class Reindexer implements ReindexerInterface {
     }
 
     /**
+     * Retrieves filtered list of objects (item, container, org-unit),
+     * extracts the hrefs to the objects in the list
+     * and returns Vector of hrefs.
+     * 
+     * @param filter filterXml
+     * @param filterUrl url for filtered list
+     * @param listElementName root-element name of the list
+     * @param elementName filterXml element name of one list-entry
      * 
      * @return Vector object-hrefs
      * 
@@ -401,6 +409,9 @@ public class Reindexer implements ReindexerInterface {
             message.setStringProperty(
                     Constants.INDEXER_QUEUE_RESOURCE_NAME_PARAMETER
                     , resourceName);
+            message.setBooleanProperty(
+                    Constants.INDEXER_QUEUE_WRITE_SYNCHRONOUS_PARAMETER
+                    , true);
             messageProducer.send(message);
         }
         catch (Exception e) {

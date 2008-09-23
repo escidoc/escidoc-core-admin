@@ -82,15 +82,25 @@ public class ListHrefHandler extends DefaultHandler {
 
     }
 
+    /**
+     * handle startElement.
+     * 
+     * @param element
+     *            StartElement.
+     * @return StartElement element
+     * @throws MissingAttributeValueException e
+     * 
+     * @admin
+     */
     @Override
     public StartElement startElement(final StartElement element)
         throws MissingAttributeValueException {
 
-        String itemRefPath = "/" + listName + "/" + listElementName;
-        String itemListPath = "/" + listName;
+        String listElementRefPath = "/" + listName + "/" + listElementName;
+        String listPath = "/" + listName;
         String currentPath = parser.getCurPath();
 
-        if (itemListPath.equals(currentPath)) {
+        if (listPath.equals(currentPath)) {
             int indexOfNumberOfRecords = element.indexOfAttribute(
                                             null, "number-of-records");
             if (indexOfNumberOfRecords != (-1)) {
@@ -100,7 +110,7 @@ public class ListHrefHandler extends DefaultHandler {
                         recordNumberAttribute.getValue());
             }
         }
-        if (itemRefPath.equals(currentPath)) {
+        if (listElementRefPath.equals(currentPath)) {
             int indexOfHref = element.indexOfAttribute(XLINK_URI, "href");
             if (indexOfHref != (-1)) {
                 Attribute href = element.getAttribute(indexOfHref);
