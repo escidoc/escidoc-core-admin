@@ -21,7 +21,7 @@ Index
 Migration of 1.0beta3 -> 1.0beta4
 
 Fedora data objects are stored in Fedora, Cache System and the index for 
-search. Each of this storage has to be migrated for an software update.
+search. Each of these storages has to be migrated for an software update.
 The migration of the eSciDoc infrastructure from eSciDoc 1.0beta3 to 1.0beta4 
 is subdivided into following ordered tasks:
 
@@ -40,13 +40,13 @@ is subdivided into following ordered tasks:
 		- see section 4.) Re-Index for Search
 	6.) Restart Systems
 
-A migration of a running eSciDoc and/or Fedora currently not supported.
-Furthermore is migration only supported between the last stable released and 
+A migration of a running eSciDoc and/or Fedora is currently not supported.
+Furthermore migration is only supported between the last stable release and 
 the new stable release. The migration between developer builds may work but 
 will never be supported. If you migrate non supported versions you do it at 
 your own risk and without any support.
 
-eSciDoc Core 1.0beta3 based on Fedora 3.0 beta1 and version 1.0beta4 make usage
+eSciDoc 1.0beta3 is based on Fedora 3.0 beta1 and eSciDoc 1.0beta4 makes usage
 of Fedora 3.0 (final release). 
 
 
@@ -55,11 +55,12 @@ of Fedora 3.0 (final release).
 Fedora 3.0beta1 -> Fedora 3.0
 eSciDoc 1.0beta3 -> eSciDoc 1.0beta4
 
-The migration procedure first backups the folder 
-${FEDORA_HOME}/data/datastreams from the new Fedora repository. All 
-relevant FOXML files from the existing Fedora are migrated afterwards to the 
-new Fedora repository. The migration may also contain an transformation of 
-the objects itself. 
+The migration procedure first backups the folders 
+${FEDORA_HOME}/data/datastreams and ${FEDORA_HOME}/data/objects from the new
+Fedora repository. Then all datastreams from the existing Fedora repository are
+copied into the new Fedora repository. After that all relevant FOXML files are
+migrated from the existing Fedora to the new Fedora repository. The migration
+may also contain a transformation of the objects itself. 
 
     Prerequisites:
     - Ant in version 1.7.0
@@ -98,7 +99,7 @@ the objects itself.
           http://fedora-commons.org/confluence/display/FCR30/
               Command-Line+Utilities#Command-LineUtilities-rebuild)
 
-        5) check the highest id value for escidoc in the fedora 3 database, 
+        5) Check the highest id value for escidoc in the fedora 3 database, 
           table public.pidgen. This value should be the highest id that has been 
           reported during the previous rebuild step. Sometimes, this value is 
           less than the maximum id. In this case, either retry rebuilding index 
