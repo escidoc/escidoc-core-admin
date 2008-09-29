@@ -29,25 +29,15 @@
 package de.escidoc.core.admin.business;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URLEncoder;
-import java.text.MessageFormat;
 import java.text.ParseException;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.sql.DataSource;
-
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
 
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
@@ -55,13 +45,11 @@ import org.springframework.test.jdbc.SimpleJdbcTestUtils;
 
 import de.escidoc.core.admin.business.interfaces.RecacheInterface;
 import de.escidoc.core.admin.common.util.EscidocCoreHandler;
-import de.escidoc.core.common.business.fedora.TripleStoreUtility;
 import de.escidoc.core.common.business.fedora.resources.DbResourceCache;
 import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException;
 import de.escidoc.core.common.exceptions.system.SystemException;
 import de.escidoc.core.common.util.logger.AppLogger;
 import de.escidoc.core.common.util.string.StringUtility;
-import de.escidoc.core.common.util.xml.XmlUtility;
 import fedora.client.FedoraClient;
 
 /**
@@ -79,19 +67,16 @@ public class Recache extends DbResourceCache implements RecacheInterface {
      * SQL statements.
      */
     private static final String INSERT_CONTAINER =
-        "INSERT INTO list.container (id, content_model_id, content_model_title, context_id, context_title, created_by_id, created_by_title, creation_date, description, last_modification_date, modified_by_id, modified_by_title, pid, public_status, public_status_comment, title, version_number, version_status, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        "INSERT INTO list.container (id, rest_content, soap_content) VALUES (?, ?, ?)";
 
     private static final String INSERT_CONTEXT =
-        "INSERT INTO list.context (id, created_by_id, created_by_title, creation_date, description, last_modification_date, modified_by_id, modified_by_title, ou, public_status, public_status_comment, title, type, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        "INSERT INTO list.context (id, rest_content, soap_content) VALUES (?, ?, ?)";
 
     private static final String INSERT_ITEM =
-        "INSERT INTO list.item (id, content_model_id, content_model_title, context_id, context_title, created_by_id, created_by_title, creation_date, description, last_modification_date, modified_by_id, modified_by_title, pid, public_status, public_status_comment, title, version_number, version_status, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-    private static final String INSERT_MEMBER =
-        "INSERT INTO list.member (member, parent) VALUES (?, ?)";
+        "INSERT INTO list.item (id, rest_content, soap_content) VALUES (?, ?, ?)";
 
     private static final String INSERT_OU =
-        "INSERT INTO list.ou (id, created_by_id, created_by_title, creation_date, description, last_modification_date, modified_by_id, modified_by_title, public_status, public_status_comment, title, rest_content, soap_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        "INSERT INTO list.ou (id, rest_content, soap_content) VALUES (?, ?, ?)";
 
     /**
      * Triplestore queries.
@@ -107,15 +92,6 @@ public class Recache extends DbResourceCache implements RecacheInterface {
 
     private static final String OU_LIST_QUERY =
         "/risearch?type=triples&lang=spo&format=N-Triples&query=*%20%3chttp://www.w3.org/1999/02/22-rdf-syntax-ns%23type%3e%20%3chttp://escidoc.de/core/01/resources/OrganizationalUnit%3e";
-
-    private static final String MEMBERS_QUERY =
-        "/risearch?type=triples&lang=spo&format=N-Triples&query=%3cinfo:fedora/{0}%3e%20%3chttp://escidoc.de/core/01/structural-relations/member%3e%20*";
-
-    private static final String PARENTS_QUERY =
-        "/risearch?type=triples&lang=spo&format=N-Triples&query=%3cinfo:fedora/{0}%3e%20%3chttp://escidoc.de/core/01/structural-relations/parent%3e%20*";
-
-    private static final String PROPERTIES_QUERY =
-        "/risearch?type=triples&lang=spo&format=N-Triples&query=%3cinfo:fedora/{0}%3e%20*%20*";
 
     /**
      * Axis URLs.
@@ -235,228 +211,6 @@ public class Recache extends DbResourceCache implements RecacheInterface {
     }
 
     /**
-     * Get the objid from a Fedora identifier, e.g. from
-     * &lt;info:fedora/escidoc:1&gt;.
-     * 
-     * @param uri
-     *            the value to get the objid from
-     * 
-     * @return the extracted objid
-     */
-    private String getIdFromUri(final String uri) {
-        String result = null;
-
-        if (uri != null) {
-            result = uri.substring(uri.indexOf('/') + 1);
-        }
-        return result;
-    }
-
-    /**
-     * Get the struct map of a container.
-     * 
-     * @param id
-     *            container id
-     * 
-     * @return struct map (may contain containers and items)
-     * @throws IOException
-     *             Thrown if an I/O error occurred.
-     */
-    private List<String> getMembers(final String id) throws IOException {
-        List<String> result = new Vector<String>();
-
-        if (id != null) {
-            BufferedReader input = null;
-
-            try {
-                MessageFormat queryFormat = new MessageFormat(MEMBERS_QUERY);
-                String line;
-
-                input =
-                    new BufferedReader(new InputStreamReader(fc.get(queryFormat
-                        .format(new Object[] { id }), true)));
-                while ((line = input.readLine()) != null) {
-                    result.add(getObject(line));
-                }
-            }
-            finally {
-                if (input != null) {
-                    input.close();
-                }
-            }
-        }
-        return result;
-    }
-
-    /**
-     * Extract the object from the given triple.
-     * 
-     * @param triple
-     *            the triple from which the object has to be extracted
-     * 
-     * @return the object of the given triple
-     */
-    private String getObject(final String triple) {
-        String result = null;
-
-        if (triple != null) {
-            final int count = 3;
-            String[] tokens = triple.split(" ", count);
-
-            if ((tokens != null) && tokens.length == count) {
-                result = tokens[2].substring(1, tokens[2].length() - count);
-            }
-        }
-        return result;
-    }
-
-    /**
-     * Get the parent ou list of a given ou.
-     * 
-     * @param id ou id
-     * 
-     * @return list of parent ous
-     * @throws IOException
-     *             Thrown if an I/O error occurred.
-     */
-    private List<String> getParents(final String id) throws IOException {
-        List<String> result = new Vector<String>();
-
-        if (id != null) {
-            BufferedReader input = null;
-
-            try {
-                MessageFormat queryFormat = new MessageFormat(PARENTS_QUERY);
-                String line;
-
-                input =
-                    new BufferedReader(new InputStreamReader(fc.get(queryFormat
-                        .format(new Object[] { id }), true)));
-                while ((line = input.readLine()) != null) {
-                    result.add(getObject(line));
-                }
-            }
-            finally {
-                if (input != null) {
-                    input.close();
-                }
-            }
-        }
-        return result;
-    }
-
-    /**
-     * Extract the predicate from the given triple.
-     * 
-     * @param triple
-     *            the triple from which the predicate has to be extracted
-     * 
-     * @return the predicate of the given triple
-     */
-    private String getPredicate(final String triple) {
-        String result = null;
-
-        if (triple != null) {
-            final int count = 3;
-            String[] tokens = triple.split(" ", count);
-
-            if ((tokens != null) && tokens.length == count) {
-                StringBuffer sb = new StringBuffer(tokens[1]);
-
-                sb.deleteCharAt(0);
-                sb.deleteCharAt(sb.length() - 1);
-                result = sb.toString();
-            }
-        }
-        return result;
-    }
-
-    /**
-     * Get all properties for a given resource from Fedora.
-     * 
-     * @param id
-     *            resource id
-     * 
-     * @return property map for this resource
-     * @throws IOException
-     *             Thrown if an I/O error occurred.
-     */
-    private Map<String, String> getProperties(final String id)
-        throws IOException {
-        Map<String, String> result = new HashMap<String, String>();
-
-        if (id != null) {
-            BufferedReader input = null;
-
-            try {
-                MessageFormat queryFormat = new MessageFormat(PROPERTIES_QUERY);
-                String line;
-
-                input =
-                    new BufferedReader(new InputStreamReader(fc.get(
-                        queryFormat.format(new Object[] { URLEncoder.encode(id,
-                            XmlUtility.CHARACTER_ENCODING) }), true)));
-                while ((line = input.readLine()) != null) {
-                    result.put(getPredicate(line), getObject(line));
-                }
-            }
-            finally {
-                if (input != null) {
-                    input.close();
-                }
-            }
-        }
-        return result;
-    }
-
-    /**
-     * Get all properties for a given resource from the item XML.
-     * 
-     * @param id resource id
-     * @param xml resource XML
-     * 
-     * @return property map for this resource
-     * @throws IOException Thrown if an I/O error occurred.
-     */
-    private List <Property> getProperties(final String id, final String xml)
-        throws IOException {
-        List <Property> result = null;
-
-        try {
-            SAXParserFactory spf = SAXParserFactory.newInstance();
-
-            spf.setFeature("http://xml.org/sax/features/namespaces", true);
-
-            SAXParser parser = spf.newSAXParser();
-            FilterHandler handler = new FilterHandler(id);
-
-            parser.parse(new ByteArrayInputStream(xml.getBytes(
-                XmlUtility.CHARACTER_ENCODING)), handler);
-            result = handler.getProperties();
-        }
-        catch (Exception e) {
-            log.error(e);
-            throw new IOException(e.getMessage());
-        }
-        return result;
-    }
-
-    /**
-     * Get a specific id value from the property map.
-     * 
-     * @param properties
-     *            property map for this resource
-     * @param property
-     *            name of the property to get the value for
-     * 
-     * @return id value of this property
-     */
-    private String getStringId(
-        final Map<String, String> properties, final String property) {
-        return getIdFromUri(properties.get(property));
-    }
-
-    /**
      * Extract the subject from the given triple.
      * 
      * @param triple
@@ -560,7 +314,7 @@ public class Recache extends DbResourceCache implements RecacheInterface {
      * @param resourceNamespace
      *            target namespace for the given resource type
      * 
-     * @throws ApplicationServerSystemException
+     * @throws SystemException
      *             Thrown if eSciDoc failed to receive a resource.
      * @throws IOException
      *             Thrown if an I/O error occurred.
@@ -570,7 +324,7 @@ public class Recache extends DbResourceCache implements RecacheInterface {
     private void store(
         final String type, final String listQuery, final String resourceUrl,
         final String resourceNamespace)
-        throws ApplicationServerSystemException, IOException, ParseException {
+        throws IOException, ParseException, SystemException {
         BufferedReader input = null;
 
         try {
@@ -594,10 +348,9 @@ public class Recache extends DbResourceCache implements RecacheInterface {
                     String xmlDataRest = retrieveResourceRest(resourceUrl, id);
                     String xmlDataSoap =
                         retrieveResourceSoap(resourceNamespace, id);
-                    Map<String, String> properties = getProperties(id);
 
-                    storeResource(type, id, properties, xmlDataRest,
-                        xmlDataSoap);
+                    storeProperties(getProperties(id, xmlDataRest));
+                    storeResource(type, id, xmlDataRest, xmlDataSoap);
                     count++;
                 }
             }
@@ -622,8 +375,6 @@ public class Recache extends DbResourceCache implements RecacheInterface {
      * 
      * @param id
      *            container id
-     * @param properties
-     *            map containing all filter properties
      * @param xmlDataRest
      *            complete container as XML (REST form)
      * @param xmlDataSoap
@@ -635,39 +386,12 @@ public class Recache extends DbResourceCache implements RecacheInterface {
      *             A date string cannot be parsed.
      */
     private void storeContainer(
-        final String id, final Map<String, String> properties,
-        final String xmlDataRest, final String xmlDataSoap) throws IOException,
-        ParseException {
+        final String id, final String xmlDataRest, final String xmlDataSoap)
+        throws IOException, ParseException {
         getJdbcTemplate()
             .update(
                 INSERT_CONTAINER,
-                new Object[] { id,
-                    getStringId(properties,
-                        TripleStoreUtility.PROP_CONTENT_MODEL_ID),
-                    properties.get(TripleStoreUtility.PROP_CONTENT_MODEL_TITLE),
-                    getStringId(properties, TripleStoreUtility.PROP_CONTEXT_ID),
-                    properties.get(TripleStoreUtility.PROP_CONTEXT_TITLE),
-                    getStringId(properties, TripleStoreUtility.PROP_CREATED_BY_ID),
-                    properties.get(TripleStoreUtility.PROP_CREATED_BY_TITLE),
-                    getTimestamp(properties.get(
-                        TripleStoreUtility.PROP_CREATION_DATE)),
-                    properties.get(TripleStoreUtility.PROP_DC_DESCRIPTION),
-                    getTimestamp(properties.get(
-                        TripleStoreUtility.PROP_LAST_MODIFICATION_DATE)),
-                    getStringId(properties,
-                        TripleStoreUtility.PROP_MODIFIED_BY_ID),
-                    properties.get(TripleStoreUtility.PROP_MODIFIED_BY_TITLE),
-                    properties.get(TripleStoreUtility.PROP_OBJECT_PID),
-                    properties.get(TripleStoreUtility.PROP_PUBLIC_STATUS),
-                    properties.get(TripleStoreUtility.PROP_PUBLIC_STATUS_COMMENT),
-                    properties.get(TripleStoreUtility.PROP_DC_TITLE),
-                    properties.get(TripleStoreUtility.PROP_LATEST_VERSION_NUMBER),
-                    properties.get(TripleStoreUtility.PROP_LATEST_VERSION_STATUS),
-                    xmlDataRest, xmlDataSoap });
-        for (String member : getMembers(id)) {
-            getJdbcTemplate().update(INSERT_MEMBER,
-                new Object[] { getIdFromUri(member), id });
-        }
+                new Object[] { id, xmlDataRest, xmlDataSoap });
     }
 
     /**
@@ -675,8 +399,6 @@ public class Recache extends DbResourceCache implements RecacheInterface {
      * 
      * @param id
      *            context id
-     * @param properties
-     *            map containing all filter properties
      * @param xmlDataRest
      *            complete context as XML (REST form)
      * @param xmlDataSoap
@@ -688,28 +410,11 @@ public class Recache extends DbResourceCache implements RecacheInterface {
      *             A date string cannot be parsed.
      */
     private void storeContext(
-        final String id, final Map<String, String> properties,
-        final String xmlDataRest, final String xmlDataSoap) throws IOException,
-        ParseException {
+        final String id, final String xmlDataRest, final String xmlDataSoap)
+        throws IOException, ParseException {
         getJdbcTemplate().update(
             INSERT_CONTEXT,
-            new Object[] { id,
-                getStringId(properties, TripleStoreUtility.PROP_CREATED_BY_ID),
-                properties.get(TripleStoreUtility.PROP_CREATED_BY_TITLE),
-                getTimestamp(properties.get(
-                    TripleStoreUtility.PROP_CREATION_DATE)),
-                properties.get(TripleStoreUtility.PROP_DC_DESCRIPTION),
-                getTimestamp(properties.get(
-                    TripleStoreUtility.PROP_LAST_MODIFICATION_DATE)),
-                getStringId(properties, TripleStoreUtility.PROP_MODIFIED_BY_ID),
-                properties.get(TripleStoreUtility.PROP_MODIFIED_BY_TITLE),
-                getStringId(properties,
-                    TripleStoreUtility.PROP_ORGANIZATIONAL_UNIT),
-                properties.get(TripleStoreUtility.PROP_PUBLIC_STATUS),
-                properties.get(TripleStoreUtility.PROP_PUBLIC_STATUS_COMMENT),
-                properties.get(TripleStoreUtility.PROP_DC_TITLE),
-                properties.get(TripleStoreUtility.PROP_CONTEXT_TYPE),
-                xmlDataRest, xmlDataSoap });
+            new Object[] { id, xmlDataRest, xmlDataSoap });
     }
 
     /**
@@ -717,8 +422,6 @@ public class Recache extends DbResourceCache implements RecacheInterface {
      * 
      * @param id
      *            item id
-     * @param properties
-     *            map containing all filter properties
      * @param xmlDataRest
      *            complete item as XML (REST form)
      * @param xmlDataSoap
@@ -730,35 +433,12 @@ public class Recache extends DbResourceCache implements RecacheInterface {
      *             A date string cannot be parsed.
      */
     private void storeItem(
-        final String id, final Map<String, String> properties,
-        final String xmlDataRest, final String xmlDataSoap) throws IOException,
-        ParseException {
+        final String id, final String xmlDataRest, final String xmlDataSoap)
+        throws IOException, ParseException {
         getJdbcTemplate()
             .update(
                 INSERT_ITEM,
-                new Object[] { id,
-                    getStringId(properties,
-                        TripleStoreUtility.PROP_CONTENT_MODEL_ID),
-                    properties.get(TripleStoreUtility.PROP_CONTENT_MODEL_TITLE),
-                    getStringId(properties, TripleStoreUtility.PROP_CONTEXT_ID),
-                    properties.get(TripleStoreUtility.PROP_CONTEXT_TITLE),
-                    getStringId(properties, TripleStoreUtility.PROP_CREATED_BY_ID),
-                    properties.get(TripleStoreUtility.PROP_CREATED_BY_TITLE),
-                    getTimestamp(properties.get(
-                        TripleStoreUtility.PROP_CREATION_DATE)),
-                    properties.get(TripleStoreUtility.PROP_DC_DESCRIPTION),
-                    getTimestamp(properties.get(
-                        TripleStoreUtility.PROP_LAST_MODIFICATION_DATE)),
-                    getStringId(properties,
-                        TripleStoreUtility.PROP_MODIFIED_BY_ID),
-                    properties.get(TripleStoreUtility.PROP_MODIFIED_BY_TITLE),
-                    properties.get(TripleStoreUtility.PROP_OBJECT_PID),
-                    properties.get(TripleStoreUtility.PROP_PUBLIC_STATUS),
-                    properties.get(TripleStoreUtility.PROP_PUBLIC_STATUS_COMMENT),
-                    properties.get(TripleStoreUtility.PROP_DC_TITLE),
-                    properties.get(TripleStoreUtility.PROP_LATEST_VERSION_NUMBER),
-                    properties.get(TripleStoreUtility.PROP_LATEST_VERSION_STATUS),
-                    xmlDataRest, xmlDataSoap });
+                new Object[] { id, xmlDataRest, xmlDataSoap });
     }
 
     /**
@@ -766,8 +446,6 @@ public class Recache extends DbResourceCache implements RecacheInterface {
      * 
      * @param id
      *            organizational unit id
-     * @param properties
-     *            map containing all filter properties
      * @param xmlDataRest
      *            complete organizational unit as XML (REST form)
      * @param xmlDataSoap
@@ -779,29 +457,11 @@ public class Recache extends DbResourceCache implements RecacheInterface {
      *             A date string cannot be parsed.
      */
     private void storeOU(
-        final String id, final Map<String, String> properties,
-        final String xmlDataRest, final String xmlDataSoap) throws IOException,
-        ParseException {
+        final String id, final String xmlDataRest, final String xmlDataSoap)
+        throws IOException, ParseException {
         getJdbcTemplate().update(
             INSERT_OU,
-            new Object[] { id,
-                getStringId(properties, TripleStoreUtility.PROP_CREATED_BY_ID),
-                properties.get(TripleStoreUtility.PROP_CREATED_BY_TITLE),
-                getTimestamp(properties.get(
-                    TripleStoreUtility.PROP_CREATION_DATE)),
-                properties.get(TripleStoreUtility.PROP_DC_DESCRIPTION),
-                getTimestamp(properties.get(
-                    TripleStoreUtility.PROP_LAST_MODIFICATION_DATE)),
-                getStringId(properties, TripleStoreUtility.PROP_MODIFIED_BY_ID),
-                properties.get(TripleStoreUtility.PROP_MODIFIED_BY_TITLE),
-                properties.get(TripleStoreUtility.PROP_PUBLIC_STATUS),
-                properties.get(TripleStoreUtility.PROP_PUBLIC_STATUS_COMMENT),
-                properties.get(TripleStoreUtility.PROP_DC_TITLE), xmlDataRest,
-                xmlDataSoap });
-        for (String parent : getParents(id)) {
-            getJdbcTemplate().update(INSERT_MEMBER,
-                new Object[] {id, getIdFromUri(parent)});
-        }
+            new Object[] { id, xmlDataRest, xmlDataSoap });
     }
 
     /**
@@ -829,8 +489,6 @@ public class Recache extends DbResourceCache implements RecacheInterface {
      *            must be "container", "context", "item" or "ou"
      * @param id
      *            resource id
-     * @param properties
-     *            map containing all filter properties
      * @param xmlDataRest
      *            complete item as XML (REST form)
      * @param xmlDataSoap
@@ -842,36 +500,35 @@ public class Recache extends DbResourceCache implements RecacheInterface {
      *             The given string cannot be parsed.
      */
     private void storeResource(
-        final String type, final String id,
-        final Map<String, String> properties, final String xmlDataRest,
+        final String type, final String id, final String xmlDataRest,
         final String xmlDataSoap) throws IOException, ParseException {
 
         if (type.equals("container")) {
-            storeContainer(id, properties, xmlDataRest, xmlDataSoap);
+            storeContainer(id, xmlDataRest, xmlDataSoap);
         }
         else if (type.equals("context")) {
-            storeContext(id, properties, xmlDataRest, xmlDataSoap);
+            storeContext(id, xmlDataRest, xmlDataSoap);
         }
         else if (type.equals("item")) {
-            storeItem(id, properties, xmlDataRest, xmlDataSoap);
+            storeItem(id, xmlDataRest, xmlDataSoap);
         }
         else if (type.equals("ou")) {
-            storeOU(id, properties, xmlDataRest, xmlDataSoap);
+            storeOU(id, xmlDataRest, xmlDataSoap);
         }
     }
 
     /**
      * Store all available resources in the database cache.
      * 
-     * @throws ApplicationServerSystemException
+     * @throws SystemException
      *             Thrown if eSciDoc failed to receive a resource.
      * @throws IOException
      *             Thrown if an I/O error occurred.
      * @throws ParseException
      *             The given string cannot be parsed.
      */
-    public void storeResources() throws ApplicationServerSystemException,
-        IOException, ParseException {
+    public void storeResources()
+        throws IOException, ParseException, SystemException {
         // dummy call to prevent
         // "org.apache.commons.discovery.DiscoveryException: No implementation
         // defined for org.apache.commons.logging.LogFactory"

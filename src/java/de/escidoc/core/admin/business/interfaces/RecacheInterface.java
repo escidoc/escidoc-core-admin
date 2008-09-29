@@ -28,7 +28,7 @@
  */
 package de.escidoc.core.admin.business.interfaces;
 
-import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException;
+import de.escidoc.core.common.exceptions.system.SystemException;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -50,10 +50,10 @@ public interface RecacheInterface {
     /**
      * Store all available resources in the database cache.
      * 
-     * @throws ApplicationServerSystemException Thrown if eSciDoc failed to receive a resource.
+     * @throws SystemException Thrown if eSciDoc failed to receive a resource.
      * @throws IOException Thrown if an I/O error occurred.
      * @throws ParseException The given string cannot be parsed.
      */
     void storeResources()
-        throws ApplicationServerSystemException, IOException, ParseException;
+        throws IOException, ParseException, SystemException;
 }
