@@ -39,11 +39,11 @@ CREATE TABLE IF NOT EXISTS list.property (
   resource_id                   TEXT NOT NULL,
   local_path                    TEXT NOT NULL,
   value                         TEXT NOT NULL,
-  index				INTEGER NOT NULL
+  position			INTEGER NOT NULL
 );
 
 CREATE INDEX property_id_path_value USING btree
   ON list.property (resource_id(30), local_path(30), value(30));
 
-CREATE INDEX property_path_value_index USING btree
+CREATE INDEX property_path_value_position USING btree
   ON list.property (local_path(30), value(30), index2);
