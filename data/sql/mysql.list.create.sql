@@ -46,4 +46,4 @@ CREATE INDEX property_id_path_value USING btree
   ON list.property (resource_id(30), local_path(30), value(30));
 
 CREATE INDEX property_path_value_position USING btree
-  ON list.property (local_path(30), value(30), index2);
+  ON list.property (local_path(30), value(30), position);
