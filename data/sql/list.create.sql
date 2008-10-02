@@ -43,7 +43,7 @@ CREATE TABLE list.property (
 );
 
 CREATE INDEX property_id_path_value ON list.property
-  USING btree (resource_id, local_path, substring(value, from 1 for 2000));
+  USING btree (resource_id, local_path, value(2000));
 
 CREATE INDEX property_path_value_position ON list.property
-  USING btree (local_path, substring(value, from 1 for 2000), position);
+  USING btree (local_path, value(2000), position);
