@@ -23,12 +23,23 @@
 /*
  * Copyright 2008 Fachinformationszentrum Karlsruhe Gesellschaft
  * fuer wissenschaftlich-technische Information mbH and Max-Planck-
- * Gesellschaft zur Foerderung der Wissenschaft e.V.  
+ * Gesellschaft zur Foerderung der Wissenschaft e.V.
  * All rights reserved.  Use is subject to license terms.
  */
 package de.escidoc.core.admin;
 
+import static de.escidoc.core.admin.common.util.spring.SpringConstants.BEAN_REF_FACTORY;
+import static de.escidoc.core.admin.common.util.spring.SpringConstants.ID_APPLICATION_CONTEXT;
+import static de.escidoc.core.admin.common.util.spring.SpringConstants.ID_DATA_BASE_MIGRATION_TOOL;
+import static de.escidoc.core.admin.common.util.spring.SpringConstants.ID_INGEST_TOOL;
+import static de.escidoc.core.admin.common.util.spring.SpringConstants.ID_RECACHE;
+import static de.escidoc.core.admin.common.util.spring.SpringConstants.ID_REINDEXER;
+
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Vector;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -37,10 +48,10 @@ import org.springframework.beans.factory.access.SingletonBeanFactoryLocator;
 import org.springframework.transaction.CannotCreateTransactionException;
 
 import de.escidoc.core.admin.business.FoxmlMigrationTool;
+import de.escidoc.core.admin.business.IngestTool;
 import de.escidoc.core.admin.business.interfaces.DataBaseMigrationInterface;
 import de.escidoc.core.admin.business.interfaces.RecacheInterface;
 import de.escidoc.core.admin.business.interfaces.ReindexerInterface;
-import de.escidoc.core.admin.common.util.spring.SpringConstants;
 import de.escidoc.core.common.business.Constants;
 import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException;
 import de.escidoc.core.common.exceptions.system.IntegritySystemException;
@@ -49,7 +60,7 @@ import de.escidoc.core.common.util.string.StringUtility;
 
 /**
  * Main Class for the Admin-Tool.
- * 
+ *
  * @admin
  */
 public class AdminMain {
@@ -57,56 +68,83 @@ public class AdminMain {
     private static AppLogger log = new AppLogger(AdminMain.class.getName());
 
     private final BeanFactoryLocator beanFactoryLocator =
-        SingletonBeanFactoryLocator
-            .getInstance(SpringConstants.BEAN_REF_FACTORY);
+        SingletonBeanFactoryLocator.getInstance(BEAN_REF_FACTORY);
 
     private final BeanFactory beanFactory =
-        beanFactoryLocator.useBeanFactory(
-            SpringConstants.ID_APPLICATION_CONTEXT).getFactory();
-    
+        beanFactoryLocator.useBeanFactory(ID_APPLICATION_CONTEXT).getFactory();
+
     private static final int REINDEXER_WAIT_TIME = 1000;
+
+    private static Map<String, String> methods = new HashMap<String, String>();
+
+    // call parameter name -> method name
+    static {
+        methods.put("reindex", "reindex");
+        methods.put("recache", "recache");
+        methods.put("test", "test");
+        methods.put("db-migration", "migrateDataBase");
+        methods.put("foxml-migration", "migrateFoxml");
+        methods.put("ingest-tool", "ingest");
+    }
 
     /**
      * Main Method, depends on args[0] which method is executed.
-     * 
+     *
      * @param args
      *            arguments given on commandline
      */
     public static void main(final String[] args) {
         AdminMain admin = new AdminMain();
-        if (args != null && args.length > 0) {
-            log.info(args[0]);
-            if (args[0].equals("reindex")) {
-                admin.reindex(args);
-            }
-            else if (args[0].equals("recache")) {
-                admin.recache(args);
-            }
-            else if (args[0].equals("test")) {
-                admin.test(args);
-            }
-            else if (args[0].equals("db-migration")) {
-                admin.migrateDataBase(args);
-            }
-            else if (args[0].equals("foxml-migration")) {
-                admin.migrateFoxml(args);
-            }
-            else {
-                log.error("method-argument unknown: " + args[0]);
-            }
+
+        if (args.length == 0 || args[0] == null || args[0].equals("")) {
+            admin.failMessage();
+            System.exit(-1);
         }
-        else {
-            log.error("please provide method-argument");
+
+        String methodToCall = methods.get(args[0]);
+        System.out.println(Arrays.toString(args) + " method to call: " + methodToCall);
+        Class<?>[] paramTypes = { String[].class };
+
+        Method thisMethod;
+        try {
+            thisMethod =
+                admin.getClass().getDeclaredMethod(methodToCall, paramTypes);
+            thisMethod.invoke(admin, new Object[] { args });
+
         }
+        catch (Exception e) {
+            admin.failMessage();
+            log.error("--------STACK TRACE----------");
+            e.printStackTrace();
+            System.exit(-1);
+        }
+    }
+
+    private void failMessage() {
+        log.error("please provide valid arguments.");
+        log.error("arguments can be:");
+        log.error("reindex ");
+        log.error("recache ");
+        log.error("test    ");
+        log.error("db-migration");
+        log.error("foxml-migration");
+        log.error("ingest-tool");
+    }
+
+    private void ingest(final String[] args){
+        log.info("Ingest Tool invoked");
+        IngestTool ingestTool = new IngestTool();
+        ingestTool.ingest(args);
+
     }
 
     /**
      * Migrate the content of the escidoc-core database.
-     * 
+     *
      * @param args
      *            The arguments.
      * @see de.escidoc.core.admin.business
-     *  .interfaces.DataBaseMigrationInterface#migrate()
+     *      .interfaces.DataBaseMigrationInterface#migrate()
      */
     private void migrateDataBase(final String[] args) {
 
@@ -114,7 +152,7 @@ public class AdminMain {
 
         DataBaseMigrationInterface dbm =
             (DataBaseMigrationInterface) beanFactory
-                .getBean(SpringConstants.ID_DATA_BASE_MIGRATION_TOOL);
+                .getBean(ID_DATA_BASE_MIGRATION_TOOL);
         try {
             dbm.migrate();
             log.info("");
@@ -155,8 +193,9 @@ public class AdminMain {
 
     /**
      * Migrate the Fedora Foxml files.
-     * 
-     * @param args The arguments.
+     *
+     * @param args
+     *            The arguments.
      */
     private void migrateFoxml(final String[] args) {
 
@@ -186,13 +225,13 @@ public class AdminMain {
 
     /**
      * Clear the item cache, get all items and store them in the item cache.
-     * 
+     *
      * @param args
      *            The arguments.
      */
     private void recache(final String[] args) {
         RecacheInterface recache =
-            (RecacheInterface) beanFactory.getBean(SpringConstants.ID_RECACHE);
+            (RecacheInterface) beanFactory.getBean(ID_RECACHE);
 
         try {
             recache.clearCache();
@@ -207,14 +246,13 @@ public class AdminMain {
     /**
      * delete index, get all items and containers that are released and put the
      * resourceIds into the indexer message queue.
-     * 
+     *
      * @param args
      *            The arguments.
      */
     private void reindex(final String[] args) {
         ReindexerInterface reindexer =
-            (ReindexerInterface) beanFactory
-                .getBean(SpringConstants.ID_REINDEXER);
+            (ReindexerInterface) beanFactory.getBean(ID_REINDEXER);
 
         try {
             // Get all released Items
@@ -222,7 +260,7 @@ public class AdminMain {
             // Get all released Containers
             Vector<String> containerHrefs = reindexer.getFilteredContainers();
             // Get all public viewable organizational-units
-            Vector<String> orgUnitHrefs = 
+            Vector<String> orgUnitHrefs =
                 reindexer.getFilteredOrganizationalUnits();
 
             // Delete index
@@ -234,34 +272,39 @@ public class AdminMain {
             log.info("scheduling " + containerHrefs.size()
                 + " containers for reindexing");
             log.info("scheduling " + orgUnitHrefs.size()
-                    + " organizational-units for reindexing");
+                + " organizational-units for reindexing");
 
             // Reindex released items
             for (String itemHref : itemHrefs) {
-                reindexer.sendUpdateIndexMessage(itemHref, 
-                                    Constants.ITEM_OBJECT_TYPE);
+                reindexer.sendUpdateIndexMessage(itemHref,
+                    Constants.ITEM_OBJECT_TYPE);
                 try {
-					Thread.sleep(REINDEXER_WAIT_TIME);
-				} catch (InterruptedException e) {}
+                    Thread.sleep(REINDEXER_WAIT_TIME);
+                }
+                catch (InterruptedException e) {
+                }
             }
 
             // reindex released containers
             for (String containerHref : containerHrefs) {
-                reindexer.sendUpdateIndexMessage(
-                		containerHref, Constants.CONTAINER_OBJECT_TYPE);
+                reindexer.sendUpdateIndexMessage(containerHref,
+                    Constants.CONTAINER_OBJECT_TYPE);
                 try {
-					Thread.sleep(REINDEXER_WAIT_TIME);
-				} catch (InterruptedException e) {}
+                    Thread.sleep(REINDEXER_WAIT_TIME);
+                }
+                catch (InterruptedException e) {
+                }
             }
 
             // reindex public viewable organizational-units
             for (String orgUnitHref : orgUnitHrefs) {
-                reindexer.sendUpdateIndexMessage(
-                        orgUnitHref, 
-                        Constants.ORGANIZATIONAL_UNIT_OBJECT_TYPE);
+                reindexer.sendUpdateIndexMessage(orgUnitHref,
+                    Constants.ORGANIZATIONAL_UNIT_OBJECT_TYPE);
                 try {
                     Thread.sleep(REINDEXER_WAIT_TIME);
-                } catch (InterruptedException e) {}
+                }
+                catch (InterruptedException e) {
+                }
             }
 
         }

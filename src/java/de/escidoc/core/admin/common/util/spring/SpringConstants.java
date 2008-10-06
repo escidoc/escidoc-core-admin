@@ -23,7 +23,7 @@
 /*
  * Copyright 2008 Fachinformationszentrum Karlsruhe Gesellschaft
  * fuer wissenschaftlich-technische Information mbH and Max-Planck-
- * Gesellschaft zur Foerderung der Wissenschaft e.V.  
+ * Gesellschaft zur Foerderung der Wissenschaft e.V.
  * All rights reserved.  Use is subject to license terms.
  */
 package de.escidoc.core.admin.common.util.spring;
@@ -33,6 +33,8 @@ public class SpringConstants {
     public static final String ID_RECACHE = "de.escidoc.core.admin.Recache";
 
     public static final String ID_REINDEXER = "de.escidoc.core.admin.Reindexer";
+
+    public static final String ID_INGEST_TOOL = "de.escidoc.core.admin.IngestTool";
 
     public static final String ID_DATA_BASE_MIGRATION_TOOL =
         "de.escidoc.core.admin.DataBaseMigrationTool";
