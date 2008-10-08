@@ -31,17 +31,16 @@ package de.escidoc.core.admin;
 import static de.escidoc.core.admin.common.util.spring.SpringConstants.BEAN_REF_FACTORY;
 import static de.escidoc.core.admin.common.util.spring.SpringConstants.ID_APPLICATION_CONTEXT;
 import static de.escidoc.core.admin.common.util.spring.SpringConstants.ID_DATA_BASE_MIGRATION_TOOL;
+import static de.escidoc.core.admin.common.util.spring.SpringConstants.ID_INGEST_TOOL;
 import static de.escidoc.core.admin.common.util.spring.SpringConstants.ID_RECACHE;
 import static de.escidoc.core.admin.common.util.spring.SpringConstants.ID_REINDEXER;
-import static de.escidoc.core.admin.common.util.spring.SpringConstants.ID_INGEST_TOOL;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
-
 import java.util.TreeMap;
-
 import java.util.Vector;
 
 import org.apache.commons.lang.StringUtils;
@@ -225,7 +224,7 @@ public class AdminMain {
 
         DataBaseMigrationInterface dbm =
             (DataBaseMigrationInterface) beanFactory
-                .getBean(SpringConstants.ID_DATA_BASE_MIGRATION_TOOL);
+                .getBean(ID_DATA_BASE_MIGRATION_TOOL);
         try {
             dbm.update();
             log.info("");
