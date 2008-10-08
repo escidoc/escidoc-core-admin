@@ -86,6 +86,7 @@ public class AdminMain {
         methods.put("recache", "recache");
         methods.put("test", "test");
         methods.put("db-migration", "migrateDataBase");
+        methods.put("db-update", "updateDataBase");
         methods.put("foxml-migration", "migrateFoxml");
         methods.put("ingest-tool", "ingest");
     }
@@ -189,6 +190,48 @@ public class AdminMain {
             log.warn("Please, see readme.txt.");
         }
         catch (IntegritySystemException e) {
+            log.error(e);
+        }
+        catch (CannotCreateTransactionException e) {
+            final StringBuffer errorMsg =
+                StringUtility.concatenate(
+                    "\nFailed to create transaction for database access.",
+                    "\nPlease check your database settings in your",
+                    " admin-tool.properties file.");
+            log.error(errorMsg, e);
+        }
+        catch (Exception e) {
+            if (e instanceof InvocationTargetException) {
+                if (e.getCause() != null) {
+                    log.error(e.getCause().getMessage(), e.getCause());
+                    return;
+                }
+            }
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Update the tables of the escidoc-core database.
+     * 
+     * @param args
+     *            The arguments.
+     * @see de.escidoc.core.admin.business
+     *  .interfaces.DataBaseMigrationInterface#update()
+     */
+    private void updateDataBase(final String[] args) {
+
+        log.info("Database update invoked");
+
+        DataBaseMigrationInterface dbm =
+            (DataBaseMigrationInterface) beanFactory
+                .getBean(SpringConstants.ID_DATA_BASE_MIGRATION_TOOL);
+        try {
+            dbm.update();
+            log.info("");
+            log.info("Update successfully completed.\n");
+        }
+        catch (IOException e) {
             log.error(e);
         }
         catch (CannotCreateTransactionException e) {

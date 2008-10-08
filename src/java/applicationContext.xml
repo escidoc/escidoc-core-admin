@@ -107,6 +107,7 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
 		<property name="target">
 			<bean
 				class="de.escidoc.core.admin.business.DataBaseMigrationTool">
+                <constructor-arg value="${new.datasource.script.prefix}" />
 				<property name="source">
 					<ref bean="de.escidoc.core.admin.SourceDbDao" />
 				</property>

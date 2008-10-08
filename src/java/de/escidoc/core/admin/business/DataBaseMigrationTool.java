@@ -102,6 +102,18 @@ public class DataBaseMigrationTool implements DataBaseMigrationInterface {
 
     // CHECKSTYLE:JAVADOC-OFF
 
+    private final String scriptPrefix;
+
+    /**
+     * Construct a new DataBaseMigrationTool object.
+     * 
+     * @param scriptPrefix
+     *            prefix for database script names (mainly for MySQL)
+     */
+    public DataBaseMigrationTool(final String scriptPrefix) {
+        this.scriptPrefix = scriptPrefix;
+    }
+
     /**
      * See Interface for functional description.
      * 
@@ -167,6 +179,21 @@ public class DataBaseMigrationTool implements DataBaseMigrationInterface {
 
         selfTest();
 
+    }
+
+    /**
+     * See Interface for functional description.
+     * 
+     * @throws IntegritySystemException
+     * @see de.escidoc.core.admin.business.interfaces.DataBaseMigrationInterface#update()
+     */
+    public void update() throws IOException {
+
+        log.info("Updating tables in database");
+        log.info(target.getUrl());
+
+        target.executeSqlScript(scriptPrefix 
+                + "database.update.sql");
     }
 
     /**
