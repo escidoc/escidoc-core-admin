@@ -187,6 +187,8 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
 			<ref bean="de.escidoc.core.admin.IndexerMessageQueue" />
 		</property>
 	</bean>
-
+	<bean id="de.escidoc.core.admin.IngestTool"
+		class="de.escidoc.core.admin.business.IngestTool">
+	</bean>
 </beans>
 

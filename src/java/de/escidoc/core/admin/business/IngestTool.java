@@ -1,3 +1,31 @@
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at license/ESCIDOC.LICENSE
+ * or http://www.escidoc.de/license.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at license/ESCIDOC.LICENSE.
+ * If applicable, add the following below this CDDL HEADER, with the
+ * fields enclosed by brackets "[]" replaced with your own identifying
+ * information: Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ */
+
+/*
+ * Copyright 2008 Fachinformationszentrum Karlsruhe Gesellschaft
+ * fuer wissenschaftlich-technische Information mbH and Max-Planck-
+ * Gesellschaft zur Foerderung der Wissenschaft e.V.
+ * All rights reserved.  Use is subject to license terms.
+ */
 package de.escidoc.core.admin.business;
 
 import gnu.getopt.Getopt;
@@ -9,11 +37,13 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -21,7 +51,7 @@ import javax.xml.namespace.NamespaceContext;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
-
+import static org.apache.commons.lang.StringUtils.isEmpty;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -34,6 +64,7 @@ import de.escidoc.core.client.exceptions.InternalClientException;
 import de.escidoc.core.common.business.fedora.resources.ResourceType;
 
 /**
+ * This class is a basic tool for the ingestion of resources.
  *
  * @author KST
  *
@@ -66,7 +97,7 @@ public class IngestTool {
 
     private Map<String, Object> parameters = null;
 
-    private static final Map<String, Object> classesForDeletion =
+    private static final Map<String, Object> classesHolder =
         new HashMap<String, Object>();
 
     private void setParameters(Map<String, Object> map) {
@@ -74,6 +105,7 @@ public class IngestTool {
     }
 
     /**
+     * Process the arguments from the command line and validate
      *
      * @param args
      * @return
@@ -95,25 +127,25 @@ public class IngestTool {
                 case 'f':
                     fileNameArg = g.getOptarg();
                     if (StringUtils.isEmpty(fileNameArg)) {
-                        exitOnInvalidArgument("file name may not be empty");
+                        exitOnInvalidArgument("File name must not be empty");
                     }
                     break;
                 case 'h':
                     handleArg = g.getOptarg();
                     if (StringUtils.isEmpty(handleArg)) {
-                        exitOnInvalidArgument("handle may not be empty");
+                        exitOnInvalidArgument("Handle must not be empty");
                     }
                     break;
                 case 't':
                     protocolArg = g.getOptarg();
                     if (StringUtils.isEmpty(protocolArg)) {
-                        exitOnInvalidArgument("transport may not be empty");
+                        exitOnInvalidArgument("Transport must not be empty");
                     }
                     if (!TransportProtocol.SOAP.toString().equals(
                         protocolArg.toUpperCase())
                         && !TransportProtocol.REST.toString().equals(
                             protocolArg.toUpperCase())) {
-                        exitOnInvalidArgument("transport protocol is invalid, it must be either of SOAP or REST");
+                        exitOnInvalidArgument("Transport protocol is invalid, it must be either of SOAP or REST");
                     }
                     break;
                 case 'u':
@@ -137,6 +169,11 @@ public class IngestTool {
                     exitOnInvalidArgument();
             }
         }
+        if (args.length <= 1 || isEmpty(fileNameArg) || isEmpty(handleArg)
+            || isEmpty(protocolArg)) {
+            exitOnInvalidArgument("Please provide ALL of the needed parameters");
+        }
+
         params.put("filename", fileNameArg);
         params.put("handle", handleArg);
         params.put("url", urlArg);
@@ -145,6 +182,7 @@ public class IngestTool {
     }
 
     /**
+     * Print a error message as to why the call failed and then exit.
      *
      * @param message
      */
@@ -158,6 +196,8 @@ public class IngestTool {
     }
 
     /**
+     * Main method for calling directly
+     *
      * @param args
      * @throws NoSuchMethodException
      * @throws InvocationTargetException
@@ -169,25 +209,27 @@ public class IngestTool {
     public static void main(String[] args) throws IllegalArgumentException,
         SecurityException, IllegalAccessException, InvocationTargetException,
         NoSuchMethodException {
-        IngestTool ingestTool = new IngestTool();
-        Map<String, Object> map = ingestTool.processArguments(args);
-        ingestTool.setParameters(map);
-        ingestTool.ingest();
+        new IngestTool().ingest(args);
     }
 
     /**
+     * Print the help message in case of invalid call.
      *
      * @param detail
      */
     private void printHelpMessage(String detail) {
-        System.out.println("\n" + detail);
-        System.out
-            .println("eSciDoc Ingest Tool. This tool takes a zip file containing valid resources and ingests each resource.");
-        System.out.println("Valid Usage :");
-        System.out
-            .println("ingestTool -f <filename> -h <handle> -t <transport protocol (SOAP|REST)> [-u <valid url to eSciDoc>]. If no url is provided, http://localhost:8080 is assumed.");
+        log.error("\n" + detail);
+        log
+            .error("eSciDoc Ingest Tool. This tool takes a zip file containing valid resources and ingests each resource.");
+        log.error("Valid Usage :");
+        log
+            .error("ingestTool -f <filename> -h <handle> -t <transport protocol (SOAP|REST)> [-u <valid url to eSciDoc>]. If no url is provided, http://localhost:8080 is assumed.");
     }
 
+    /**
+     *
+     * @param args
+     */
     public void ingest(String[] args) {
         Map<String, Object> map = processArguments(args);
         setParameters(map);
@@ -203,7 +245,7 @@ public class IngestTool {
      * @throws SecurityException
      * @throws IllegalArgumentException
      */
-    public void ingest() {
+    private void ingest() {
         try {
             long t1 = System.nanoTime();
             multiFromZip((String) parameters.get("filename"));
@@ -244,7 +286,7 @@ public class IngestTool {
                 ZipEntry entry = e.nextElement();
                 fileNames.add(entry.getName());
             }
-            // TODO: Sort entries ? Collections.sort(...)
+            Collections.sort(fileNames);
 
             for (String entryName : fileNames) {
                 ZipEntry entry = zipFile.getEntry(entryName);
@@ -291,7 +333,7 @@ public class IngestTool {
                     + ", HTTP status message: " + msg);
             }
             else {
-                log.error("Resource could not be ingested: " + e.getCause());
+                log.error("Resource could not be ingested: " + e);
             }
 
             // "roll back" any resource that has been ingested to this point
@@ -385,20 +427,19 @@ public class IngestTool {
         throws ClassNotFoundException, InstantiationException,
         IllegalAccessException, IllegalArgumentException, SecurityException,
         InvocationTargetException, NoSuchMethodException {
-        Object neededClassInstance = classesForDeletion.get(className);
+        Object neededClassInstance = classesHolder.get(className);
+
         if (neededClassInstance == null) {
-            Class neededClass = Class.forName(className);
-            neededClassInstance = neededClass.newInstance();
+            neededClassInstance = Class.forName(className).newInstance();
+            String handle = (String) parameters.get("handle");
+            String serviceAddress = (String) parameters.get("url");
             callMethodOnClass(neededClassInstance, "setHandle",
-                new Class[] { String.class }, new Object[] { parameters.get(
-                    "handle").toString() });
+                new Class[] { String.class }, new Object[] { handle });
             callMethodOnClass(neededClassInstance, "setServiceAddress",
-                new Class[] { String.class }, new Object[] { parameters.get(
-                    "url").toString() });
-            classesForDeletion.put(className, neededClassInstance);
+                new Class[] { String.class }, new Object[] { serviceAddress });
+            classesHolder.put(className, neededClassInstance);
         }
         return neededClassInstance;
-
     }
 
     /**

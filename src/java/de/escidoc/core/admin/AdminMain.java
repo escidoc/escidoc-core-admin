@@ -31,17 +31,20 @@ package de.escidoc.core.admin;
 import static de.escidoc.core.admin.common.util.spring.SpringConstants.BEAN_REF_FACTORY;
 import static de.escidoc.core.admin.common.util.spring.SpringConstants.ID_APPLICATION_CONTEXT;
 import static de.escidoc.core.admin.common.util.spring.SpringConstants.ID_DATA_BASE_MIGRATION_TOOL;
-import static de.escidoc.core.admin.common.util.spring.SpringConstants.ID_INGEST_TOOL;
 import static de.escidoc.core.admin.common.util.spring.SpringConstants.ID_RECACHE;
 import static de.escidoc.core.admin.common.util.spring.SpringConstants.ID_REINDEXER;
+import static de.escidoc.core.admin.common.util.spring.SpringConstants.ID_INGEST_TOOL;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+
+import java.util.TreeMap;
+
 import java.util.Vector;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.access.BeanFactoryLocator;
 import org.springframework.beans.factory.access.SingletonBeanFactoryLocator;
@@ -92,50 +95,66 @@ public class AdminMain {
      *
      * @param args
      *            arguments given on commandline
+     * @throws NoSuchMethodException
+     * @throws SecurityException
+     * @throws InvocationTargetException
+     * @throws IllegalAccessException
+     * @throws IllegalArgumentException
      */
-    public static void main(final String[] args) {
+    public static void main(final String[] args) throws SecurityException,
+        NoSuchMethodException, IllegalArgumentException,
+        IllegalAccessException, InvocationTargetException {
         AdminMain admin = new AdminMain();
 
-        if (args.length == 0 || args[0] == null || args[0].equals("")) {
+        if (args.length == 0 || StringUtils.isEmpty(args[0])) {
             admin.failMessage();
             System.exit(-1);
         }
 
         String methodToCall = methods.get(args[0]);
-        System.out.println(Arrays.toString(args) + " method to call: " + methodToCall);
-        Class<?>[] paramTypes = { String[].class };
-
-        Method thisMethod;
-        try {
-            thisMethod =
-                admin.getClass().getDeclaredMethod(methodToCall, paramTypes);
-            thisMethod.invoke(admin, new Object[] { args });
-
-        }
-        catch (Exception e) {
-            admin.failMessage();
-            log.error("--------STACK TRACE----------");
-            e.printStackTrace();
+        if (StringUtils.isEmpty(methodToCall)) {
+            admin.failMessage("provided tool name: " + StringUtils.join(args, " "));
             System.exit(-1);
         }
+        Class<?>[] paramTypes = { String[].class };
+        Method thisMethod = null;
+
+        thisMethod =
+            admin.getClass().getDeclaredMethod(methodToCall, paramTypes);
+        thisMethod.invoke(admin, new Object[] { args });
+
     }
 
-    private void failMessage() {
-        log.error("please provide valid arguments.");
-        log.error("arguments can be:");
-        log.error("reindex ");
-        log.error("recache ");
-        log.error("test    ");
-        log.error("db-migration");
-        log.error("foxml-migration");
-        log.error("ingest-tool");
+    /**
+     * Print the message indicating a failure
+     */
+    private void failMessage(String... message) {
+        for (String m : message) {
+            log.error(m);
+        }
+        log
+            .error("Invalid argument. The tool you specified could not be found.");
+        log
+        .error("Invoke the tool of your choice using this command : java -jar eSciDocCoreAdmin.jar <tool> [<arguments>].");
+        log.error("The follwoing tools are available:");
+        for (String method : new TreeMap<String, Object>(methods).keySet()) {
+            log.error(method);
+        }
     }
 
-    private void ingest(final String[] args){
+    /**
+     * Ingest a resource
+     *
+     * @see IngestTool
+     * @param args
+     */
+    private void ingest(final String[] args) {
         log.info("Ingest Tool invoked");
-        IngestTool ingestTool = new IngestTool();
+        IngestTool ingestTool =
+            (IngestTool) beanFactory.getBean(ID_INGEST_TOOL);
+        log.info("Ingest Tool instance obtained from Spring");
         ingestTool.ingest(args);
-
+        log.info("Ingest operation completed");
     }
 
     /**
