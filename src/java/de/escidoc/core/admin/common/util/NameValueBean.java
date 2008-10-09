@@ -9,22 +9,23 @@ package de.escidoc.core.admin.common.util;
 import de.escidoc.core.client.TransportProtocol;
 import de.escidoc.core.common.business.fedora.resources.ResourceType;
 
-public class NameValueBean {
+public class NameValueBean implements Comparable {
     private String fileName;
+
     private String objectId;
+
     private ResourceType type;
+
     private TransportProtocol transport;
 
-
-    public NameValueBean(String fileName, String objectId, ResourceType type, TransportProtocol transportProtocol) {
+    public NameValueBean(String fileName, String objectId, ResourceType type,
+        TransportProtocol transportProtocol) {
         super();
         this.fileName = fileName;
         this.objectId = objectId;
         this.type = type;
         this.transport = transportProtocol;
     }
-
-
 
     public String getFileName() {
         return fileName;
@@ -50,22 +51,31 @@ public class NameValueBean {
         this.type = type;
     }
 
-
-
     /**
-     * @param transport the transport to set
+     * @param transport
+     *            the transport to set
      */
     public void setTransport(TransportProtocol transport) {
         this.transport = transport;
     }
-
-
 
     /**
      * @return the transport
      */
     public TransportProtocol getTransport() {
         return transport;
+    }
+
+    /**
+     * Compare to instances of Name Value Bean
+     */
+    public final int compareTo(Object o) {
+        if (o instanceof NameValueBean) {
+            return (((NameValueBean) o).getFileName().compareTo(this
+                .getFileName()));
+        }
+        throw new RuntimeException("comparison not allowed for type "
+            + o.getClass().getName() + ". Must be of type NameValueBean");
     }
 
 }

@@ -77,7 +77,7 @@ public class AdminMain {
 
     private static final int REINDEXER_WAIT_TIME = 1000;
 
-    private static Map<String, String> methods = new HashMap<String, String>();
+    private static final Map<String, String> methods = new HashMap<String, String>();
 
     // call parameter name -> method name
     static {
@@ -106,6 +106,7 @@ public class AdminMain {
         IllegalAccessException, InvocationTargetException {
         AdminMain admin = new AdminMain();
 
+        // call has to have at least one argument
         if (args.length == 0 || StringUtils.isEmpty(args[0])) {
             admin.failMessage();
             System.exit(-1);
@@ -113,13 +114,12 @@ public class AdminMain {
 
         String methodToCall = methods.get(args[0]);
         if (StringUtils.isEmpty(methodToCall)) {
-            admin.failMessage("provided tool name: " + StringUtils.join(args, " "));
+            admin.failMessage("provided tool name: "
+                + StringUtils.join(args, " "));
             System.exit(-1);
         }
         Class<?>[] paramTypes = { String[].class };
-        Method thisMethod = null;
-
-        thisMethod =
+        Method thisMethod =
             admin.getClass().getDeclaredMethod(methodToCall, paramTypes);
         thisMethod.invoke(admin, new Object[] { args });
 
@@ -135,7 +135,7 @@ public class AdminMain {
         log
             .error("Invalid argument. The tool you specified could not be found.");
         log
-        .error("Invoke the tool of your choice using this command : java -jar eSciDocCoreAdmin.jar <tool> [<arguments>].");
+            .error("Invoke the tool of your choice using this command : java -jar eSciDocCoreAdmin.jar <tool> [<arguments>].");
         log.error("The follwoing tools are available:");
         for (String method : new TreeMap<String, Object>(methods).keySet()) {
             log.error(method);
@@ -212,11 +212,11 @@ public class AdminMain {
 
     /**
      * Update the tables of the escidoc-core database.
-     * 
+     *
      * @param args
      *            The arguments.
      * @see de.escidoc.core.admin.business
-     *  .interfaces.DataBaseMigrationInterface#update()
+     *      .interfaces.DataBaseMigrationInterface#update()
      */
     private void updateDataBase(final String[] args) {
 

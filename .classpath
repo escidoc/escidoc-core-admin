@@ -45,7 +45,7 @@
 	<classpathentry kind="lib" path="lib/eSciDoc/escidocClients.jar" sourcepath="/eSciDocCoreClient"/>
 	<classpathentry kind="lib" path="lib/java-getopt-1.0.13.jar"/>
 	<classpathentry kind="lib" path="lib/commons/commons-lang-2.4.jar"/>
-	<classpathentry kind="lib" path="lib/joda-time-1.5.2/joda-time-1.5.2.jar"/>
 	<classpathentry kind="lib" path="lib/axis/activation.jar"/>
+	<classpathentry kind="lib" path="lib/joda-time-1.5.2.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>

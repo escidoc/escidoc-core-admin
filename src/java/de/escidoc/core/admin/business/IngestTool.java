@@ -29,6 +29,7 @@
 package de.escidoc.core.admin.business;
 
 import gnu.getopt.Getopt;
+import gnu.getopt.LongOpt;
 
 import java.io.BufferedInputStream;
 import java.io.StringReader;
@@ -43,7 +44,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -53,6 +53,7 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 import static org.apache.commons.lang.StringUtils.isEmpty;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.xml.sax.InputSource;
@@ -62,6 +63,7 @@ import de.escidoc.core.client.TransportProtocol;
 import de.escidoc.core.client.exceptions.EscidocException;
 import de.escidoc.core.client.exceptions.InternalClientException;
 import de.escidoc.core.common.business.fedora.resources.ResourceType;
+import de.escidoc.core.common.util.string.StringUtility;
 
 /**
  * This class is a basic tool for the ingestion of resources.
@@ -100,6 +102,8 @@ public class IngestTool {
     private static final Map<String, Object> classesHolder =
         new HashMap<String, Object>();
 
+    private boolean verbose = false;
+
     private void setParameters(Map<String, Object> map) {
         this.parameters = map;
     }
@@ -112,9 +116,10 @@ public class IngestTool {
      */
     public Map<String, Object> processArguments(String[] args) {
         Map<String, Object> params = new HashMap<String, Object>();
-
+        LongOpt o = new LongOpt("verbose", LongOpt.NO_ARGUMENT, null, 'v');
         Getopt g =
-            new Getopt(this.getClass().getName(), args, "f:h:t:u:H::?::");
+            new Getopt(this.getClass().getName(), args, "f:h:t:u:H::?::",
+                new LongOpt[] { o });
 
         String fileNameArg = new String();
         String handleArg = new String();
@@ -164,6 +169,9 @@ public class IngestTool {
                 case '?':
                     printHelpMessage("");
                     System.exit(0);
+                    break;
+                case 'v':
+                    verbose = true;
                     break;
                 default:
                     exitOnInvalidArgument();
@@ -218,12 +226,20 @@ public class IngestTool {
      * @param detail
      */
     private void printHelpMessage(String detail) {
-        log.error("\n" + detail);
         log
-            .error("eSciDoc Ingest Tool. This tool takes a zip file containing valid resources and ingests each resource.");
-        log.error("Valid Usage :");
-        log
-            .error("ingestTool -f <filename> -h <handle> -t <transport protocol (SOAP|REST)> [-u <valid url to eSciDoc>]. If no url is provided, http://localhost:8080 is assumed.");
+            .info(StringUtility
+                .concatenate(
+                    detail,
+                    "\n",
+                    "eSciDoc Ingest Tool.\n",
+                    "This tool takes a zip file containing valid resources and ingests each resource.\n",
+                    "Valid Usage :\n",
+                    "ingestTool -f <filename> -h <handle> -t <transport protocol (SOAP|REST)> [-u <valid url to eSciDoc>] [--verbose]\n",
+                    "  -f <filename> is the name and location of the zip archive to be ingested. \n",
+                    "  -h <handle> is the name of the handle to be used for ingestion.\n",
+                    "  -t (SOAP|REST) is the transport protocol used for the ingest\n",
+                    "  -u <url> must be a valid url to the eSciDoc repository. If no url is provided, http://localhost:8080 is assumed.\n",
+                    "  --verbose turns on extensive error reporting. It shows the full stack trace for failed ingests."));
     }
 
     /**
@@ -282,6 +298,7 @@ public class IngestTool {
             Enumeration<? extends ZipEntry> e = zipFile.entries();
             List<String> fileNames = new ArrayList<String>();
 
+            // Find all files from
             while (e.hasMoreElements()) {
                 ZipEntry entry = e.nextElement();
                 fileNames.add(entry.getName());
@@ -314,58 +331,77 @@ public class IngestTool {
                     TransportProtocol.valueOf((String) parameters
                         .get("protocol"))));
 
-                log.info("Resource successfully ingested; Filename;"
-                    + latestFileName + ",type;" + objectType + ",id;"
-                    + objectId + ",time;" + ((t2 - t1) / 1000000) + " ms");
+                log.info("OK INGESTED;filename;" + latestFileName + ",type;"
+                    + objectType + ",id;" + objectId + ",time;"
+                    + ((t2 - t1) / 1000000) + " ms");
 
             }
             zipFile.close();
         }
-        // TODO: Fix exception handling, adapt for SOAP
         catch (Exception e) {
             Throwable t = e.getCause();
             if (t instanceof EscidocException) {
                 int statusCode = ((EscidocException) t).getHttpStatusCode();
                 String line = ((EscidocException) t).getHttpStatusLine();
                 String msg = ((EscidocException) t).getHttpStatusMsg();
-                log.error("Resource could not be ingested. HTTP status code: "
-                    + statusCode + ", HTTP status line: " + line
-                    + ", HTTP status message: " + msg);
+                log.error("ERROR NOT INGESTED;filename; " + latestFileName
+                    + ". HTTP status code: " + statusCode
+                    + " HTTP status message: " + msg);
+                if (verbose) {
+                    log.error("root cause : "
+                        + ExceptionUtils.getRootCause(e).toString());
+                }
             }
             else {
-                log.error("Resource could not be ingested: " + e);
+                log.error("Resource could not be ingested: "
+                    + ExceptionUtils.getRootCauseMessage(e));
             }
-
-            // "roll back" any resource that has been ingested to this point
-            for (NameValueBean bean : ingestedResources) {
-                try {
-                    deleteResource(bean);
-                    log.info("Resource successfully deleted; Filename;"
-                        + bean.getFileName() + ",type;" + bean.getType()
-                        + ",id;" + bean.getObjectId());
-                }
-                catch (Exception ex) {
-                    Throwable t1 = ex.getCause();
-                    if (t1 instanceof EscidocException) {
-                        int statusCode =
-                            ((EscidocException) t1).getHttpStatusCode();
-                        String line =
-                            ((EscidocException) t1).getHttpStatusLine();
-                        String msg = ((EscidocException) t).getHttpStatusMsg();
-                        log
-                            .error("Resource could not be deleted. HTTP status code: "
-                                + statusCode
-                                + ", HTTP status line: "
-                                + line
-                                + ", HTTP status message: " + msg);
-                    }
-                    else {
-                        log.error("Resource could not be ingested: "
-                            + ex.getCause());
-                    }
-                }
+            if (!rollBack(ingestedResources)) {
+                throw new RuntimeException(
+                    "The resources could not be removed from the system. Please check the error logs.");
             }
         }
+    }
+
+    /**
+     * Roll back the already ingested resources.
+     *
+     * @param ingestedResources
+     * @return returns a flag indicating if the operation succeeded
+     */
+    private boolean rollBack(List<NameValueBean> ingestedResources) {
+        boolean rollBackOk = true;
+        Collections.reverse(ingestedResources);
+        for (NameValueBean bean : ingestedResources) {
+            try {
+                deleteResource(bean);
+                log.info("OK DELETED;Filename;" + bean.getFileName() + ",type;"
+                    + bean.getType() + ",id;" + bean.getObjectId());
+            }
+            catch (Exception ex) {
+                Throwable t1 = ex.getCause();
+                if (t1 instanceof EscidocException) {
+                    int statusCode =
+                        ((EscidocException) t1).getHttpStatusCode();
+                    String line = ((EscidocException) t1).getHttpStatusLine();
+                    String msg = ((EscidocException) t1).getHttpStatusMsg();
+                    log
+                        .error("Resource could not be deleted. HTTP status code: "
+                            + statusCode
+                            + ", HTTP status line: "
+                            + line
+                            + ", HTTP status message: " + msg);
+                }
+                else {
+                    log
+                        .error("Resource could not be deleted: "
+                            + ex.getCause());
+                }
+                rollBackOk = false;
+                break;
+            }
+        }
+        return rollBackOk;
     }
 
     /**
@@ -402,10 +438,9 @@ public class IngestTool {
         Object neededClassInstance = null;
         try {
             neededClassInstance = getAndConfigure(className);
-            // TODO: Does the type of exception matter in this case ?
         }
         catch (Exception e) {
-            log.error(e);
+            throw new RuntimeException("Configuration exception : " + e);
         }
         return neededClassInstance;
     }
@@ -435,8 +470,11 @@ public class IngestTool {
             String serviceAddress = (String) parameters.get("url");
             callMethodOnClass(neededClassInstance, "setHandle",
                 new Class[] { String.class }, new Object[] { handle });
-            callMethodOnClass(neededClassInstance, "setServiceAddress",
-                new Class[] { String.class }, new Object[] { serviceAddress });
+            if (StringUtils.isNotEmpty(serviceAddress)) {
+                callMethodOnClass(neededClassInstance, "setServiceAddress",
+                    new Class[] { String.class },
+                    new Object[] { serviceAddress });
+            }
             classesHolder.put(className, neededClassInstance);
         }
         return neededClassInstance;
