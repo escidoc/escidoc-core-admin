@@ -5,7 +5,7 @@
 	
 	<path id="build.classpath">
 		<fileset dir="." includes="eSciDocCoreAdmin.jar" />
-	    <fileset dir="." includes="lib/saxon8.jar" />
+		<fileset dir="." includes="lib/saxon8.jar" />
 	</path>
 
 	<macrodef name="largecopy">
@@ -86,6 +86,7 @@
 			<arg value="${foxml.src.dir}"/>
 			<arg value="${foxml.target.dir}"/>
 			<arg value="xsl/GeneralToFedora30.xsl"/>
+                        <sysproperty key="javax.xml.transform.TransformerFactory" value="net.sf.saxon.TransformerFactoryImpl"/>
 			<classpath>
 				<path refid="build.classpath"/>
 			</classpath>
