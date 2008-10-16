@@ -144,8 +144,7 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
 	<bean id="de.escidoc.core.admin.EscidocCoreHandlerWithSecurity"
 		class="de.escidoc.core.admin.common.util.EscidocCoreHandler">
 		<constructor-arg index="0" value="${escidocOmUrl}" />
-		<constructor-arg index="1" value="${login}" />
-		<constructor-arg index="2" value="${password}" />
+		<constructor-arg index="1" value="${persistentHandle}" />
 	</bean>
 
 	<bean id="de.escidoc.core.admin.QueueConnectionFactory"

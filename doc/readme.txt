@@ -126,12 +126,11 @@ may also contain a transformation of the objects itself.
 	- Usage:
 		- modify admin-tool.properties:
 			- escidocOmUrl : URL of OM
-                        - fedora.user : Fedora admin user name
-                        - fedora.password : Fedora admin password
-                        - fedora.url : URL of Fedora
-                        - new.datasource.* : JDBC properties for eSciDoc database
-                        - login: eSciDoc admin login name
-                        - password : eSciDoc admin password
+            - fedora.user : Fedora admin user name
+            - fedora.password : Fedora admin password
+            - fedora.url : URL of Fedora
+            - new.datasource.* : JDBC properties for eSciDoc database
+            - persistentHandle: persistent handle of eSciDoc systemadmin
 
         - Execute 
             - java -jar eSciDocCoreAdmin.jar recache
@@ -164,6 +163,7 @@ may also contain a transformation of the objects itself.
         - modify admin-tool.properties:
             - escidocOmUrl : URL of OM
             - escidocSbUrl: URL of naming-service of SB
+            - persistentHandle: persistent handle of eSciDoc systemadmin
         - Execute 
             - java -jar eSciDocCoreAdmin.jar reindex 
             or

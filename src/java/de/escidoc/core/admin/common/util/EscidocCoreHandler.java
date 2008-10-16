@@ -129,6 +129,26 @@ public class EscidocCoreHandler {
     }
 
     /**
+     * initialize EscidocCoreHandler with escidocCoreUrl to eSciDocCore-System
+     * and securityHandle.
+     * 
+     * @param escidocCoreUrl
+     *            String escidocCoreUrl.
+     * @param persistentHandle
+     *            String persistentHandle.
+     * @throws Exception
+     *             e
+     * 
+     * @admin
+     */
+    public EscidocCoreHandler(
+            final String escidocCoreUrl, 
+            final String persistentHandle) throws Exception {
+        securityHandle = persistentHandle;
+        httpRequester = new HttpRequester(escidocCoreUrl, securityHandle);
+    }
+
+    /**
      * requests escidoc-resource with post-request.
      * 
      * <pre>
@@ -202,7 +222,8 @@ public class EscidocCoreHandler {
      *             e
      * @admin
      */
-    public String putRequestEscidoc(final String resource, final String putParam)
+    public String putRequestEscidoc(
+            final String resource, final String putParam)
         throws ApplicationServerSystemException {
         try {
             String result = httpRequester.doPut(resource, putParam);
@@ -249,7 +270,8 @@ public class EscidocCoreHandler {
                     "MIMETypedStream");
             Class mappingClass =
                 Class
-                    .forName("de.escidoc.core.om.service.result.MIMETypedStream");
+                    .forName(
+                       "de.escidoc.core.om.service.result.MIMETypedStream");
             call.registerTypeMapping(mappingClass, poqn,
                 new BeanSerializerFactory(mappingClass, poqn),
                 new BeanDeserializerFactory(mappingClass, poqn));
@@ -376,6 +398,7 @@ public class EscidocCoreHandler {
      * @param xml
      *            String xml.
      * @return String userHandle
+     * @throws Exception e
      * 
      * @admin
      */
