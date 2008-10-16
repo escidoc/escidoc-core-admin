@@ -144,6 +144,7 @@ public class EscidocCoreHandler {
     public EscidocCoreHandler(
             final String escidocCoreUrl, 
             final String persistentHandle) throws Exception {
+        login = "escidoc";
         securityHandle = persistentHandle;
         httpRequester = new HttpRequester(escidocCoreUrl, securityHandle);
     }
