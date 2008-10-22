@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="http://localhost:8080/xsl/Resource2Html.xsl"?>
+<user-account:user-account
+	xmlns:user-account="http://www.escidoc.de/schemas/useraccount/0.3"
+	xmlns:xlink="http://www.w3.org/1999/xlink"
+	xmlns:xml="http://www.w3.org/XML/1998/namespace"
+	xml:base="http://localhost:8080" xlink:type="simple"
+	xlink:title="Test Depositor Scientist"
+	xlink:href="/aa/user-account/escidoc:user1"
+	last-modification-date="2008-06-24T08:58:06.342Z">
+	<user-account:properties>
+		<user-account:creation-date>
+			2008-06-24T08:58:06.342Z
+		</user-account:creation-date>
+		<user-account:created-by xlink:type="simple"
+			xlink:title="Test Depositor Scientist"
+			xlink:href="/aa/user-account/escidoc:user1" />
+		<user-account:modified-by xlink:type="simple"
+			xlink:title="Test Depositor Scientist"
+			xlink:href="/aa/user-account/escidoc:user1" />
+		<user-account:name>Test Depositor Scientist</user-account:name>
+		<user-account:login-name>
+			test_dep_scientist
+		</user-account:login-name>
+		<user-account:active>true</user-account:active>
+		<user-account:organizational-units>
+			<user-account:organizational-unit xlink:type="simple"
+				xlink:title="Department Research and Development"
+				xlink:href="/oum/organizational-unit/escidoc:persistent1"
+				primary="true" />
+		</user-account:organizational-units>
+	</user-account:properties>
+	<user-account:resources xlink:type="simple"
+		xlink:title="Virtual Resources"
+		xlink:href="/aa/user-account/escidoc:user1/resources">
+		<user-account:current-grants xlink:type="simple"
+			xlink:title="Current Grants"
+			xlink:href="/aa/user-account/escidoc:user1/resources/current-grants" />
+	</user-account:resources>
+</user-account:user-account>

@@ -1,0 +1,114 @@
+<?xml version="1.0"?>
+
+<project name="eSciDoc infrastructure admin tool - main build file" default="dist" basedir=".">
+
+	<property file="etc/${user.name}.properties" />
+	<property file="etc/project.properties" />
+
+	<path id="build.classpath">
+		<pathelement path="${classpath}" />
+		<fileset dir="${lib.dir}" includes="**/*.jar" />
+	</path>
+
+	<target name="dist" depends="admin-jar">
+		<copy todir="${dist.build.dir}" failonerror="false">
+			<fileset dir="${bin.src.dir}" includes="**/*" />
+			<fileset dir="${doc.src.dir}" includes="**/*" />
+			<fileset dir="${etc.dir}" includes="admin-tool.properties" />
+			<fileset dir="${foxml-migration.src.dir}" />
+		</copy>
+	</target>
+
+	<!-- Cleans the output folders -->
+	<target name="clean" description="Cleans the output folders">
+		<delete includeEmptyDirs="true" failonerror="false">
+			<fileset dir="${java.build.dir}" includes="**/*" />
+			<fileset dir="${dist.build.dir}" includes="**/*" />
+			<fileset dir="${admin.jar.build.dir}" includes="**/*" />
+			<fileset dir="${main.jar.build.dir}" includes="**/*" />
+		</delete>
+	</target>
+
+	<!-- Creates the output folders -->
+	<target name="prepare" depends="clean" description="Creates the output folders">
+		<mkdir dir="${java.build.dir}" />
+		<mkdir dir="${dist.build.dir}" />
+		<mkdir dir="${main.jar.build.dir}" />
+		<mkdir dir="${admin.jar.build.dir}" />
+		<mkdir dir="${admin.jar.main.dir}" />
+		<mkdir dir="${admin.jar.lib.dir}" />
+	</target>
+
+	<target name="build" depends="clean, prepare, compile, copy">
+	</target>
+
+	<!-- Compile -->
+	<target name="compile" description="Compile java classes">
+		<javac destdir="${java.build.dir}" debug="on">
+			<classpath refid="build.classpath" />
+			<src path="${java.src.dir}" />
+		</javac>
+		<javac destdir="${java.build.dir}" debug="on">
+			<classpath refid="build.classpath" />
+			<src path="${test.src.dir}" />
+		</javac>
+	</target>
+
+	<!-- Copy -->
+	<target name="copy" description="copy metadata-files">
+		<copy todir="${java.build.dir}">
+			<fileset dir="${etc.dir}" includes="**/log4j.*" />
+		</copy>
+		<copy todir="${java.build.dir}">
+			<fileset dir="${etc.dir}" includes="**/admin-tool.properties" />
+		</copy>
+		<copy todir="${java.build.dir}">
+			<fileset dir="${test.src.dir}" includes="**/*.xml" />
+		</copy>
+		<copy todir="${java.build.dir}">
+			<fileset dir="${java.src.dir}" includes="**/*.xml" />
+		</copy>
+	</target>
+	
+	<target name="main-jar" depends="build">
+		<copy todir="${main.jar.build.dir}">
+			<fileset dir="${java.build.dir}" includes="de/**/*.class" excludes="**/test/**/*.class"/>
+		</copy>
+		<delete dir="${main.jar.build.dir}/com" failonerror="false" />
+
+		<jar jarfile="${admin.jar.main.dir}/${main.jar.name}" basedir="${main.jar.build.dir}" />
+	</target>
+
+	<target name="admin-jar" depends="main-jar">
+		<copy todir="${admin.jar.build.dir}">
+			<fileset dir="${java.build.dir}" includes="**/*.class"  excludes="**/test/**/*.class"/>
+			<fileset dir="${etc.dir}" includes="**/log4j.*" />
+			
+			<fileset dir="${java.src.dir}" includes="*.xml" />
+			<fileset dir="${sql.src.dir}" includes="*.sql" />
+			
+		</copy>
+		<delete failonerror="false" >
+			<fileset dir="${admin.jar.build.dir}/de" excludes="**/EscidocXsltFunctions.class"/>
+	    </delete>
+		<copy todir="${admin.jar.lib.dir}">
+			<fileset dir="${lib.dir}" includes="**/*"  excludes="**/test/**/*"/>
+		</copy>
+		<jar jarfile="${dist.build.dir}/${admin.jar.name}" manifest="${metadata.src.dir}/Manifest.mf">
+			<fileset dir="${admin.jar.build.dir}" includes="**/*" />
+		</jar>
+	</target>
+
+	<target name="junit">
+		<ant antfile="${src.bin.dir}/build-junit.xml" target="test-fail" dir="" />
+	</target>
+
+        <target name="recache">
+                <java jar="${dist.build.dir}/eSciDocCoreAdmin.jar" fork="true">
+                        <arg value="recache" />
+                </java>
+        </target>
+
+
+
+</project>
