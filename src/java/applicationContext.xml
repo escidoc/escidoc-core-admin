@@ -1,14 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
 	xsi:schemaLocation="
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
 http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.5.xsd"
 	default-autowire="no" default-lazy-init="true"
 	default-dependency-check="none">
-
 	<bean id="de.escidoc.core.admin.PropertyPlaceholderConfigurer"
 		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
 		<property name="locations">
@@ -19,39 +16,30 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
 		</property>
 		<property name="ignoreResourceNotFound" value="true" />
 	</bean>
-
-	<bean id="de.escidoc.core.admin.ReaderDataSource"
-		class="org.apache.commons.dbcp.BasicDataSource">
-		<property name="driverClassName"
-			value="${datasource.driverClassName}" />
+	<bean id="de.escidoc.core.admin.ReaderDataSource" class="org.apache.commons.dbcp.BasicDataSource">
+		<property name="driverClassName" value="${datasource.driverClassName}" />
 		<property name="url" value="${datasource.url}" />
 		<property name="username" value="${datasource.username}" />
 		<property name="password" value="${datasource.password}" />
 	</bean>
-
-	<bean id="de.escidoc.core.admin.DataSource"
-		class="org.apache.commons.dbcp.BasicDataSource">
-		<property name="driverClassName"
-			value="${new.datasource.driverClassName}" />
+	<bean id="de.escidoc.core.admin.DataSource" class="org.apache.commons.dbcp.BasicDataSource">
+		<property name="driverClassName" value="${new.datasource.driverClassName}" />
 		<property name="url" value="${new.datasource.url}" />
 		<property name="username" value="${new.datasource.username}" />
 		<property name="password" value="${new.datasource.password}" />
 	</bean>
-
 	<bean id="de.escidoc.core.admin.ReadertxManager"
 		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
 		<property name="dataSource">
 			<ref bean="de.escidoc.core.admin.ReaderDataSource" />
 		</property>
 	</bean>
-
 	<bean id="de.escidoc.core.admin.txManager"
 		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
 		<property name="dataSource">
 			<ref bean="de.escidoc.core.admin.DataSource" />
 		</property>
 	</bean>
-
 	<bean id="de.escidoc.core.admin.ReadertxProxyTemplate"
 		class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean"
 		abstract="true" lazy-init="true">
@@ -64,7 +52,6 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
 			</props>
 		</property>
 	</bean>
-
 	<bean id="de.escidoc.core.admin.txProxyTemplate"
 		class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean"
 		abstract="true" lazy-init="true">
@@ -77,9 +64,7 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
 			</props>
 		</property>
 	</bean>
-
-	<bean id="de.escidoc.core.admin.SourceDbDao"
-		parent="de.escidoc.core.admin.ReadertxProxyTemplate">
+	<bean id="de.escidoc.core.admin.SourceDbDao" parent="de.escidoc.core.admin.ReadertxProxyTemplate">
 		<property name="target">
 			<bean class="de.escidoc.core.admin.business.SourceDbDao">
 				<property name="dataSource">
@@ -89,9 +74,7 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
 			</bean>
 		</property>
 	</bean>
-
-	<bean id="de.escidoc.core.admin.TargetDbDao"
-		parent="de.escidoc.core.admin.txProxyTemplate">
+	<bean id="de.escidoc.core.admin.TargetDbDao" parent="de.escidoc.core.admin.txProxyTemplate">
 		<property name="target">
 			<bean class="de.escidoc.core.admin.business.TargetDbDao">
 				<property name="dataSource">
@@ -101,13 +84,10 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
 			</bean>
 		</property>
 	</bean>
-
-	<bean id="de.escidoc.core.admin.DataBaseMigrationTool"
-		parent="de.escidoc.core.admin.txProxyTemplate">
+	<bean id="de.escidoc.core.admin.DataBaseMigrationTool" parent="de.escidoc.core.admin.txProxyTemplate">
 		<property name="target">
-			<bean
-				class="de.escidoc.core.admin.business.DataBaseMigrationTool">
-                <constructor-arg value="${new.datasource.script.prefix}" />
+			<bean class="de.escidoc.core.admin.business.DataBaseMigrationTool">
+				<constructor-arg value="${new.datasource.script.prefix}" />
 				<property name="source">
 					<ref bean="de.escidoc.core.admin.SourceDbDao" />
 				</property>
@@ -120,33 +100,28 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
 	</bean>
 
 	<!-- RECACHE -->
-	<bean id="de.escidoc.core.admin.Recache"
-		class="de.escidoc.core.admin.business.Recache">
+	<bean id="de.escidoc.core.admin.Recache" class="de.escidoc.core.admin.business.Recache">
 		<constructor-arg value="${fedora.user}" />
 		<constructor-arg value="${fedora.password}" />
 		<constructor-arg value="${fedora.url}" />
-                <constructor-arg value="${new.datasource.script.prefix}" />
+		<constructor-arg value="${new.datasource.script.prefix}" />
 		<property name="dataSource">
 			<ref bean="de.escidoc.core.admin.DataSource" />
 		</property>
 		<property name="escidocCoreHandler">
-			<ref
-				bean="de.escidoc.core.admin.EscidocCoreHandlerWithSecurity" />
+			<ref bean="de.escidoc.core.admin.EscidocCoreHandlerWithSecurity" />
 		</property>
 	</bean>
 
 	<!-- REINDEXER -->
-	<bean id="de.escidoc.core.admin.EscidocCoreHandler"
-		class="de.escidoc.core.admin.common.util.EscidocCoreHandler">
+	<bean id="de.escidoc.core.admin.EscidocCoreHandler" class="de.escidoc.core.admin.common.util.EscidocCoreHandler">
 		<constructor-arg value="${escidocOmUrl}" />
 	</bean>
-
 	<bean id="de.escidoc.core.admin.EscidocCoreHandlerWithSecurity"
 		class="de.escidoc.core.admin.common.util.EscidocCoreHandler">
 		<constructor-arg index="0" value="${escidocOmUrl}" />
 		<constructor-arg index="1" value="${persistentHandle}" />
 	</bean>
-
 	<bean id="de.escidoc.core.admin.QueueConnectionFactory"
 		class="de.escidoc.core.admin.common.util.spring.RemoteJndiLocator"
 		lazy-init="true">
@@ -157,7 +132,6 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
 			<value>${escidocSbUrl}</value>
 		</property>
 	</bean>
-
 	<bean id="de.escidoc.core.admin.IndexerMessageQueue"
 		class="de.escidoc.core.admin.common.util.spring.RemoteJndiLocator"
 		lazy-init="true">
@@ -168,9 +142,7 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
 			<value>${escidocSbUrl}</value>
 		</property>
 	</bean>
-
-	<bean id="de.escidoc.core.admin.Reindexer"
-		class="de.escidoc.core.admin.business.Reindexer">
+	<bean id="de.escidoc.core.admin.Reindexer" class="de.escidoc.core.admin.business.Reindexer">
 		<property name="queueUser">
 			<value>${indexerQueueUser}</value>
 		</property>
@@ -187,8 +159,4 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
 			<ref bean="de.escidoc.core.admin.IndexerMessageQueue" />
 		</property>
 	</bean>
-	<bean id="de.escidoc.core.admin.IngestTool"
-		class="de.escidoc.core.admin.business.IngestTool">
-	</bean>
 </beans>
-

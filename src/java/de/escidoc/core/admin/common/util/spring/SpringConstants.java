@@ -34,8 +34,6 @@ public class SpringConstants {
 
     public static final String ID_REINDEXER = "de.escidoc.core.admin.Reindexer";
 
-    public static final String ID_INGEST_TOOL = "de.escidoc.core.admin.IngestTool";
-
     public static final String ID_DATA_BASE_MIGRATION_TOOL =
         "de.escidoc.core.admin.DataBaseMigrationTool";
 

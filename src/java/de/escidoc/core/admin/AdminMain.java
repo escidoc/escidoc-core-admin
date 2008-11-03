@@ -31,7 +31,6 @@ package de.escidoc.core.admin;
 import static de.escidoc.core.admin.common.util.spring.SpringConstants.BEAN_REF_FACTORY;
 import static de.escidoc.core.admin.common.util.spring.SpringConstants.ID_APPLICATION_CONTEXT;
 import static de.escidoc.core.admin.common.util.spring.SpringConstants.ID_DATA_BASE_MIGRATION_TOOL;
-import static de.escidoc.core.admin.common.util.spring.SpringConstants.ID_INGEST_TOOL;
 import static de.escidoc.core.admin.common.util.spring.SpringConstants.ID_RECACHE;
 import static de.escidoc.core.admin.common.util.spring.SpringConstants.ID_REINDEXER;
 
@@ -50,7 +49,6 @@ import org.springframework.beans.factory.access.SingletonBeanFactoryLocator;
 import org.springframework.transaction.CannotCreateTransactionException;
 
 import de.escidoc.core.admin.business.FoxmlMigrationTool;
-import de.escidoc.core.admin.business.IngestTool;
 import de.escidoc.core.admin.business.interfaces.DataBaseMigrationInterface;
 import de.escidoc.core.admin.business.interfaces.RecacheInterface;
 import de.escidoc.core.admin.business.interfaces.ReindexerInterface;
@@ -77,7 +75,8 @@ public class AdminMain {
 
     private static final int REINDEXER_WAIT_TIME = 1000;
 
-    private static final Map<String, String> methods = new HashMap<String, String>();
+    private static final Map<String, String> methods =
+        new HashMap<String, String>();
 
     // call parameter name -> method name
     static {
@@ -87,7 +86,6 @@ public class AdminMain {
         methods.put("db-migration", "migrateDataBase");
         methods.put("db-update", "updateDataBase");
         methods.put("foxml-migration", "migrateFoxml");
-        methods.put("ingest-tool", "ingest");
     }
 
     /**
@@ -140,21 +138,6 @@ public class AdminMain {
         for (String method : new TreeMap<String, Object>(methods).keySet()) {
             log.error(method);
         }
-    }
-
-    /**
-     * Ingest a resource
-     *
-     * @see IngestTool
-     * @param args
-     */
-    private void ingest(final String[] args) {
-        log.info("Ingest Tool invoked");
-        IngestTool ingestTool =
-            (IngestTool) beanFactory.getBean(ID_INGEST_TOOL);
-        log.info("Ingest Tool instance obtained from Spring");
-        ingestTool.ingest(args);
-        log.info("Ingest operation completed");
     }
 
     /**
