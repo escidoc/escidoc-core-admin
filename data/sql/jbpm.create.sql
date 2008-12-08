@@ -1,6 +1,6 @@
 CREATE SCHEMA jbpm;
 
-ALTER USER postgres SET search_path TO public,jbpm;
+ALTER USER escidoc SET search_path TO public,jbpm;
 
 create table jbpm.JBPM_ACTION (ID_ int8 not null, class char(1) not null, NAME_ varchar(255), ISPROPAGATIONALLOWED_ bool, ACTIONEXPRESSION_ varchar(255), ISASYNC_ bool, REFERENCEDACTION_ int8, ACTIONDELEGATION_ int8, EVENT_ int8, PROCESSDEFINITION_ int8, TIMERNAME_ varchar(255), DUEDATE_ varchar(255), REPEAT_ varchar(255), TRANSITIONNAME_ varchar(255), TIMERACTION_ int8, EXPRESSION_ varchar(4000), EVENTINDEX_ int4, EXCEPTIONHANDLER_ int8, EXCEPTIONHANDLERINDEX_ int4, primary key (ID_));;
 create table jbpm.JBPM_BYTEARRAY (ID_ int8 not null, NAME_ varchar(255), FILEDEFINITION_ int8, primary key (ID_));
