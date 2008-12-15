@@ -54,57 +54,98 @@ import fedora.client.FedoraClient;
 
 /**
  * Provides methods used for recaching.
- * 
+ *
  * @spring.bean id="de.escidoc.core.admin.Recache"
- * 
+ *
  * @admin
  */
 public class Recache extends DbResourceCache implements RecacheInterface {
 
+    /**
+     * Logging goes here.
+     */
     private static AppLogger log = new AppLogger(Recache.class.getName());
 
     /**
-     * SQL statements.
+     * SQL statement to insert a container.
      */
     private static final String INSERT_CONTAINER =
-        "INSERT INTO list.container (id, rest_content, soap_content) VALUES (?, ?, ?)";
+        "INSERT INTO list.container (id, rest_content, soap_content) VALUES "
+        + "(?, ?, ?)";
 
+    /**
+     * SQL statement to insert a context.
+     */
     private static final String INSERT_CONTEXT =
-        "INSERT INTO list.context (id, rest_content, soap_content) VALUES (?, ?, ?)";
+        "INSERT INTO list.context (id, rest_content, soap_content) VALUES "
+        + "(?, ?, ?)";
 
+    /**
+     * SQL statement to insert an item.
+     */
     private static final String INSERT_ITEM =
-        "INSERT INTO list.item (id, rest_content, soap_content) VALUES (?, ?, ?)";
+        "INSERT INTO list.item (id, rest_content, soap_content) VALUES "
+        + "(?, ?, ?)";
 
+    /**
+     * SQL statement to insert an organizational unit.
+     */
     private static final String INSERT_OU =
         "INSERT INTO list.ou (id, rest_content, soap_content) VALUES (?, ?, ?)";
 
     /**
-     * Triplestore queries.
+     * Triplestore query to get a list of all containers.
      */
     private static final String CONTAINER_LIST_QUERY =
-        "/risearch?type=triples&lang=spo&format=N-Triples&query=*%20%3chttp://www.w3.org/1999/02/22-rdf-syntax-ns%23type%3e%20%3chttp://escidoc.de/core/01/resources/Container%3e";
-
-    private static final String CONTEXT_LIST_QUERY =
-        "/risearch?type=triples&lang=spo&format=N-Triples&query=*%20%3chttp://www.w3.org/1999/02/22-rdf-syntax-ns%23type%3e%20%3chttp://escidoc.de/core/01/resources/Context%3e";
-
-    private static final String ITEM_LIST_QUERY =
-        "/risearch?type=triples&lang=spo&format=N-Triples&query=*%20%3chttp://www.w3.org/1999/02/22-rdf-syntax-ns%23type%3e%20%3chttp://escidoc.de/core/01/resources/Item%3e";
-
-    private static final String OU_LIST_QUERY =
-        "/risearch?type=triples&lang=spo&format=N-Triples&query=*%20%3chttp://www.w3.org/1999/02/22-rdf-syntax-ns%23type%3e%20%3chttp://escidoc.de/core/01/resources/OrganizationalUnit%3e";
+        "/risearch?type=triples&lang=spo&format=N-Triples&query=*%20%3chttp://"
+        + "www.w3.org/1999/02/22-rdf-syntax-ns%23type%3e%20%3chttp://escidoc.d"
+        + "e/core/01/resources/Container%3e";
 
     /**
-     * Axis URLs.
+     * Triplestore query to get a list of all context.
+     */
+    private static final String CONTEXT_LIST_QUERY =
+        "/risearch?type=triples&lang=spo&format=N-Triples&query=*%20%3chttp://"
+        + "www.w3.org/1999/02/22-rdf-syntax-ns%23type%3e%20%3chttp://escidoc.d"
+        + "e/core/01/resources/Context%3e";
+
+    /**
+     * Triplestore query to get a list of all items.
+     */
+    private static final String ITEM_LIST_QUERY =
+        "/risearch?type=triples&lang=spo&format=N-Triples&query=*%20%3chttp://"
+        + "www.w3.org/1999/02/22-rdf-syntax-ns%23type%3e%20%3chttp://escidoc.d"
+        + "e/core/01/resources/Item%3e";
+
+    /**
+     * Triplestore query to get a list of all organizational units.
+     */
+    private static final String OU_LIST_QUERY =
+        "/risearch?type=triples&lang=spo&format=N-Triples&query=*%20%3chttp://"
+        + "www.w3.org/1999/02/22-rdf-syntax-ns%23type%3e%20%3chttp://escidoc.d"
+        + "e/core/01/resources/OrganizationalUnit%3e";
+
+    /**
+     * Axis URL to the container handler.
      */
     private static final String AXIS_CONTAINER_HANDLER_TARGET_NAMESPACE =
         "http://localhost:8080/axis/services/ContainerHandlerService";
 
+    /**
+     * Axis URL to the context handler.
+     */
     private static final String AXIS_CONTEXT_HANDLER_TARGET_NAMESPACE =
         "http://localhost:8080/axis/services/ContextHandlerService";
 
+    /**
+     * Axis URL to the item handler.
+     */
     private static final String AXIS_ITEM_HANDLER_TARGET_NAMESPACE =
         "http://localhost:8080/axis/services/ItemHandlerService";
 
+    /**
+     * Axis URL to the organizational unit handler.
+     */
     private static final String AXIS_OU_HANDLER_TARGET_NAMESPACE =
         "http://localhost:8080/axis/services/OrganizationalUnitHandlerService";
 
@@ -114,14 +155,23 @@ public class Recache extends DbResourceCache implements RecacheInterface {
     private static final String RETRIEVE_METHOD_NAME = "retrieve";
 
     /**
-     * eSciDoc URLs.
+     * eSciDoc URL to the container handler.
      */
     private static final String CONTAINER_URL = "/ir/container/";
 
+    /**
+     * eSciDoc URL to the context handler.
+     */
     private static final String CONTEXT_URL = "/ir/context/";
 
+    /**
+     * eSciDoc URL to the item handler.
+     */
     private static final String ITEM_URL = "/ir/item/";
 
+    /**
+     * eSciDoc URL to the organizational unit handler.
+     */
     private static final String OU_URL = "/oum/organizational-unit/";
 
     /**
@@ -131,14 +181,23 @@ public class Recache extends DbResourceCache implements RecacheInterface {
         Pattern.compile("(<[^?].*)", Pattern.MULTILINE | Pattern.DOTALL);
 
     /**
-     * Properties from configuration file.
+     * Property "fedoraUser" from configuration file.
      */
     private final String fedoraUser;
 
+    /**
+     * Property "fedoraPassword" from configuration file.
+     */
     private final String fedoraPassword;
 
+    /**
+     * Property "fedoraUrl" from configuration file.
+     */
     private final String fedoraUrl;
 
+    /**
+     * Property "scriptPrefix" from configuration file.
+     */
     private final String scriptPrefix;
 
     /**
@@ -153,22 +212,22 @@ public class Recache extends DbResourceCache implements RecacheInterface {
 
     /**
      * Construct a new Recache object.
-     * 
-     * @param fedoraUser
+     *
+     * @param aFedoraUser
      *            privileged Fedora user
-     * @param fedoraPassword
+     * @param aFedoraPassword
      *            password of a privileged Fedora user
-     * @param fedoraUrl
+     * @param aFedoraUrl
      *            Fedora base URL
-     * @param scriptPrefix
+     * @param aScriptPrefix
      *            prefix for database script names (mainly for MySQL)
      */
-    public Recache(final String fedoraUser, final String fedoraPassword,
-        final String fedoraUrl, final String scriptPrefix) {
-        this.fedoraUser = fedoraUser;
-        this.fedoraPassword = fedoraPassword;
-        this.fedoraUrl = fedoraUrl;
-        this.scriptPrefix = scriptPrefix;
+    public Recache(final String aFedoraUser, final String aFedoraPassword,
+        final String aFedoraUrl, final String aScriptPrefix) {
+        this.fedoraUser = aFedoraUser;
+        this.fedoraPassword = aFedoraPassword;
+        this.fedoraUrl = aFedoraUrl;
+        this.scriptPrefix = aScriptPrefix;
     }
 
     /**
@@ -176,7 +235,7 @@ public class Recache extends DbResourceCache implements RecacheInterface {
      *
      * @throws IOException Thrown if an I/O error occurred.
      */
-    public void clearCache() throws IOException {
+    public final void clearCache() throws IOException {
         executeSqlScript(scriptPrefix + "list.drop.sql");
         executeSqlScript(scriptPrefix + "list.create.sql");
     }
@@ -212,10 +271,10 @@ public class Recache extends DbResourceCache implements RecacheInterface {
 
     /**
      * Extract the subject from the given triple.
-     * 
+     *
      * @param triple
      *            the triple from which the subject has to be extracted
-     * 
+     *
      * @return the subject of the given triple
      */
     private String getSubject(final String triple) {
@@ -233,12 +292,12 @@ public class Recache extends DbResourceCache implements RecacheInterface {
 
     /**
      * Retrieve a single resource from eSciDoc (REST form).
-     * 
+     *
      * @param url
      *            eScidoc URL to retrieve the resource
      * @param id
      *            resource id
-     * 
+     *
      * @return XML representation of this resource
      * @throws ApplicationServerSystemException
      *             Thrown if eSciDoc failed to receive the resource.
@@ -256,12 +315,12 @@ public class Recache extends DbResourceCache implements RecacheInterface {
 
     /**
      * Retrieve a single resource from eSciDoc (SOAP form).
-     * 
+     *
      * @param namespace
      *            target namespace
      * @param id
      *            resource id
-     * 
+     *
      * @return XML representation of this resource
      * @throws ApplicationServerSystemException
      *             Thrown if eSciDoc failed to receive the resource.
@@ -283,28 +342,28 @@ public class Recache extends DbResourceCache implements RecacheInterface {
     }
 
     /**
-     * @param escidocCoreHandler
+     * @param aEscidocCoreHandler
      *            the escidocCoreHandler to set
      */
-    public void setEscidocCoreHandler(
-        final EscidocCoreHandler escidocCoreHandler) {
-        this.escidocCoreHandler = escidocCoreHandler;
+    public final void setEscidocCoreHandler(
+        final EscidocCoreHandler aEscidocCoreHandler) {
+        this.escidocCoreHandler = aEscidocCoreHandler;
     }
 
     /**
      * Injects the data source.
-     * 
+     *
      * @spring.property ref="escidoc-core.DataSource"
      * @param myDataSource
      *            data source from Spring
      */
-    public void setMyDataSource(final DataSource myDataSource) {
+    public final void setMyDataSource(final DataSource myDataSource) {
         super.setDataSource(myDataSource);
     }
 
     /**
      * Store all available resources of the given type in the database cache.
-     * 
+     *
      * @param type
      *            must be "container" or "item"
      * @param listQuery
@@ -313,7 +372,7 @@ public class Recache extends DbResourceCache implements RecacheInterface {
      *            eSciDoc URL to retrieve a resource of the given type
      * @param resourceNamespace
      *            target namespace for the given resource type
-     * 
+     *
      * @throws SystemException
      *             Thrown if eSciDoc failed to receive a resource.
      * @throws IOException
@@ -362,8 +421,7 @@ public class Recache extends DbResourceCache implements RecacheInterface {
             }
             log.info("stored " + count + " " + type + "s in " + time + "s ("
                 + (count / time) + "." + (count % time) + " " + type + "s/s)");
-        }
-        finally {
+        } finally {
             if (input != null) {
                 input.close();
             }
@@ -372,14 +430,14 @@ public class Recache extends DbResourceCache implements RecacheInterface {
 
     /**
      * Store the container in the database cache.
-     * 
+     *
      * @param id
      *            container id
      * @param xmlDataRest
      *            complete container as XML (REST form)
      * @param xmlDataSoap
      *            complete container as XML (SOAP form)
-     * 
+     *
      * @throws IOException
      *             Thrown if an I/O error occurred.
      * @throws ParseException
@@ -391,19 +449,19 @@ public class Recache extends DbResourceCache implements RecacheInterface {
         getJdbcTemplate()
             .update(
                 INSERT_CONTAINER,
-                new Object[] { id, xmlDataRest, xmlDataSoap });
+                new Object[] {id, xmlDataRest, xmlDataSoap});
     }
 
     /**
      * Store the context in the database cache.
-     * 
+     *
      * @param id
      *            context id
      * @param xmlDataRest
      *            complete context as XML (REST form)
      * @param xmlDataSoap
      *            complete context as XML (SOAP form)
-     * 
+     *
      * @throws IOException
      *             Thrown if an I/O error occurred.
      * @throws ParseException
@@ -414,19 +472,19 @@ public class Recache extends DbResourceCache implements RecacheInterface {
         throws IOException, ParseException {
         getJdbcTemplate().update(
             INSERT_CONTEXT,
-            new Object[] { id, xmlDataRest, xmlDataSoap });
+            new Object[] {id, xmlDataRest, xmlDataSoap});
     }
 
     /**
      * Store the item in the database cache.
-     * 
+     *
      * @param id
      *            item id
      * @param xmlDataRest
      *            complete item as XML (REST form)
      * @param xmlDataSoap
      *            complete item as XML (SOAP form)
-     * 
+     *
      * @throws IOException
      *             Thrown if an I/O error occurred.
      * @throws ParseException
@@ -438,19 +496,19 @@ public class Recache extends DbResourceCache implements RecacheInterface {
         getJdbcTemplate()
             .update(
                 INSERT_ITEM,
-                new Object[] { id, xmlDataRest, xmlDataSoap });
+                new Object[] {id, xmlDataRest, xmlDataSoap});
     }
 
     /**
      * Store the organizational unit in the database cache.
-     * 
+     *
      * @param id
      *            organizational unit id
      * @param xmlDataRest
      *            complete organizational unit as XML (REST form)
      * @param xmlDataSoap
      *            complete organizational unit as XML (SOAP form)
-     * 
+     *
      * @throws IOException
      *             Thrown if an I/O error occurred.
      * @throws ParseException
@@ -461,7 +519,7 @@ public class Recache extends DbResourceCache implements RecacheInterface {
         throws IOException, ParseException {
         getJdbcTemplate().update(
             INSERT_OU,
-            new Object[] { id, xmlDataRest, xmlDataSoap });
+            new Object[] {id, xmlDataRest, xmlDataSoap});
     }
 
     /**
@@ -484,7 +542,7 @@ public class Recache extends DbResourceCache implements RecacheInterface {
 
     /**
      * Store a resource in the database cache.
-     * 
+     *
      * @param type
      *            must be "container", "context", "item" or "ou"
      * @param id
@@ -493,7 +551,7 @@ public class Recache extends DbResourceCache implements RecacheInterface {
      *            complete item as XML (REST form)
      * @param xmlDataSoap
      *            complete item as XML (SOAP form)
-     * 
+     *
      * @throws IOException
      *             Thrown if an I/O error occurred.
      * @throws ParseException
@@ -505,21 +563,18 @@ public class Recache extends DbResourceCache implements RecacheInterface {
 
         if (type.equals("container")) {
             storeContainer(id, xmlDataRest, xmlDataSoap);
-        }
-        else if (type.equals("context")) {
+        } else if (type.equals("context")) {
             storeContext(id, xmlDataRest, xmlDataSoap);
-        }
-        else if (type.equals("item")) {
+        } else if (type.equals("item")) {
             storeItem(id, xmlDataRest, xmlDataSoap);
-        }
-        else if (type.equals("ou")) {
+        } else if (type.equals("ou")) {
             storeOU(id, xmlDataRest, xmlDataSoap);
         }
     }
 
     /**
      * Store all available resources in the database cache.
-     * 
+     *
      * @throws SystemException
      *             Thrown if eSciDoc failed to receive a resource.
      * @throws IOException
@@ -527,7 +582,7 @@ public class Recache extends DbResourceCache implements RecacheInterface {
      * @throws ParseException
      *             The given string cannot be parsed.
      */
-    public void storeResources()
+    public final void storeResources()
         throws IOException, ParseException, SystemException {
         // dummy call to prevent
         // "org.apache.commons.discovery.DiscoveryException: No implementation
@@ -535,8 +590,7 @@ public class Recache extends DbResourceCache implements RecacheInterface {
         try {
             retrieveResourceSoap(AXIS_ITEM_HANDLER_TARGET_NAMESPACE,
                 "escidoc:1");
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
         }
         store("container", CONTAINER_LIST_QUERY, CONTAINER_URL,
             AXIS_CONTAINER_HANDLER_TARGET_NAMESPACE);
