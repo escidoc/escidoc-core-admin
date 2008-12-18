@@ -133,7 +133,7 @@ may also contain a transformation of the objects itself.
             - persistentHandle: persistent handle of eSciDoc systemadmin
 
         - Execute 
-            - java -jar eSciDocCoreAdmin.jar recache
+            - java -Xmx1024m -Xms512m -XX:MaxPermSize=1024m -jar eSciDocCoreAdmin.jar recache
             or
             - target recache of ant file build.xml
           The admin-tool.properties must be placed in the directory from that 
