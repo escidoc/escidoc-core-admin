@@ -118,6 +118,11 @@ public class AdminMain {
                 + StringUtils.join(args, " "));
             System.exit(-1);
         }
+
+        log.info("memory (free / max. available): "
+            + Runtime.getRuntime().freeMemory() / 1024 / 1024 + " MB" + " / "
+            + Runtime.getRuntime().maxMemory() / 1024 / 1024 + " MB");
+
         Class<?>[] paramTypes = { String[].class };
         Method thisMethod =
             admin.getClass().getDeclaredMethod(methodToCall, paramTypes);

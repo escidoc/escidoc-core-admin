@@ -105,7 +105,10 @@
 
         <target name="recache">
                 <java jar="${dist.build.dir}/eSciDocCoreAdmin.jar" fork="true">
-                        <arg value="recache" />
+                         <jvmarg value="-Xmx1024m"/>
+                         <jvmarg value="-Xms512m"/>
+                         <jvmarg value="-XX:MaxPermSize=1024m"/>
+                         <arg value="recache" />
                 </java>
         </target>
 
