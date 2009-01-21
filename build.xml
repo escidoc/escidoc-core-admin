@@ -5,12 +5,16 @@
 	<property file="etc/${user.name}.properties" />
 	<property file="etc/project.properties" />
 
+	<fileset id="libs" dir="${lib.dir}">
+	    <include name="**/*.jar"/>
+        </fileset>
+
 	<path id="build.classpath">
 		<pathelement path="${classpath}" />
-		<fileset dir="${lib.dir}" includes="**/*.jar" />
+		<fileset refid="libs" />
 	</path>
 
-	<target name="dist" depends="admin-jar">
+	<target name="dist" depends="admin-jar, admin-war">
 		<copy todir="${dist.build.dir}" failonerror="false">
 			<fileset dir="${bin.src.dir}" includes="**/*" />
 			<fileset dir="${doc.src.dir}" includes="**/*" />
@@ -21,12 +25,7 @@
 
 	<!-- Cleans the output folders -->
 	<target name="clean" description="Cleans the output folders">
-		<delete includeEmptyDirs="true" failonerror="false">
-			<fileset dir="${java.build.dir}" includes="**/*" />
-			<fileset dir="${dist.build.dir}" includes="**/*" />
-			<fileset dir="${admin.jar.build.dir}" includes="**/*" />
-			<fileset dir="${main.jar.build.dir}" includes="**/*" />
-		</delete>
+		<delete dir="${build.dir}"/>
 	</target>
 
 	<!-- Creates the output folders -->
@@ -37,6 +36,7 @@
 		<mkdir dir="${admin.jar.build.dir}" />
 		<mkdir dir="${admin.jar.main.dir}" />
 		<mkdir dir="${admin.jar.lib.dir}" />
+		<mkdir dir="${admin.war.lib.dir}" />
 	</target>
 
 	<target name="build" depends="clean, prepare, compile, copy">
@@ -75,7 +75,9 @@
 			<fileset dir="${java.build.dir}" includes="de/**/*.class" excludes="**/test/**/*.class"/>
 		</copy>
 		<delete dir="${main.jar.build.dir}/com" failonerror="false" />
-
+		<copy todir="${main.jar.build.dir}">
+			<fileset dir="${etc.dir}" includes="**/log4j.*" />
+		</copy>
 		<jar jarfile="${admin.jar.main.dir}/${main.jar.name}" basedir="${main.jar.build.dir}" />
 	</target>
 
@@ -99,9 +101,29 @@
 		</jar>
 	</target>
 
+	<target name="admin-war" depends="main-jar">
+	    <copy todir="${admin.war.lib.dir}" flatten="yes">
+		<fileset file="${admin.jar.main.dir}/${main.jar.name}"/>
+		<fileset refid="libs"/>
+	    </copy>
+	    <war destfile="${dist.build.dir}/${admin.war.name}" webxml="${metadata.src.dir}/web.xml">
+	       <fileset dir="web"/>
+	       <lib dir="${admin.war.lib.dir}"/>
+	    </war>
+	</target>
+
 	<target name="junit">
 		<ant antfile="${src.bin.dir}/build-junit.xml" target="test-fail" dir="" />
 	</target>
+
+	<target name="purge" depends="main-jar">
+	    <java classname="de.escidoc.core.admin.business.PurgeTool" fork="true">
+		<classpath>
+                  <path refid="build.classpath"/>
+		  <pathelement location="${admin.jar.main.dir}/${main.jar.name}"/>
+                </classpath>
+	    </java>
+        </target>
 
         <target name="recache">
                 <java jar="${dist.build.dir}/eSciDocCoreAdmin.jar" fork="true">
