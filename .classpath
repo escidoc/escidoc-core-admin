@@ -15,7 +15,6 @@
 	<classpathentry kind="lib" path="lib/woodstox/stax2.jar"/>
 	<classpathentry kind="lib" path="lib/woodstox/wstx-asl-3.1.2.jar"/>
 	<classpathentry kind="lib" path="lib/test/junit.jar"/>
-	<classpathentry kind="lib" path="lib/test/xalan-2.6.0.jar"/>
 	<classpathentry kind="lib" path="lib/axis/addressing-1.0.jar"/>
 	<classpathentry kind="lib" path="lib/axis/axis-1.4.jar" sourcepath="C:/download/axis-1_4/src"/>
 	<classpathentry kind="lib" path="lib/axis/axis-ant.jar"/>
