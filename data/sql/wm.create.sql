@@ -1,4 +1,4 @@
-ALTER USER postgres SET search_path TO public,jbpm;
+ALTER USER escidoc SET search_path TO public,jbpm;
 
 create table jbpm.ESCIDOC_WORKFLOWTEMPLATES (
     WORKFLOWTEMPLATE_NAME text unique not null primary key, 
