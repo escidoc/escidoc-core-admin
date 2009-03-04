@@ -43,6 +43,9 @@
 
 	<target name="recache">
 		<java jar="eSciDocCoreAdmin.jar" fork="true">
+                        <jvmarg value="-Xmx1024m"/>
+                        <jvmarg value="-Xms512m"/>
+                        <jvmarg value="-XX:MaxPermSize=1024m"/>
 			<arg value="recache" />
 		</java>
 	</target>
