@@ -79,17 +79,25 @@ public class Reindexer implements ReindexerInterface {
 
     private static final String ORG_UNIT_ELEMENT_NAME = "organizational-unit";
 
-    private static final String RELEASED_ITEMS_FILTER =
+    private static final String RELEASED_WITHDRAWN_ITEMS_FILTER =
         "<param>"
         + "<filter name=\"http://escidoc.de/core/01/properties/public-status\">"
         + "released"
-        + "</filter><limit>0</limit><offset>0</offset></param>";
+        + "</filter>"
+        + "<filter name=\"http://escidoc.de/core/01/properties/public-status\">"
+        + "withdrawn"
+        + "</filter>"
+        + "<limit>0</limit><offset>0</offset></param>";
 
-    private static final String RELEASED_CONTAINERS_FILTER =
+    private static final String RELEASED_WITHDRAWN_CONTAINERS_FILTER =
         "<param>"
         + "<filter name=\"http://escidoc.de/core/01/properties/public-status\">"
         + "released"
-        + "</filter><limit>0</limit><offset>0</offset></param>";
+        + "</filter>"
+        + "<filter name=\"http://escidoc.de/core/01/properties/public-status\">"
+        + "withdrawn"
+        + "</filter>"
+        + "<limit>0</limit><offset>0</offset></param>";
     
     private static final String OPEN_CLOSED_ORG_UNITS_FILTER =
         "<param>"
@@ -168,7 +176,7 @@ public class Reindexer implements ReindexerInterface {
     public Vector<String> getFilteredItems()
         throws ApplicationServerSystemException {
         return getFilteredObjects(
-                RELEASED_ITEMS_FILTER, 
+                RELEASED_WITHDRAWN_ITEMS_FILTER, 
                 ITEM_FILTER_URL, 
                 ITEM_LIST_ELEMENT_NAME, 
                 ITEM_ELEMENT_NAME);
@@ -187,7 +195,7 @@ public class Reindexer implements ReindexerInterface {
     public Vector<String> getFilteredContainers()
         throws ApplicationServerSystemException {
         return getFilteredObjects(
-                RELEASED_CONTAINERS_FILTER, 
+                RELEASED_WITHDRAWN_CONTAINERS_FILTER, 
                 CONTAINER_FILTER_URL, 
                 CONTAINER_LIST_ELEMENT_NAME, 
                 CONTAINER_ELEMENT_NAME);
