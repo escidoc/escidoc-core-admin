@@ -391,7 +391,7 @@ public class Reindexer implements ReindexerInterface {
     /**
      * @param resource
      *            String resource.
-     * @param resourceName
+     * @param objectType
      *            name of the resource.
      * 
      * @throws ApplicationServerSystemException
@@ -401,7 +401,7 @@ public class Reindexer implements ReindexerInterface {
      *  .interfaces.ReindexerInterface#sendUpdateIndexMessage(String)
      */
     public void sendUpdateIndexMessage(final String resource, 
-    									final String resourceName)
+    									final String objectType)
         throws ApplicationServerSystemException {
         try {
         	if (queueConnection == null) {
@@ -415,8 +415,8 @@ public class Reindexer implements ReindexerInterface {
             message.setStringProperty(
                 Constants.INDEXER_QUEUE_RESOURCE_PARAMETER, resource);
             message.setStringProperty(
-                    Constants.INDEXER_QUEUE_RESOURCE_NAME_PARAMETER
-                    , resourceName);
+                    Constants.INDEXER_QUEUE_OBJECT_TYPE_PARAMETER
+                    , objectType);
             message.setBooleanProperty(
                     Constants.INDEXER_QUEUE_WRITE_SYNCHRONOUS_PARAMETER
                     , true);
