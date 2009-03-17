@@ -107,7 +107,6 @@
 		<fileset refid="libs"/>
 	    </copy>
 	    <war destfile="${dist.build.dir}/${admin.war.name}" webxml="${metadata.src.dir}/web.xml">
-	       <fileset dir="web"/>
 	       <lib dir="${admin.war.lib.dir}"/>
 	    </war>
 	</target>
