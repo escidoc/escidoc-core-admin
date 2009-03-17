@@ -29,7 +29,7 @@
 	</target>
 
 	<!-- Creates the output folders -->
-	<target name="prepare" depends="clean" description="Creates the output folders">
+	<target name="prepare" description="Creates the output folders">
 		<mkdir dir="${java.build.dir}" />
 		<mkdir dir="${dist.build.dir}" />
 		<mkdir dir="${main.jar.build.dir}" />
@@ -43,7 +43,7 @@
 	</target>
 
 	<!-- Compile -->
-	<target name="compile" description="Compile java classes">
+	<target name="compile" depends="prepare" description="Compile java classes">
 		<javac destdir="${java.build.dir}" debug="on">
 			<classpath refid="build.classpath" />
 			<src path="${java.src.dir}" />
