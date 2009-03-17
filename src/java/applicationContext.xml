@@ -34,12 +34,6 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
 			<ref bean="de.escidoc.core.admin.ReaderDataSource" />
 		</property>
 	</bean>
-	<bean id="de.escidoc.core.admin.txManager"
-		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
-		<property name="dataSource">
-			<ref bean="de.escidoc.core.admin.DataSource" />
-		</property>
-	</bean>
 	<bean id="de.escidoc.core.admin.ReadertxProxyTemplate"
 		class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean"
 		abstract="true" lazy-init="true">
@@ -52,50 +46,11 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
 			</props>
 		</property>
 	</bean>
-	<bean id="de.escidoc.core.admin.txProxyTemplate"
-		class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean"
-		abstract="true" lazy-init="true">
-		<property name="transactionManager">
-			<ref bean="de.escidoc.core.admin.txManager" />
-		</property>
-		<property name="transactionAttributes">
-			<props>
-				<prop key="*">PROPAGATION_REQUIRED</prop>
-			</props>
-		</property>
-	</bean>
-	<bean id="de.escidoc.core.admin.SourceDbDao" parent="de.escidoc.core.admin.ReadertxProxyTemplate">
-		<property name="target">
-			<bean class="de.escidoc.core.admin.business.SourceDbDao">
-				<property name="dataSource">
-					<ref bean="de.escidoc.core.admin.ReaderDataSource" />
-				</property>
-				<property name="url" value="${datasource.url}" />
-			</bean>
-		</property>
-	</bean>
-	<bean id="de.escidoc.core.admin.TargetDbDao" parent="de.escidoc.core.admin.txProxyTemplate">
-		<property name="target">
-			<bean class="de.escidoc.core.admin.business.TargetDbDao">
-				<property name="dataSource">
-					<ref bean="de.escidoc.core.admin.DataSource" />
-				</property>
-				<property name="url" value="${new.datasource.url}" />
-			</bean>
-		</property>
-	</bean>
-	<bean id="de.escidoc.core.admin.DataBaseMigrationTool" parent="de.escidoc.core.admin.txProxyTemplate">
-		<property name="target">
-			<bean class="de.escidoc.core.admin.business.DataBaseMigrationTool">
-				<constructor-arg value="${new.datasource.script.prefix}" />
-				<property name="source">
-					<ref bean="de.escidoc.core.admin.SourceDbDao" />
-				</property>
-				<property name="target">
-					<ref bean="de.escidoc.core.admin.TargetDbDao" />
-				</property>
-				<property name="skipTests" value="${dbmigration.skipTests}" />
-			</bean>
+	<bean id="de.escidoc.core.admin.DataBaseMigrationTool"
+		class="de.escidoc.core.admin.business.DataBaseMigrationTool">
+		<constructor-arg value="${new.datasource.script.prefix}" />
+		<property name="dataSource">
+			<ref bean="de.escidoc.core.admin.DataSource" />
 		</property>
 	</bean>
 

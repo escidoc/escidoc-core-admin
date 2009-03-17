@@ -34,7 +34,6 @@ import static de.escidoc.core.admin.common.util.spring.SpringConstants.ID_DATA_B
 import static de.escidoc.core.admin.common.util.spring.SpringConstants.ID_RECACHE;
 import static de.escidoc.core.admin.common.util.spring.SpringConstants.ID_REINDEXER;
 
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -84,7 +83,6 @@ public class AdminMain {
         methods.put("recache", "recache");
         methods.put("test", "test");
         methods.put("db-migration", "migrateDataBase");
-        methods.put("db-update", "updateDataBase");
         methods.put("foxml-migration", "migrateFoxml");
     }
 
@@ -121,7 +119,7 @@ public class AdminMain {
             + Runtime.getRuntime().freeMemory() / 1024 / 1024 + " MB" + " / "
             + Runtime.getRuntime().maxMemory() / 1024 / 1024 + " MB");
 
-        Class<?>[] paramTypes = { String[].class };
+        Class< ? >[] paramTypes = { String[].class };
         Method thisMethod =
             admin.getClass().getDeclaredMethod(methodToCall, paramTypes);
         thisMethod.invoke(admin, new Object[] { args });
@@ -129,16 +127,16 @@ public class AdminMain {
     }
 
     /**
-     * Print the message indicating a failure
+     * Print the message indicating a failure.
      */
-    private void failMessage(String... message) {
+    private void failMessage(final String... message) {
         for (String m : message) {
             log.error(m);
         }
         log
             .error("Invalid argument. The tool you specified could not be found.");
-        log
-            .error("Invoke the tool of your choice using this command : java -jar eSciDocCoreAdmin.jar <tool> [<arguments>].");
+        log.error("Invoke the tool of your choice using this command : java -jar"
+            + " eSciDocCoreAdmin.jar <tool> [<arguments>].");
         log.error("The follwoing tools are available:");
         for (String method : new TreeMap<String, Object>(methods).keySet()) {
             log.error(method);
@@ -162,63 +160,9 @@ public class AdminMain {
                 .getBean(ID_DATA_BASE_MIGRATION_TOOL);
         try {
             dbm.migrate();
-            log.info("");
             log.info("Migration successfully completed.\n");
-            log.warn("");
-            log.warn("Recaching needed");
-            log.warn("================");
-            log.warn("Now, after the object");
-            log.warn("cache tables have been");
-            log.warn("created during the migration,");
-            log.warn("this cache has to be synchronized");
-            log.warn("with the existing resource objects");
-            log.warn("using the recache method from the");
-            log.warn("admin tool.");
-            log.warn("Please, see readme.txt.");
         }
         catch (IntegritySystemException e) {
-            log.error(e);
-        }
-        catch (CannotCreateTransactionException e) {
-            final StringBuffer errorMsg =
-                StringUtility.concatenate(
-                    "\nFailed to create transaction for database access.",
-                    "\nPlease check your database settings in your",
-                    " admin-tool.properties file.");
-            log.error(errorMsg, e);
-        }
-        catch (Exception e) {
-            if (e instanceof InvocationTargetException) {
-                if (e.getCause() != null) {
-                    log.error(e.getCause().getMessage(), e.getCause());
-                    return;
-                }
-            }
-            log.error(e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Update the tables of the escidoc-core database.
-     *
-     * @param args
-     *            The arguments.
-     * @see de.escidoc.core.admin.business
-     *      .interfaces.DataBaseMigrationInterface#update()
-     */
-    private void updateDataBase(final String[] args) {
-
-        log.info("Database update invoked");
-
-        DataBaseMigrationInterface dbm =
-            (DataBaseMigrationInterface) beanFactory
-                .getBean(ID_DATA_BASE_MIGRATION_TOOL);
-        try {
-            dbm.update();
-            log.info("");
-            log.info("Update successfully completed.\n");
-        }
-        catch (IOException e) {
             log.error(e);
         }
         catch (CannotCreateTransactionException e) {

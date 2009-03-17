@@ -27,8 +27,6 @@
  * All rights reserved.  Use is subject to license terms.
  */package de.escidoc.core.admin.business.interfaces;
 
-import java.io.IOException;
-
 import de.escidoc.core.common.exceptions.system.IntegritySystemException;
 
 /**
@@ -48,13 +46,4 @@ public interface DataBaseMigrationInterface {
      */
     void migrate()
         throws IntegritySystemException;
-
-    /**
-     * Updates the database from build 1.0beta4.318 to 1.0.<br>
-     * @throws IOException
-     *             Thrown in case the content of the database is not as
-     *             expected.
-     */
-    void update()
-        throws IOException;
 }
