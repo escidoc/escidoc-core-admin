@@ -116,15 +116,6 @@
 		<ant antfile="${src.bin.dir}/build-junit.xml" target="test-fail" dir="" />
 	</target>
 
-	<target name="purge" depends="main-jar">
-	    <java classname="de.escidoc.core.admin.business.PurgeTool" fork="true">
-		<classpath>
-                  <path refid="build.classpath"/>
-		  <pathelement location="${admin.jar.main.dir}/${main.jar.name}"/>
-                </classpath>
-	    </java>
-        </target>
-
         <target name="recache">
                 <java jar="${dist.build.dir}/eSciDocCoreAdmin.jar" fork="true">
                          <jvmarg value="-Xmx1024m"/>
@@ -133,7 +124,5 @@
                          <arg value="recache" />
                 </java>
         </target>
-
-
 
 </project>
