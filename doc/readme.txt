@@ -2,56 +2,47 @@ eSciDoc Infrastructure Administration Tool
 ===========================================
 
 The Administration Tool supports update of cache, reindex for search, migration 
-of object representation and migration of the Fedora repository. 
+of the eSciDocCore database and migration of the Fedora repository. 
  
 Reindex and recache might by necessary without updating eSciDoc. E.g. the used 
-hardware or OS infrastructure has changed. Therefore are these task separated 
+hardware or OS infrastructure has changed. Therefore these tasks are separated 
 into independent sub tasks.
 
 Index
-	1.) Migration of the eSciDoc Core Infrastructure
+	1.) Migration of the eSciDocCore database
 	2.) Migration of Fedora Repository
 	3.) Reload of objects to Cache
 	4.) Re-Index for Search
 
 
-1.) Migration of the eSciDoc Core Infrastructure
--------------------------------------------------
+1.) Migration of the eSciDocCore database
+-----------------------------------------
 
-Migration of 1.0beta3 -> 1.0beta4
+Migration of 1.0 -> 1.1
 
-Fedora data objects are stored in Fedora, Cache System and the index for 
-search. Each of these storages has to be migrated for an software update.
-The migration of the eSciDoc infrastructure from eSciDoc 1.0beta3 to 1.0beta4 
-is subdivided into following ordered tasks:
+There were several changes to the eSciDocCore database between release 1.0 and
+1.1. To start the migration process the following tasks are necessary:
 
-	1.) Stop all Systems
-		- stop eSciDoc (at least eSciDoc Core)
-		- stop current used Fedora
-		- stop new Fedora
-	2.) Install new Software
-		- install the new Fedora (see installation document)
-		- install new eSciDoc (see installation document) 
-	3.) Migration of Fedora Repository
-		- see section 2.) Migration of Fedora Repository
-	4.) Reload of objects to Cache
-		- see section 3.) Reload of objects to Cache
-	5.) Re-Index for Search
-		- see section 4.) Re-Index for Search
-	6.) Restart Systems
+	1.) Stop eSciDoc (at least eSciDocCore)
+	2.) Install new Software (see installation document)
+		- install new eSciDocCore
+	3.) Migration of eSciDocCore database
+            - java -jar eSciDocCoreAdmin.jar db-migration
+            or
+            - target "db-migration" of ant file build.xml
+	    The admin-tool.properties must be placed in the directory from that 
+	    the admin tool is executed.
+	4.) Restart eSciDoc
 
-A migration of a running eSciDoc and/or Fedora is currently not supported.
-Furthermore migration is only supported between the last stable release and 
-the new stable release. The migration between developer builds may work but 
-will never be supported. If you migrate non supported versions you do it at 
-your own risk and without any support.
-
-eSciDoc 1.0beta3 is based on Fedora 3.0 beta1 and eSciDoc 1.0beta4 makes usage
-of Fedora 3.0 (final release). 
+A migration of a running eSciDoc is currently not supported. Furthermore
+migration is only supported between stable releases. The migration between
+developer builds may work but will never be supported. If you migrate non supported
+versions you do it at your own risk and without any support.
 
 
 2.) Migration of Fedora Repository 
-------------------------------------
+----------------------------------
+
 Fedora 3.0beta1 -> Fedora 3.0
 eSciDoc 1.0beta3 -> eSciDoc 1.0beta4
 
@@ -107,7 +98,7 @@ may also contain a transformation of the objects itself.
 
 
 3.) Regenerate cache for filter methods (fast lists)
-------------------------------------------------
+----------------------------------------------------
 
 	Use this when 
 	- structure/schema of containers, contexts, items or organizational units changed,
@@ -129,19 +120,19 @@ may also contain a transformation of the objects itself.
             - fedora.user : Fedora admin user name
             - fedora.password : Fedora admin password
             - fedora.url : URL of Fedora
-            - new.datasource.* : JDBC properties for eSciDoc database
+            - datasource.* : JDBC properties for eSciDoc database
             - persistentHandle: persistent handle of eSciDoc systemadmin
 
         - Execute 
             - java -Xmx1024m -Xms512m -XX:MaxPermSize=1024m -jar eSciDocCoreAdmin.jar recache
             or
             - target recache of ant file build.xml
-          The admin-tool.properties must be placed in the directory from that 
-          the admin tool is executed.
+            The admin-tool.properties must be placed in the directory from that 
+            the admin tool is executed.
 
 
 4.) Regenerate index for search
---------------------------------
+-------------------------------
 
     Prerequisites for reindexing:
     - Database has been migrated (if necessary)

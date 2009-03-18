@@ -23,10 +23,10 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
 		<property name="password" value="${datasource.password}" />
 	</bean>
 	<bean id="de.escidoc.core.admin.DataSource" class="org.apache.commons.dbcp.BasicDataSource">
-		<property name="driverClassName" value="${new.datasource.driverClassName}" />
-		<property name="url" value="${new.datasource.url}" />
-		<property name="username" value="${new.datasource.username}" />
-		<property name="password" value="${new.datasource.password}" />
+		<property name="driverClassName" value="${datasource.driverClassName}" />
+		<property name="url" value="${datasource.url}" />
+		<property name="username" value="${datasource.username}" />
+		<property name="password" value="${datasource.password}" />
 	</bean>
 	<bean id="de.escidoc.core.admin.ReadertxManager"
 		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
@@ -48,7 +48,7 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
 	</bean>
 	<bean id="de.escidoc.core.admin.DataBaseMigrationTool"
 		class="de.escidoc.core.admin.business.DataBaseMigrationTool">
-		<constructor-arg value="${new.datasource.script.prefix}" />
+		<constructor-arg value="${datasource.script.prefix}" />
 		<property name="dataSource">
 			<ref bean="de.escidoc.core.admin.DataSource" />
 		</property>
@@ -59,7 +59,7 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
 		<constructor-arg value="${fedora.user}" />
 		<constructor-arg value="${fedora.password}" />
 		<constructor-arg value="${fedora.url}" />
-		<constructor-arg value="${new.datasource.script.prefix}" />
+		<constructor-arg value="${datasource.script.prefix}" />
 		<property name="dataSource">
 			<ref bean="de.escidoc.core.admin.DataSource" />
 		</property>
