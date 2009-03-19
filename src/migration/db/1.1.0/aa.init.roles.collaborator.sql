@@ -29,8 +29,7 @@ UPDATE aa.escidoc_policies SET xml=
     <Actions>
       <Action>
         <ActionMatch MatchId="info:escidoc/names:aa:1.0:function:string-contains">
-          <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">info:escidoc/names:aa:1.0:action:retrieve-item info:escidoc/names:aa:1.0:action:retrieve-container info:escidoc/names:aa:1.0:actio
-n:retrieve-content</AttributeValue>
+          <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">info:escidoc/names:aa:1.0:action:retrieve-item info:escidoc/names:aa:1.0:action:retrieve-container info:escidoc/names:aa:1.0:action:retrieve-content</AttributeValue>
           <ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" DataType="http://www.w3.org/2001/XMLSchema#string"/>
 
         </ActionMatch>
@@ -49,8 +48,7 @@ n:retrieve-content</AttributeValue>
       <Actions>
         <Action>
           <ActionMatch MatchId="info:escidoc/names:aa:1.0:function:string-contains">
-            <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">info:escidoc/names:aa:1.0:action:retrieve-item info:escidoc/names:aa:1.0:action:retrieve-container info:escidoc/names:aa:1.0:act
-ion:retrieve-content</AttributeValue>
+            <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">info:escidoc/names:aa:1.0:action:retrieve-item info:escidoc/names:aa:1.0:action:retrieve-container info:escidoc/names:aa:1.0:action:retrieve-content</AttributeValue>
             <ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" DataType="http://www.w3.org/2001/XMLSchema#string"/>
 
           </ActionMatch>
