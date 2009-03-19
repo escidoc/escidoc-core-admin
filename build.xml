@@ -14,7 +14,7 @@
 		<fileset refid="libs" />
 	</path>
 
-	<target name="dist" depends="admin-jar, admin-war">
+	<target name="dist" depends="admin-jar">
 		<copy todir="${dist.build.dir}" failonerror="false">
 			<fileset dir="${bin.src.dir}" includes="**/*" />
 			<fileset dir="${doc.src.dir}" includes="**/*" />
@@ -36,7 +36,6 @@
 		<mkdir dir="${admin.jar.build.dir}" />
 		<mkdir dir="${admin.jar.main.dir}" />
 		<mkdir dir="${admin.jar.lib.dir}" />
-		<mkdir dir="${admin.war.lib.dir}" />
 	</target>
 
 	<target name="build" depends="clean, prepare, compile, copy">
@@ -99,16 +98,6 @@
 		<jar jarfile="${dist.build.dir}/${admin.jar.name}" manifest="${metadata.src.dir}/Manifest.mf">
 			<fileset dir="${admin.jar.build.dir}" includes="**/*" />
 		</jar>
-	</target>
-
-	<target name="admin-war" depends="main-jar">
-	    <copy todir="${admin.war.lib.dir}" flatten="yes">
-		<fileset file="${admin.jar.main.dir}/${main.jar.name}"/>
-		<fileset refid="libs"/>
-	    </copy>
-	    <war destfile="${dist.build.dir}/${admin.war.name}" webxml="${metadata.src.dir}/web.xml">
-	       <lib dir="${admin.war.lib.dir}"/>
-	    </war>
 	</target>
 
 	<target name="junit">
