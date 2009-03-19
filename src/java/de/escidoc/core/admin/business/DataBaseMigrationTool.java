@@ -161,7 +161,7 @@ public class DataBaseMigrationTool extends DbDao
      */
     private Collection <Version> getUpdates(final String dirName) {
         Collection <Version> result = new TreeSet <Version>();
-        File dir = new File(dirName, scriptPrefix);
+        File dir = new File(dirName);
         File [] updates = dir.listFiles(new FileFilter() {
                 public boolean accept(final File pathname) {
                     return (pathname != null) && (pathname.isDirectory());
@@ -222,7 +222,7 @@ public class DataBaseMigrationTool extends DbDao
      * @throws IOException Thrown if an error occurred while reading the SQL scripts
      */
     private void update(final Version version) throws IOException {
-        File sqlDir = new File(DIRECTORY_SCRIPTS, version.toString());
+        File sqlDir = new File(new File(DIRECTORY_SCRIPTS, version.toString()), scriptPrefix);
         String [] scripts = sqlDir.list(new FilenameFilter() {
                 public boolean accept(final File dir, final String name) {
                     return (name != null) && (name.endsWith(".sql"));
