@@ -220,11 +220,11 @@ UPDATE aa.escidoc_policies SET xml=
       </Actions>
     </Target>
 
-    <Condition FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-      <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-one-and-only">
-        <ResourceAttributeDesignator AttributeId="info:escidoc/names:aa:1.0:resource:organizational-unit:public-status" DataType="http://www.w3.org/2001/XMLSchema#string"/>
-      </Apply>
-      <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">opened</AttributeValue>
+    <Condition FunctionId="info:escidoc/names:aa:1.0:function:string-contains">
+        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">opened closed</AttributeValue>
+        <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-one-and-only">
+            <ResourceAttributeDesignator AttributeId="info:escidoc/names:aa:1.0:resource:organizational-unit:public-status" DataType="http://www.w3.org/2001/XMLSchema#string"/>
+        </Apply>
     </Condition>
   </Rule>
 
