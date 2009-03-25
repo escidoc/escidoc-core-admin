@@ -222,7 +222,8 @@ public class DataBaseMigrationTool extends DbDao
      * @throws IOException Thrown if an error occurred while reading the SQL scripts
      */
     private void update(final Version version) throws IOException {
-        File sqlDir = new File(new File(DIRECTORY_SCRIPTS, version.toString()), scriptPrefix);
+        File sqlDir = new File(
+            new File(DIRECTORY_SCRIPTS, version.toString()), scriptPrefix);
         String [] scripts = sqlDir.list(new FilenameFilter() {
                 public boolean accept(final File dir, final String name) {
                     return (name != null) && (name.endsWith(".sql"));

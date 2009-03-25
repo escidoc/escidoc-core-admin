@@ -227,7 +227,9 @@ public class Recache extends DbResourceCache implements RecacheInterface {
         this.fedoraUser = aFedoraUser;
         this.fedoraPassword = aFedoraPassword;
         this.fedoraUrl = aFedoraUrl;
-        this.scriptPrefix = ((aScriptPrefix != null) && (aScriptPrefix.length() > 0)) ? aScriptPrefix + "." : "";
+        this.scriptPrefix =
+            ((aScriptPrefix != null) && (aScriptPrefix.length() > 0))
+            ? aScriptPrefix + "." : "";
     }
 
     /**
