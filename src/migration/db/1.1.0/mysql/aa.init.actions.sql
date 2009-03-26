@@ -43,3 +43,14 @@ INSERT INTO aa.actions (id, name) VALUES
 
 INSERT INTO aa.actions (id, name) VALUES
     ('escidoc:action-reindex', 'info:escidoc/names:aa:1.0:action:reindex');
+
+-- OM set-definition
+INSERT INTO aa.actions (id, name) VALUES
+    ('escidoc:create-set-definition', 'info:escidoc/names:aa:1.0:action:create-set-definition');
+INSERT INTO aa.actions (id, name) VALUES
+    ('escidoc:update-set-definition', 'info:escidoc/names:aa:1.0:action:update-set-definition');
+INSERT INTO aa.actions (id, name) VALUES
+    ('escidoc:retrieve-set-definition', 'info:escidoc/names:aa:1.0:action:retrieve-set-definition');
+INSERT INTO aa.actions (id, name) VALUES
+    ('escidoc:delete-set-definition', 'info:escidoc/names:aa:1.0:action:delete-set-definition');
+
