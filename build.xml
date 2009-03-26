@@ -15,7 +15,7 @@
 	</path>
 
 	<target name="dist" depends="define-label, admin-jar">
-		<copy todir="${dist.build.dir}/zip/${build.version}" failonerror="false">
+		<copy todir="${dist.build.dir}" failonerror="false">
 			<fileset dir="${bin.src.dir}" includes="**/*" />
 			<fileset dir="${doc.src.dir}" includes="**/*" />
 			<fileset dir="${etc.dir}" includes="admin-tool.properties" />
@@ -24,7 +24,7 @@
 			<fileset file="${dist.build.dir}/${admin.jar.name}" />
 		</copy>
 		<zip destfile="${dist.build.dir}/escidoc-core-admin-${build.version}.zip">
-			<fileset dir="${dist.build.dir}/zip" />
+			<zipfileset dir="${dist.build.dir}" prefix="escidoc-core-admin-${build.version}" />
 		</zip>
 	</target>
 
