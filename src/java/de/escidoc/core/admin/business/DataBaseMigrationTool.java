@@ -61,7 +61,7 @@ public class DataBaseMigrationTool extends DbDao
     /**
      * Database table name for the version information.
      */
-    private static final String TABLE_NAME = "common.version";
+    private static final String TABLE_NAME = "adm.version";
 
     /**
      * Database column name for the major number.
