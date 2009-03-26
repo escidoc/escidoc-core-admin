@@ -1,31 +1,36 @@
-<?xml version="1.0"?>
-
+<?xml version="1.0" encoding="UTF-8"?>
 <project name="eSciDoc infrastructure admin tool - main build file" default="dist" basedir=".">
 
+	<property environment="env" />
 	<property file="etc/${user.name}.properties" />
 	<property file="etc/project.properties" />
 
 	<fileset id="libs" dir="${lib.dir}">
-	    <include name="**/*.jar"/>
-        </fileset>
+		<include name="**/*.jar" />
+	</fileset>
 
 	<path id="build.classpath">
 		<pathelement path="${classpath}" />
 		<fileset refid="libs" />
 	</path>
 
-	<target name="dist" depends="admin-jar">
-		<copy todir="${dist.build.dir}" failonerror="false">
+	<target name="dist" depends="define-label, admin-jar">
+		<copy todir="${dist.build.dir}/zip/${build.version}" failonerror="false">
 			<fileset dir="${bin.src.dir}" includes="**/*" />
 			<fileset dir="${doc.src.dir}" includes="**/*" />
 			<fileset dir="${etc.dir}" includes="admin-tool.properties" />
 			<fileset dir="${foxml-migration.src.dir}" />
+			<fileset dir="license/" />
+			<fileset file="${dist.build.dir}/${admin.jar.name}" />
 		</copy>
+		<zip destfile="${dist.build.dir}/escidoc-core-admin-${build.version}.zip">
+			<fileset dir="${dist.build.dir}/zip" />
+		</zip>
 	</target>
 
 	<!-- Cleans the output folders -->
 	<target name="clean" description="Cleans the output folders">
-		<delete dir="${build.dir}"/>
+		<delete dir="${build.dir}" />
 	</target>
 
 	<!-- Creates the output folders -->
@@ -68,10 +73,10 @@
 			<fileset dir="${java.src.dir}" includes="**/*.xml" />
 		</copy>
 	</target>
-	
+
 	<target name="main-jar" depends="build">
 		<copy todir="${main.jar.build.dir}">
-			<fileset dir="${java.build.dir}" includes="de/**/*.class" excludes="**/test/**/*.class"/>
+			<fileset dir="${java.build.dir}" includes="de/**/*.class" excludes="**/test/**/*.class" />
 		</copy>
 		<delete dir="${main.jar.build.dir}/com" failonerror="false" />
 		<copy todir="${main.jar.build.dir}">
@@ -82,18 +87,18 @@
 
 	<target name="admin-jar" depends="main-jar">
 		<copy todir="${admin.jar.build.dir}">
-			<fileset dir="${java.build.dir}" includes="**/*.class"  excludes="**/test/**/*.class"/>
+			<fileset dir="${java.build.dir}" includes="**/*.class" excludes="**/test/**/*.class" />
 			<fileset dir="${etc.dir}" includes="**/log4j.*" />
-			
+
 			<fileset dir="${java.src.dir}" includes="*.xml" />
 			<fileset dir="${sql.src.dir}" includes="*.sql" />
-			
+
 		</copy>
-		<delete failonerror="false" >
-			<fileset dir="${admin.jar.build.dir}/de" excludes="**/EscidocXsltFunctions.class"/>
-	    </delete>
+		<delete failonerror="false">
+			<fileset dir="${admin.jar.build.dir}/de" excludes="**/EscidocXsltFunctions.class" />
+		</delete>
 		<copy todir="${admin.jar.lib.dir}">
-			<fileset dir="${lib.dir}" includes="**/*"  excludes="**/test/**/*"/>
+			<fileset dir="${lib.dir}" includes="**/*" excludes="**/test/**/*" />
 		</copy>
 		<jar jarfile="${dist.build.dir}/${admin.jar.name}" manifest="${metadata.src.dir}/Manifest.mf">
 			<fileset dir="${admin.jar.build.dir}" includes="**/*" />
@@ -104,13 +109,56 @@
 		<ant antfile="${src.bin.dir}/build-junit.xml" target="test-fail" dir="" />
 	</target>
 
-        <target name="recache">
-                <java jar="${dist.build.dir}/eSciDocCoreAdmin.jar" fork="true">
-                         <jvmarg value="-Xmx1024m"/>
-                         <jvmarg value="-Xms512m"/>
-                         <jvmarg value="-XX:MaxPermSize=1024m"/>
-                         <arg value="recache" />
-                </java>
-        </target>
+	<target name="recache">
+		<java jar="${dist.build.dir}/eSciDocCoreAdmin.jar" fork="true">
+			<jvmarg value="-Xmx1024m" />
+			<jvmarg value="-Xms512m" />
+			<jvmarg value="-XX:MaxPermSize=1024m" />
+			<arg value="recache" />
+		</java>
+	</target>
+
+
+	<!-- 
+		Compute build.version properties (which contains version number 
+		and/or build number).
+		The build.version property consist usally of version number and build
+		numer (e.g. 1.1-build23). But this value could be over written by
+		RELEASE_LABEL property. If RELEASE_LABEL is defined, than is this 
+		value the only used label. 
+		If you want to define a release build, which has only the version 
+		number in the label, than define RELEASE_LABEL=1.x.
+		If build number and version number undefined, than is are this 
+		values set to HEAD.
+		Use ${build.version} as version label in further scripts. 
+	 -->
+	<target name="define-label">
+		<taskdef resource="net/sf/antcontrib/antcontrib.properties">
+			<classpath>
+				<pathelement location="lib/ant/ant-contrib-1.0b1.jar" />
+			</classpath>
+		</taskdef>
+		<if>
+			<isset property="RELEASE_LABEL" />
+			<then>
+				<echo>Using ${RELEASE_LABEL} as label</echo>
+				<property name="build.version" value="${RELEASE_LABEL}" />
+			</then>
+			<else>
+				<if>
+					<isset property="env.BUILD_NUMBER" />
+					<then>
+						<echo>Using ${env.BUILD_NUMBER} as build number</echo>
+						<property name="label-suffix" value="-build${env.BUILD_NUMBER}" />
+					</then>
+					<else>
+						<echo>Using HEAD as default build number</echo>
+						<property name="label-suffix" value="-buildHEAD" />
+					</else>
+				</if>
+				<property name="build.version" value="${version}${label-suffix}" />
+			</else>
+		</if>
+	</target>
 
 </project>
