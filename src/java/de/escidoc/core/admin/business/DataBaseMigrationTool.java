@@ -43,6 +43,7 @@ import javax.sql.DataSource;
 
 import de.escidoc.core.admin.business.interfaces.DataBaseMigrationInterface;
 import de.escidoc.core.common.exceptions.system.IntegritySystemException;
+import de.escidoc.core.common.util.Version;
 import de.escidoc.core.common.util.logger.AppLogger;
 
 import org.springframework.dao.DataAccessException;

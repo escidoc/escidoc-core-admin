@@ -221,9 +221,11 @@ public class Recache extends DbResourceCache implements RecacheInterface {
      *            Fedora base URL
      * @param aScriptPrefix
      *            prefix for database script names (mainly for MySQL)
+     *
+     * @throws IOException Thrown if reading the configuration failed.
      */
     public Recache(final String aFedoraUser, final String aFedoraPassword,
-        final String aFedoraUrl, final String aScriptPrefix) {
+        final String aFedoraUrl, final String aScriptPrefix) throws IOException {
         this.fedoraUser = aFedoraUser;
         this.fedoraPassword = aFedoraPassword;
         this.fedoraUrl = aFedoraUrl;
