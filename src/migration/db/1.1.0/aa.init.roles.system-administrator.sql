@@ -145,6 +145,7 @@ UPDATE aa.escidoc_policies SET xml=
                             info:escidoc/names:aa:1.0:action:retrieve-staging-file 
                             info:escidoc/names:aa:1.0:action:extract-metadata
                             info:escidoc/names:aa:1.0:action:delete-objects
+                            info:escidoc/names:aa:1.0:action:get-recache-status
                             info:escidoc/names:aa:1.0:action:recache
                             info:escidoc/names:aa:1.0:action:reindex
                             info:escidoc/names:aa:1.0:action:create-set-definition
