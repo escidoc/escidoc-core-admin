@@ -33,6 +33,7 @@ UPDATE aa.escidoc_policies SET xml=
                             info:escidoc/names:aa:1.0:action:fmdh-export 
                             info:escidoc/names:aa:1.0:action:retrieve-report
 			    info:escidoc/names:aa:1.0:action:retrieve-set-definition
+			    info:escidoc/names:aa:1.0:action:get-repository-info
           </AttributeValue>
           <ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" DataType="http://www.w3.org/2001/XMLSchema#string"/>
         </ActionMatch>
@@ -59,7 +60,8 @@ UPDATE aa.escidoc_policies SET xml=
                             info:escidoc/names:aa:1.0:action:retrieve-objects-filtered
                             info:escidoc/names:aa:1.0:action:retrieve-staging-file
                             info:escidoc/names:aa:1.0:action:retrieve-report
-//eintrag aus aa.init.actions.sql
+			    info:escidoc/names:aa:1.0:action:retrieve-set-definition
+			    info:escidoc/names:aa:1.0:action:get-repository-info
             </AttributeValue>
             <ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" DataType="http://www.w3.org/2001/XMLSchema#string"/>
           </ActionMatch>
@@ -369,4 +371,3 @@ UPDATE aa.escidoc_policies SET xml=
   </Rule>
 </Policy>'
 WHERE id='escidoc:default-policy-1';
-    
