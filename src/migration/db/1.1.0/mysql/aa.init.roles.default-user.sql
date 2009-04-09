@@ -31,8 +31,8 @@ UPDATE aa.escidoc_policies SET xml=
                             info:escidoc/names:aa:1.0:action:retrieve-staging-file 
                             info:escidoc/names:aa:1.0:action:query-semantic-store 
                             info:escidoc/names:aa:1.0:action:fmdh-export 
-                            info:escidoc/names:aa:1.0:action:retrieve-report
-			    info:escidoc/names:aa:1.0:action:retrieve-set-definition
+                            info:escidoc/names:aa:1.0:action:retrieve-report 
+			    info:escidoc/names:aa:1.0:action:retrieve-set-definition 
 			    info:escidoc/names:aa:1.0:action:get-repository-info
           </AttributeValue>
           <ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" DataType="http://www.w3.org/2001/XMLSchema#string"/>
@@ -54,13 +54,13 @@ UPDATE aa.escidoc_policies SET xml=
 
           <ActionMatch MatchId="info:escidoc/names:aa:1.0:function:string-contains">
             <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">
-                            info:escidoc/names:aa:1.0:action:retrieve-content-model
-                            info:escidoc/names:aa:1.0:action:logout
+                            info:escidoc/names:aa:1.0:action:retrieve-content-model 
+                            info:escidoc/names:aa:1.0:action:logout 
                             info:escidoc/names:aa:1.0:action:retrieve-object-refs 
-                            info:escidoc/names:aa:1.0:action:retrieve-objects-filtered
-                            info:escidoc/names:aa:1.0:action:retrieve-staging-file
-                            info:escidoc/names:aa:1.0:action:retrieve-report
-			    info:escidoc/names:aa:1.0:action:retrieve-set-definition
+                            info:escidoc/names:aa:1.0:action:retrieve-objects-filtered 
+                            info:escidoc/names:aa:1.0:action:retrieve-staging-file 
+                            info:escidoc/names:aa:1.0:action:retrieve-report 
+			    info:escidoc/names:aa:1.0:action:retrieve-set-definition 
 			    info:escidoc/names:aa:1.0:action:get-repository-info
             </AttributeValue>
             <ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" DataType="http://www.w3.org/2001/XMLSchema#string"/>

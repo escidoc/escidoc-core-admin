@@ -143,13 +143,13 @@ UPDATE aa.escidoc_policies SET xml=
                             info:escidoc/names:aa:1.0:action:update-workflow-instance 
                             info:escidoc/names:aa:1.0:action:create-staging-file 
                             info:escidoc/names:aa:1.0:action:retrieve-staging-file 
-                            info:escidoc/names:aa:1.0:action:extract-metadata
-                            info:escidoc/names:aa:1.0:action:delete-objects
-                            info:escidoc/names:aa:1.0:action:get-recache-status
-                            info:escidoc/names:aa:1.0:action:recache
-                            info:escidoc/names:aa:1.0:action:reindex
-                            info:escidoc/names:aa:1.0:action:create-set-definition
-                            info:escidoc/names:aa:1.0:action:update-set-definition
+                            info:escidoc/names:aa:1.0:action:extract-metadata 
+                            info:escidoc/names:aa:1.0:action:delete-objects 
+                            info:escidoc/names:aa:1.0:action:get-recache-status 
+                            info:escidoc/names:aa:1.0:action:recache 
+                            info:escidoc/names:aa:1.0:action:reindex 
+                            info:escidoc/names:aa:1.0:action:create-set-definition 
+                            info:escidoc/names:aa:1.0:action:update-set-definition 
                             info:escidoc/names:aa:1.0:action:delete-set-definition
           </AttributeValue>
           <ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" DataType="http://www.w3.org/2001/XMLSchema#string"/>
