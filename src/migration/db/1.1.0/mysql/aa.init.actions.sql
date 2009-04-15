@@ -47,6 +47,9 @@ INSERT INTO aa.actions (id, name) VALUES
 INSERT INTO aa.actions (id, name) VALUES
     ('escidoc:action-reindex', 'info:escidoc/names:aa:1.0:action:reindex');
 
+INSERT INTO aa.actions (id, name) VALUES
+    ('escidoc:action-get-repository-info', 'info:escidoc/names:aa:1.0:action:get-repository-info');
+
 -- OM set-definition
 INSERT INTO aa.actions (id, name) VALUES
     ('escidoc:create-set-definition', 'info:escidoc/names:aa:1.0:action:create-set-definition');
