@@ -49,7 +49,7 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
 	<bean id="de.escidoc.core.admin.DataBaseMigrationTool"
 		class="de.escidoc.core.admin.business.DataBaseMigrationTool">
 		<constructor-arg value="${datasource.script.prefix}" />
-		<property name="dataSource">
+		<property name="myDataSource">
 			<ref bean="de.escidoc.core.admin.DataSource" />
 		</property>
 	</bean>
