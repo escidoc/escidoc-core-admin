@@ -48,6 +48,10 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
 	</bean>
 	<bean id="de.escidoc.core.admin.DataBaseMigrationTool"
 		class="de.escidoc.core.admin.business.DataBaseMigrationTool">
+                <constructor-arg value="${datasource.driverClassName}" />
+                <constructor-arg value="${datasource.url}" />
+                <constructor-arg value="${datasource.username}" />
+                <constructor-arg value="${datasource.password}" />
 		<constructor-arg value="${datasource.script.prefix}" />
 		<property name="myDataSource">
 			<ref bean="de.escidoc.core.admin.DataSource" />

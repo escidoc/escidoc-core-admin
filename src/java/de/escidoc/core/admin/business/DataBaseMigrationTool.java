@@ -28,12 +28,9 @@
  */
 package de.escidoc.core.admin.business;
 
-import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileFilter;
-import java.io.FileInputStream;
 import java.io.FilenameFilter;
-import java.io.InputStream;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -46,6 +43,10 @@ import de.escidoc.core.common.exceptions.system.IntegritySystemException;
 import de.escidoc.core.common.util.Version;
 import de.escidoc.core.common.util.logger.AppLogger;
 
+import org.apache.tools.ant.Project;
+import org.apache.tools.ant.Target;
+import org.apache.tools.ant.taskdefs.SQLExec;
+import org.apache.tools.ant.types.FileSet;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 
@@ -108,13 +109,34 @@ public class DataBaseMigrationTool extends DbDao
     private final String scriptPrefix;
 
     /**
+     * Attributes needed to call an Ant target.
+     */
+    private Project project = new Project();
+    private Target target = new Target();
+    private SQLExec sqlExec = new SQLExec();
+
+    /**
      * Construct a new DataBaseMigrationTool object.
-     * 
+     *
+     * @param driverClassName name of the JDBC driver
+     * @param url JDBCL URL
+     * @param username name of the database user
+     * @param password password of the database user
      * @param scriptPrefix
      *            prefix for database script names (mainly for MySQL)
      */
-    public DataBaseMigrationTool(final String scriptPrefix) {
+    public DataBaseMigrationTool(
+        final String driverClassName, final String url, final String username,
+        final String password, final String scriptPrefix) {
         this.scriptPrefix = scriptPrefix;
+        project.init();
+        target.setProject(project);
+        sqlExec.setProject(project);
+        sqlExec.setOwningTarget(target);
+        sqlExec.setDriver(driverClassName);
+        sqlExec.setUrl(url);
+        sqlExec.setUserid(username);
+        sqlExec.setPassword(password);
     }
 
     /**
@@ -230,22 +252,14 @@ public class DataBaseMigrationTool extends DbDao
                     return (name != null) && (name.endsWith(".sql"));
                 }
             });
+        FileSet set = new FileSet();
 
+        set.setDir(sqlDir);
+        set.setProject(project);
         for (String script : scripts) {
-            log.info("process " + script + " ...");
-
-            InputStream reader = null;
-
-            try {
-                reader = new BufferedInputStream(new FileInputStream(new File(
-                    sqlDir, script)));
-                executeSqlScript(reader);
-            }
-            finally {
-                if (reader != null) {
-                    reader.close();
-                }
-            }
+            set.setIncludes(script);
         }
+        sqlExec.addFileset(set);
+        sqlExec.execute();
     }
 }
