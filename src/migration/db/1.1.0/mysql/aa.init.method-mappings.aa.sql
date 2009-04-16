@@ -257,6 +257,13 @@ INSERT INTO aa.invocation_mappings (id, attribute_id, path, position, attribute_
   VALUES ('escidoc-im-user-group-retrieve-grant-2', 'info:escidoc/names:aa:1.0:resource:grant-id', '', 1, 
           'http://www.w3.org/2001/XMLSchema#string', 0, false, '', 'escidoc:mm-user-group-retrieve-grant');
 
+       /**
+        * AA mm - retrieve grants
+        */
+INSERT INTO aa.method_mappings (id, class_name, method_name, action_name, exec_before, single_resource)
+  VALUES ('escidoc:mm-retrieve-grant-list', 'de.escidoc.core.aa.service.UserAccountHandler', 'retrieveGrants',
+  'info:escidoc/names:aa:1.0:action:retrieve-objects-filtered', false, true);
+
 INSERT INTO aa.method_mappings (id, class_name, method_name, action_name, exec_before, single_resource, resource_not_found_exception)
   VALUES ('escidoc:mm-user-group-retrieve-grants', 'de.escidoc.core.aa.service.UserGroupHandler', 'retrieveGrants', 
   'info:escidoc/names:aa:1.0:action:retrieve-user-group-grants', true, true,
