@@ -183,9 +183,18 @@ INSERT INTO aa.invocation_mappings (id, attribute_id, path, position, attribute_
           'http://www.w3.org/2001/XMLSchema#string', 0, false, '', 'escidoc:mm-user-group-deactivate');
 
 INSERT INTO aa.method_mappings (id, class_name, method_name, action_name, exec_before, single_resource, resource_not_found_exception)
-  VALUES ('escidoc:mm-user-group-retrieve-selectors', 'de.escidoc.core.aa.service.UserGroupHandler', 'retrieveSelectors', 
-  'info:escidoc/names:aa:1.0:action:retrieve-user-group', true, true,
-  'de.escidoc.core.common.exceptions.application.notfound.UserGroupNotFoundException');
+  VALUES ('escidoc:mm-user-group-retrieve-resources', 'de.escidoc.core.aa.service.UserGroupHandler', 'retrieveResources', 
+          'info:escidoc/names:aa:1.0:action:retrieve-user-group', true, true,
+          'de.escidoc.core.common.exceptions.application.notfound.UserGroupNotFoundException');
+ 
+INSERT INTO aa.invocation_mappings (id, attribute_id, path, position, attribute_type, mapping_type, multi_value, value, method_mapping)
+  VALUES ('escidoc-im-user-group-retrieve-resources', 'urn:oasis:names:tc:xacml:1.0:resource:resource-id', '', 0, 
+          'http://www.w3.org/2001/XMLSchema#string', 0, false, '', 'escidoc:mm-user-group-retrieve-resources');
+
+INSERT INTO aa.method_mappings (id, class_name, method_name, action_name, exec_before, single_resource, resource_not_found_exception)
+  VALUES ('escidoc:mm-user-group-retrieve-selectors', 'de.escidoc.core.aa.service.UserGroupHandler', 'retrieveSelectors',
+          'info:escidoc/names:aa:1.0:action:retrieve-user-group', true, true,
+          'de.escidoc.core.common.exceptions.application.notfound.UserGroupNotFoundException');
 
 INSERT INTO aa.invocation_mappings (id, attribute_id, path, position, attribute_type, mapping_type, multi_value, value, method_mapping)
   VALUES ('escidoc-im-user-group-retrieve-selectors', 'urn:oasis:names:tc:xacml:1.0:resource:resource-id', '', 0, 
