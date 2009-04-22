@@ -60,3 +60,12 @@ INSERT INTO aa.actions (id, name) VALUES
 INSERT INTO aa.actions (id, name) VALUES
     ('escidoc:delete-set-definition', 'info:escidoc/names:aa:1.0:action:delete-set-definition');
 
+    -- OM - toc
+DELETE FROM aa.actions WHERE id = 'escidoc:action-create-toc';
+DELETE FROM aa.actions WHERE id = 'escidoc:action-delete-toc';
+DELETE FROM aa.actions WHERE id = 'escidoc:action-retrieve-toc';
+DELETE FROM aa.actions WHERE id = 'escidoc:action-update-toc';
+DELETE FROM aa.actions WHERE id = 'escidoc:action-submit-toc';
+DELETE FROM aa.actions WHERE id = 'escidoc:action-release-toc';
+DELETE FROM aa.actions WHERE id = 'escidoc:action-revise-toc';
+DELETE FROM aa.actions WHERE id = 'escidoc:action-withdraw-toc';
