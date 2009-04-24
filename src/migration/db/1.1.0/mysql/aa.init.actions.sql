@@ -39,6 +39,9 @@ INSERT INTO aa.actions (id, name) VALUES
     ('escidoc:action-delete-objects', 'info:escidoc/names:aa:1.0:action:delete-objects');
 
 INSERT INTO aa.actions (id, name) VALUES
+    ('escidoc:action-get-purge-status', 'info:escidoc/names:aa:1.0:action:get-purge-status');
+
+INSERT INTO aa.actions (id, name) VALUES
     ('escidoc:action-get-recache-status', 'info:escidoc/names:aa:1.0:action:get-recache-status');
 
 INSERT INTO aa.actions (id, name) VALUES

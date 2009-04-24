@@ -10,6 +10,13 @@ INSERT INTO aa.method_mappings (id, class_name, method_name, action_name, exec_b
   true, true);
 
         /**
+         * GetPurgeStatus
+         */
+INSERT INTO aa.method_mappings (id, class_name, method_name, action_name, exec_before, single_resource)
+  VALUES ('escidoc:mm-adm-get-purge-status', 'de.escidoc.core.adm.service.AdminHandler', 'getPurgeStatus', 'info:escidoc/names:aa:1.0:action:get-purge-status',
+  true, true);
+
+        /**
          * GetRecacheStatus
          */
 INSERT INTO aa.method_mappings (id, class_name, method_name, action_name, exec_before, single_resource)
