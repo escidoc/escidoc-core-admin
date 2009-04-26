@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src/java"/>
+	<classpathentry kind="src" path="src/test"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="lib/common.jar" sourcepath="/eSciDocCore/common/src"/>
+	<classpathentry kind="lib" path="lib/commons/commons-dbcp-1.2.1.jar"/>
+	<classpathentry kind="lib" path="lib/commons/commons-logging.jar"/>
+	<classpathentry kind="lib" path="lib/commons/commons-pool-1.3.jar"/>
+	<classpathentry kind="lib" path="lib/log4j.jar"/>
+	<classpathentry kind="lib" path="lib/jsr173_1.0_api.jar"/>
+	<classpathentry kind="lib" path="lib/postgresql-8.3-603.jdbc3.jar"/>
+	<classpathentry kind="con" path="org.jboss.ide.eclipse.jdt.core.classpath.j2ee-1.4"/>
+	<classpathentry kind="lib" path="lib/spring/spring-2.5.4.jar"/>
+	<classpathentry kind="lib" path="lib/woodstox/stax2.jar"/>
+	<classpathentry kind="lib" path="lib/woodstox/wstx-asl-3.1.2.jar"/>
+	<classpathentry kind="lib" path="lib/test/junit.jar"/>
+	<classpathentry kind="lib" path="lib/axis/addressing-1.0.jar"/>
+	<classpathentry kind="lib" path="lib/axis/axis-1.4.jar" sourcepath="C:/download/axis-1_4/src"/>
+	<classpathentry kind="lib" path="lib/axis/axis-ant.jar"/>
+	<classpathentry kind="lib" path="lib/axis/axis-jaxrpc-1.4.jar"/>
+	<classpathentry kind="lib" path="lib/axis/axis-saaj-1.4.jar"/>
+	<classpathentry kind="lib" path="lib/axis/bcprov-jdk13-132.jar"/>
+	<classpathentry kind="lib" path="lib/axis/bcprov-jdk15-132.jar"/>
+	<classpathentry kind="lib" path="lib/axis/commons-codec-1.3.jar"/>
+	<classpathentry kind="lib" path="lib/axis/commons-discovery-0.2.jar"/>
+	<classpathentry kind="lib" path="lib/axis/jaxrpc.jar"/>
+	<classpathentry kind="lib" path="lib/axis/junit-3.8.1.jar"/>
+	<classpathentry kind="lib" path="lib/axis/log4j.jar"/>
+	<classpathentry kind="lib" path="lib/axis/neethi-SNAPSHOT.jar"/>
+	<classpathentry kind="lib" path="lib/axis/opensaml-1.0.1.jar"/>
+	<classpathentry kind="lib" path="lib/axis/saaj.jar"/>
+	<classpathentry kind="lib" path="lib/axis/serializer-2.7.0.jar"/>
+	<classpathentry kind="lib" path="lib/axis/wsdl4j-1.5.1.jar"/>
+	<classpathentry kind="lib" path="lib/axis/xalan-2.7.0.jar"/>
+	<classpathentry kind="lib" path="lib/axis/xercesImpl.jar"/>
+	<classpathentry kind="lib" path="lib/axis/xml-apis.jar"/>
+	<classpathentry kind="lib" path="lib/axis/wss4j-1.5.3.jar" sourcepath="/wss4j"/>
+	<classpathentry kind="lib" path="lib/axis/xmlsec-1.4.1.jar"/>
+	<classpathentry kind="lib" path="lib/fedora-client.jar"/>
+	<classpathentry kind="lib" path="lib/commons-httpclient-3.1.jar"/>
+	<classpathentry kind="lib" path="lib/jboss/jbossall-client.jar"/>
+	<classpathentry kind="lib" path="lib/spring/spring-test.jar"/>
+	<classpathentry kind="lib" path="lib/java-getopt-1.0.13.jar"/>
+	<classpathentry kind="lib" path="lib/commons/commons-lang-2.4.jar"/>
+	<classpathentry kind="lib" path="lib/axis/activation.jar"/>
+	<classpathentry kind="lib" path="lib/joda-time-1.5.2.jar"/>
+	<classpathentry kind="lib" path="lib/ant/ant.jar"/>
+	<classpathentry kind="output" path="build/classes"/>
+</classpath>

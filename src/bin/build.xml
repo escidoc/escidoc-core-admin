@@ -1,0 +1,121 @@
+<?xml version="1.0"?>
+<project name="eSciDocCore Admin Tools" default="reindex" basedir=".">
+
+	<property file="admin-tool.properties" />
+	
+	<path id="build.classpath">
+		<fileset dir="." includes="eSciDocCoreAdmin.jar" />
+		<fileset dir="." includes="lib/saxon8.jar" />
+	</path>
+
+	<macrodef name="largecopy">
+		<attribute name="fromdir"/>
+		<attribute name="todir"/>
+		<sequential>
+			<pathconvert property="fromdir.local">
+				<path location="@{fromdir}"/>
+			</pathconvert>
+			<pathconvert property="todir.local">
+				<path location="@{todir}"/>
+			</pathconvert>
+			<exec executable="cp" osfamily="unix">
+				<arg value="-r"/>
+				<arg value="${fromdir.local}"/>
+				<arg value="${todir.local}"/>
+			</exec>
+			<exec executable="xcopy" osfamily="windows">
+				<arg value="/I"/>
+				<arg value="/S"/>
+				<arg value="/Y"/>
+				<arg value="${fromdir.local}"/>
+				<arg value="${todir.local}\datastreams"/>
+			</exec>
+		</sequential>
+	</macrodef>
+
+	<target name="test">
+		<java jar="eSciDocCoreAdmin.jar" fork="true">
+			<arg value="test" />
+			<arg value="${escidocOmUrl}" />
+			<arg value="${escidocSbUrl}" />
+		</java>
+	</target>
+
+	<target name="recache">
+		<java jar="eSciDocCoreAdmin.jar" fork="true">
+                        <jvmarg value="-Xmx1024m"/>
+                        <jvmarg value="-Xms512m"/>
+                        <jvmarg value="-XX:MaxPermSize=1024m"/>
+			<arg value="recache" />
+		</java>
+	</target>
+
+	<target name="reindex">
+		<java jar="eSciDocCoreAdmin.jar" fork="true">
+			<arg value="reindex" />
+		</java>
+	</target>
+
+	<target name="data-migration" depends="db-migration, foxml-migration" />
+
+	<target name="post-data-migration">
+		<echo>The first step of migration has finished successfully.</echo>
+		<echo>Now you have to rebuild the </echo>
+		<echo>Fedora Resource Index (menu option 1) and</echo>
+		<echo>Fedora SQL database (menu option 2)</echo>
+		<echo>Please run fedora-rebuild script located in ${fedora-3.home}\server\bin</echo>
+		<echo>and follow the instructions.</echo>
+		<echo>Please note: If your escidoc repository has many objects it is possible that fedora-rebuild script aborts throwing an exception.</echo>
+		<echo>In this case you have to rerun the fedora-rebuild script using the same menu option until the excution finishes with success.</echo>
+		<echo>If the rebuild of Fedora 'Resource Index' and Fedora 'SQL database' is completed please check if the table 'pidgen'</echo>
+		<echo>exists in your Fedora 3.0 database and contains at least a row with namesapce 'escidoc'. Otherwise rerun fedora-rebuild script with menu option 2 until the table pidgen has the expected entry.</echo>
+		<echo>Please start the new Fedora repository and the eSciDocCore services.</echo>
+		<echo>If all is up and running you have to run the reindex tool (target reindex in this script).</echo>
+	</target>
+
+
+	<target name="db-migration">
+		<echo>Starting database migration</echo>
+		<java jar="eSciDocCoreAdmin.jar" fork="true">
+			<arg value="db-migration" />
+		</java>
+		<echo>Finished</echo>
+	</target>
+
+	<target name="foxml-migration" depends="prepare-foxml-migration">
+		<echo>Starting migration of fedora repository</echo>
+		<java jar="eSciDocCoreAdmin.jar" fork="true">
+			<arg value="foxml-migration"/>
+			<arg value="${foxml.src.dir}"/>
+			<arg value="${foxml.target.dir}"/>
+			<arg value="xsl/GeneralToFedora30.xsl"/>
+                        <sysproperty key="javax.xml.transform.TransformerFactory" value="net.sf.saxon.TransformerFactoryImpl"/>
+			<classpath>
+				<path refid="build.classpath"/>
+			</classpath>
+		</java>
+		<!-- delete all FOXML files with 0 bytes length -->
+                <!-- Unfortunately this doesn't work with directories containing a lot of files. -->
+<!--
+		<delete>
+			<restrict>
+				<fileset dir="${foxml.target.dir}" includes="**/*">
+					<size when="eq" value="0">
+					</size>
+				</fileset>
+			</restrict>
+		</delete>
+-->
+		<echo>Finished</echo>
+	</target>
+
+	<target name="prepare-foxml-migration">
+		<echo>Preparing migration of fedora repository</echo>
+		<move file="${foxml.target.dir}" todir="${foxml.target.dir}.bak" failonerror="false"/>
+		<mkdir dir="${foxml.target.dir}" />
+		<move file="${datastreams.target.dir}" todir="${datastreams.target.dir}.bak" failonerror="false"/>
+		<mkdir dir="${datastreams.target.dir}" />
+		<largecopy fromdir="${datastreams.src.dir}" todir="${data.target.dir}"/>
+		<echo>Finished</echo>
+	</target>
+</project>
