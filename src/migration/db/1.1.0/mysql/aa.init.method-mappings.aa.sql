@@ -12,7 +12,7 @@ INSERT INTO aa.invocation_mappings (id, attribute_id, path, position, attribute_
          * AA mm - delete preference
          */
 INSERT INTO aa.method_mappings (id, class_name, method_name, action_name, exec_before, single_resource)
-  VALUES ('escidoc:mm-user-account-delete-preference', 'de.escidoc.core.aa.service.UserAccountHandler', 'deletePreference', 'info:escidoc/names:aa:1.0:action:delete-user-preference', true, true);
+  VALUES ('escidoc:mm-user-account-delete-preference', 'de.escidoc.core.aa.service.UserAccountHandler', 'deletePreference', 'info:escidoc/names:aa:1.0:action:update-user-account', true, true);
 
 INSERT INTO aa.invocation_mappings (id, attribute_id, path, position, attribute_type, mapping_type, multi_value, value, method_mapping)
   VALUES ('escidoc-im-user-account-delete-preference-1', 'info:escidoc/names:aa:1.0:resource:object-type-new', '', 0,
