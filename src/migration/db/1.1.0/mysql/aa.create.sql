@@ -36,6 +36,8 @@ ALTER TABLE aa.role_grant ADD CONSTRAINT FK_GRANT_USER FOREIGN KEY (user_id) REF
 ALTER TABLE aa.role_grant ADD CONSTRAINT FK_GRANT_GROUP FOREIGN KEY (group_id) REFERENCES aa.user_group (id);
 
 CREATE INDEX group_role_grant_idx ON aa.role_grant (group_id, revocation_date);
+CREATE INDEX user_role_role_grant_idx ON aa.role_grant (user_id, role_id);
+CREATE INDEX group_role_role_grant_idx ON aa.role_grant (group_id, role_id);
 
 CREATE TABLE aa.user_preference (
   id VARCHAR(255) NOT NULL,
