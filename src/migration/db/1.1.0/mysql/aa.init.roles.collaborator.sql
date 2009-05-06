@@ -1,5 +1,6 @@
 DELETE FROM aa.scope_def WHERE role_id='escidoc:role-collaborator';
 DELETE FROM aa.escidoc_policies WHERE role_id='escidoc:role-collaborator';
+DELETE FROM list.filter;
 DELETE FROM aa.escidoc_role WHERE role_name='Collaborator';
 
     /**
