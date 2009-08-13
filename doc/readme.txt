@@ -39,6 +39,12 @@ migration is only supported between stable releases. The migration between
 developer builds may work but will never be supported. If you migrate non supported
 versions you do it at your own risk and without any support.
 
+Warning:
+
+The migration tool cannot migrate the the XACML policies. If they did change then they
+will be overwritten with the new content. Please be sure to do a backup of your policies
+if you had modified them in the meantime.
+
 
 2.) Migration of Fedora Repository 
 ----------------------------------
