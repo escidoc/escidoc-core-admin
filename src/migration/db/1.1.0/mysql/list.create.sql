@@ -1,6 +1,7 @@
 DROP INDEX property_id_path_value ON list.property;
 DROP INDEX property_path_value_position ON list.property;
 
+UPDATE list.property set value = substring(value from 1 for 300);
 ALTER TABLE list.property CHANGE value value VARCHAR(300);
 
 CREATE INDEX id_local_path_position
