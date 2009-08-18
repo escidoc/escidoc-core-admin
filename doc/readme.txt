@@ -45,6 +45,10 @@ The migration tool cannot migrate the the XACML policies. If they did change the
 will be overwritten with the new content. Please be sure to do a backup of your policies
 if you had modified them in the meantime.
 
+If the migration process terminated unexpectedly then you will get an inconsistent
+database. In that case the only way to proceed is to restore the backup, fix the problem
+which caused the migration process to fail and run the migration again.
+
 
 2.) Migration of Fedora Repository 
 ----------------------------------
