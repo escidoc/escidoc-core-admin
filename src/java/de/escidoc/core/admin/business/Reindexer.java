@@ -417,9 +417,6 @@ public class Reindexer implements ReindexerInterface {
             message.setStringProperty(
                     Constants.INDEXER_QUEUE_OBJECT_TYPE_PARAMETER
                     , objectType);
-            message.setBooleanProperty(
-                    Constants.INDEXER_QUEUE_WRITE_SYNCHRONOUS_PARAMETER
-                    , true);
             messageProducer.send(message);
         }
         catch (Exception e) {
