@@ -41,6 +41,7 @@ import javax.sql.DataSource;
 import de.escidoc.core.admin.business.interfaces.DataBaseMigrationInterface;
 import de.escidoc.core.common.exceptions.system.IntegritySystemException;
 import de.escidoc.core.common.util.Version;
+import de.escidoc.core.common.util.db.Fingerprint;
 import de.escidoc.core.common.util.logger.AppLogger;
 
 import org.apache.tools.ant.Project;
@@ -60,6 +61,12 @@ import org.springframework.jdbc.core.ResultSetExtractor;
  */
 public class DataBaseMigrationTool extends DbDao
     implements DataBaseMigrationInterface {
+    /**
+     * Version of the eSciDocCore database which is currently needed to run the
+     * framework.
+     */
+    private static final Version DB_VERSION = new Version(1, 2, 0);
+
     /**
      * Database table name for the version information.
      */
@@ -96,6 +103,13 @@ public class DataBaseMigrationTool extends DbDao
      * Directory which contains the SQL scripts.
      */
     private static final String DIRECTORY_SCRIPTS = "db";
+
+    /**
+     * XML file with the finger print of the "escidoc-core" database.
+     */
+    private static final String FINGERPRINT_FILE =
+        "/de/escidoc/core/common/util/db/fingerprints/"
+        + DB_VERSION.toString() + ".xml";
 
     /**
      * The logger.
@@ -200,12 +214,48 @@ public class DataBaseMigrationTool extends DbDao
     }
 
     /**
+     * Compare the current database structure with the structure stored in an XML
+     * file.
+     *
+     * @return true if both structures are equal
+     * @throws IOException Thrown if the XML file could not be read
+     * @throws SQLException Thrown if the structure of the database could not be
+     *         determined
+     */
+    private boolean isConsistent() throws IOException, SQLException {
+        Fingerprint currentFingerprint = new Fingerprint(getConnection());
+        Fingerprint storedFingerprint =
+            Fingerprint.readObject(getClass().getResourceAsStream(
+                FINGERPRINT_FILE));
+
+        return storedFingerprint.compareTo(currentFingerprint) == 0;
+    }
+
+    /**
      * See Interface for functional description.
      * 
      * @throws IntegritySystemException Thrown in case the content of the database is not as expected.
      * @see de.escidoc.core.admin.business.interfaces.DataBaseMigrationInterface#migrate()
      */
     public void migrate() throws IntegritySystemException {
+        boolean isConsistent = false;
+
+        try {
+            isConsistent = isConsistent();
+        }
+        catch (Exception e) {
+            throw new IntegritySystemException(
+                "could not check the database consistency", e);
+        }
+        if (!isConsistent) {
+            throw new IntegritySystemException(
+                "The database is not in the expected state to run the migration. "
+                + "Please compare the file \""
+                + System.getProperty("java.io.tmpdir") + "/fingerprint.xml\" "
+                + "with \"" + FINGERPRINT_FILE + "\" which is included in the "
+                + "class path.");
+        }
+
         Collection <Version> updates = getUpdates(DIRECTORY_SCRIPTS);
 
         log.info("available updates: " + updates);
