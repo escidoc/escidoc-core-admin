@@ -9,6 +9,14 @@
     </layout>
   </appender>
   
+  <appender name="LogFile" class="org.apache.log4j.FileAppender">
+    <param name="file" value="admin.log" />
+    <param name="Append" value="true" />
+    <layout class="org.apache.log4j.PatternLayout">
+      <param name="ConversionPattern" value="%d{ISO8601} %-5p [%t] %c: %m%n" />
+    </layout>
+  </appender>
+
   <category name="org.springframework">
         <priority value="WARN" />
    </category>
@@ -23,6 +31,7 @@
   <root>
     <level value="INFO" />
     <appender-ref ref="STDOUT"/>
+    <appender-ref ref="LogFile"/>
   </root>
   
 </log4j:configuration>
