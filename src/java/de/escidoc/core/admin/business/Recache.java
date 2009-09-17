@@ -46,6 +46,7 @@ import org.springframework.test.jdbc.SimpleJdbcTestUtils;
 import de.escidoc.core.admin.business.interfaces.RecacheInterface;
 import de.escidoc.core.admin.common.util.EscidocCoreHandler;
 import de.escidoc.core.common.business.fedora.resources.DbResourceCache;
+import de.escidoc.core.common.business.fedora.resources.ResourceType;
 import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException;
 import de.escidoc.core.common.exceptions.system.SystemException;
 import de.escidoc.core.common.util.logger.AppLogger;
@@ -201,6 +202,11 @@ public class Recache extends DbResourceCache implements RecacheInterface {
     private final String scriptPrefix;
 
     /**
+     * Property "clearRepository" from configuration file.
+     */
+    private final boolean clearRepository;
+
+    /**
      * Spring beans.
      */
     private EscidocCoreHandler escidocCoreHandler = null;
@@ -225,13 +231,15 @@ public class Recache extends DbResourceCache implements RecacheInterface {
      * @throws IOException Thrown if reading the configuration failed.
      */
     public Recache(final String aFedoraUser, final String aFedoraPassword,
-        final String aFedoraUrl, final String aScriptPrefix) throws IOException {
+        final String aFedoraUrl, final String aScriptPrefix,
+        final String clearRepository) throws IOException {
         this.fedoraUser = aFedoraUser;
         this.fedoraPassword = aFedoraPassword;
         this.fedoraUrl = aFedoraUrl;
         this.scriptPrefix =
             ((aScriptPrefix != null) && (aScriptPrefix.length() > 0))
             ? aScriptPrefix + "." : "";
+        this.clearRepository = Boolean.valueOf(clearRepository);
     }
 
     /**
@@ -240,8 +248,10 @@ public class Recache extends DbResourceCache implements RecacheInterface {
      * @throws IOException Thrown if an I/O error occurred.
      */
     public final void clearCache() throws IOException {
-        executeSqlScript(scriptPrefix + "list.drop.sql");
-        executeSqlScript(scriptPrefix + "list.create.sql");
+        if (clearRepository) {
+            executeSqlScript(scriptPrefix + "list.drop.sql");
+            executeSqlScript(scriptPrefix + "list.create.sql");
+        }
     }
 
     /**
@@ -391,6 +401,7 @@ public class Recache extends DbResourceCache implements RecacheInterface {
         BufferedReader input = null;
 
         try {
+            resourceType = ResourceType.valueOf(type.toUpperCase());
             fc = new FedoraClient(fedoraUrl, fedoraUser, fedoraPassword);
             input =
                 new BufferedReader(new InputStreamReader(fc
@@ -404,17 +415,23 @@ public class Recache extends DbResourceCache implements RecacheInterface {
                 final String subject = getSubject(line);
 
                 if (subject != null) {
-                    log.info("store " + type + " " + subject);
-
                     final String id =
                         subject.substring(subject.indexOf('/') + 1);
-                    String xmlDataRest = retrieveResourceRest(resourceUrl, id);
-                    String xmlDataSoap =
-                        retrieveResourceSoap(resourceNamespace, id);
 
-                    storeProperties(getProperties(id, xmlDataRest));
-                    storeResource(type, id, xmlDataRest, xmlDataSoap);
-                    count++;
+                    if (!clearRepository && exists(id)) {
+                        log.info(type + " " + subject + " already exists");
+                    }
+                    else {
+                        log.info("store " + type + " " + subject);
+
+                        String xmlDataRest = retrieveResourceRest(resourceUrl, id);
+                        String xmlDataSoap =
+                            retrieveResourceSoap(resourceNamespace, id);
+
+                        storeProperties(getProperties(id, xmlDataRest));
+                        storeResource(type, id, xmlDataRest, xmlDataSoap);
+                        count++;
+                    }
                 }
             }
 
