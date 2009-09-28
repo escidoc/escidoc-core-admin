@@ -43,7 +43,7 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 import org.springframework.test.jdbc.SimpleJdbcTestUtils;
 
-import de.escidoc.core.admin.business.interfaces.RecacheInterface;
+import de.escidoc.core.admin.business.interfaces.RecacherInterface;
 import de.escidoc.core.admin.common.util.EscidocCoreHandler;
 import de.escidoc.core.common.business.fedora.resources.DbResourceCache;
 import de.escidoc.core.common.business.fedora.resources.ResourceType;
@@ -56,16 +56,16 @@ import fedora.client.FedoraClient;
 /**
  * Provides methods used for recaching.
  *
- * @spring.bean id="de.escidoc.core.admin.Recache"
+ * @spring.bean id="de.escidoc.core.admin.Recacher"
  *
  * @admin
  */
-public class Recache extends DbResourceCache implements RecacheInterface {
+public class Recacher extends DbResourceCache implements RecacherInterface {
 
     /**
      * Logging goes here.
      */
-    private static AppLogger log = new AppLogger(Recache.class.getName());
+    private static AppLogger log = new AppLogger(Recacher.class.getName());
 
     /**
      * SQL statement to insert a container.
@@ -202,9 +202,9 @@ public class Recache extends DbResourceCache implements RecacheInterface {
     private final String scriptPrefix;
 
     /**
-     * Property "clearRepository" from configuration file.
+     * Property "clearCache" from configuration file.
      */
-    private final boolean clearRepository;
+    private final boolean clearCache;
 
     /**
      * Spring beans.
@@ -217,7 +217,7 @@ public class Recache extends DbResourceCache implements RecacheInterface {
     private FedoraClient fc = null;
 
     /**
-     * Construct a new Recache object.
+     * Construct a new Recacher object.
      *
      * @param aFedoraUser
      *            privileged Fedora user
@@ -227,19 +227,20 @@ public class Recache extends DbResourceCache implements RecacheInterface {
      *            Fedora base URL
      * @param aScriptPrefix
      *            prefix for database script names (mainly for MySQL)
+     * @param clearCache clear the cache before adding objects to it
      *
      * @throws IOException Thrown if reading the configuration failed.
      */
-    public Recache(final String aFedoraUser, final String aFedoraPassword,
+    public Recacher(final String aFedoraUser, final String aFedoraPassword,
         final String aFedoraUrl, final String aScriptPrefix,
-        final String clearRepository) throws IOException {
+        final String clearCache) throws IOException {
         this.fedoraUser = aFedoraUser;
         this.fedoraPassword = aFedoraPassword;
         this.fedoraUrl = aFedoraUrl;
         this.scriptPrefix =
             ((aScriptPrefix != null) && (aScriptPrefix.length() > 0))
             ? aScriptPrefix + "." : "";
-        this.clearRepository = Boolean.valueOf(clearRepository);
+        this.clearCache = Boolean.valueOf(clearCache);
     }
 
     /**
@@ -248,7 +249,7 @@ public class Recache extends DbResourceCache implements RecacheInterface {
      * @throws IOException Thrown if an I/O error occurred.
      */
     public final void clearCache() throws IOException {
-        if (clearRepository) {
+        if (clearCache) {
             executeSqlScript(scriptPrefix + "list.drop.sql");
             executeSqlScript(scriptPrefix + "list.create.sql");
         }
@@ -418,7 +419,7 @@ public class Recache extends DbResourceCache implements RecacheInterface {
                     final String id =
                         subject.substring(subject.indexOf('/') + 1);
 
-                    if (!clearRepository && exists(id)) {
+                    if (!clearCache && exists(id)) {
                         log.info(type + " " + subject + " already exists");
                     }
                     else {

@@ -59,12 +59,12 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
 	</bean>
 
 	<!-- RECACHE -->
-	<bean id="de.escidoc.core.admin.Recache" class="de.escidoc.core.admin.business.Recache">
+	<bean id="de.escidoc.core.admin.Recacher" class="de.escidoc.core.admin.business.Recacher">
 		<constructor-arg value="${fedora.user}" />
 		<constructor-arg value="${fedora.password}" />
 		<constructor-arg value="${fedora.url}" />
 		<constructor-arg value="${datasource.script.prefix}" />
-                <constructor-arg value="${clearRepository}" />
+                <constructor-arg value="${clearCache}" />
 		<property name="dataSource">
 			<ref bean="de.escidoc.core.admin.DataSource" />
 		</property>

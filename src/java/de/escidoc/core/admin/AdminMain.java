@@ -31,7 +31,7 @@ package de.escidoc.core.admin;
 import static de.escidoc.core.admin.common.util.spring.SpringConstants.BEAN_REF_FACTORY;
 import static de.escidoc.core.admin.common.util.spring.SpringConstants.ID_APPLICATION_CONTEXT;
 import static de.escidoc.core.admin.common.util.spring.SpringConstants.ID_DATA_BASE_MIGRATION_TOOL;
-import static de.escidoc.core.admin.common.util.spring.SpringConstants.ID_RECACHE;
+import static de.escidoc.core.admin.common.util.spring.SpringConstants.ID_RECACHER;
 import static de.escidoc.core.admin.common.util.spring.SpringConstants.ID_REINDEXER;
 
 import java.lang.reflect.InvocationTargetException;
@@ -49,7 +49,7 @@ import org.springframework.transaction.CannotCreateTransactionException;
 
 import de.escidoc.core.admin.business.FoxmlMigrationTool;
 import de.escidoc.core.admin.business.interfaces.DataBaseMigrationInterface;
-import de.escidoc.core.admin.business.interfaces.RecacheInterface;
+import de.escidoc.core.admin.business.interfaces.RecacherInterface;
 import de.escidoc.core.admin.business.interfaces.ReindexerInterface;
 import de.escidoc.core.common.business.Constants;
 import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException;
@@ -223,8 +223,8 @@ public class AdminMain {
      *            The arguments.
      */
     private void recache(final String[] args) {
-        RecacheInterface recache =
-            (RecacheInterface) beanFactory.getBean(ID_RECACHE);
+        RecacherInterface recache =
+            (RecacherInterface) beanFactory.getBean(ID_RECACHER);
 
         try {
             recache.clearCache();

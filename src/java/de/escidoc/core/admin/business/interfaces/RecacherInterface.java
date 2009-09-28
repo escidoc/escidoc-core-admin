@@ -38,7 +38,7 @@ import java.text.ParseException;
  * 
  * @author SCHE
  */
-public interface RecacheInterface {
+public interface RecacherInterface {
 
     /**
      * Clear all resources from cache.
