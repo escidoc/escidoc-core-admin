@@ -59,7 +59,7 @@ import de.escidoc.core.common.util.string.StringUtility;
 
 /**
  * Main Class for the Admin-Tool.
- *
+ * 
  * @admin
  */
 public class AdminMain {
@@ -88,17 +88,17 @@ public class AdminMain {
 
     /**
      * Main Method, depends on args[0] which method is executed.
-     *
+     * 
      * @param args
      *            arguments given on commandline
      * @throws NoSuchMethodException
-     * @throws SecurityException
+     *             e
      * @throws InvocationTargetException
+     *             e
      * @throws IllegalAccessException
-     * @throws IllegalArgumentException
+     *             e
      */
-    public static void main(final String[] args) throws SecurityException,
-        NoSuchMethodException, IllegalArgumentException,
+    public static void main(final String[] args) throws NoSuchMethodException,
         IllegalAccessException, InvocationTargetException {
         AdminMain admin = new AdminMain();
 
@@ -135,8 +135,9 @@ public class AdminMain {
         }
         log
             .error("Invalid argument. The tool you specified could not be found.");
-        log.error("Invoke the tool of your choice using this command : java -jar"
-            + " eSciDocCoreAdmin.jar <tool> [<arguments>].");
+        log
+            .error("Invoke the tool of your choice using this command : java -jar"
+                + " eSciDocCoreAdmin.jar <tool> [<arguments>].");
         log.error("The follwoing tools are available:");
         for (String method : new TreeMap<String, Object>(methods).keySet()) {
             log.error(method);
@@ -145,7 +146,7 @@ public class AdminMain {
 
     /**
      * Migrate the content of the escidoc-core database.
-     *
+     * 
      * @param args
      *            The arguments.
      * @see de.escidoc.core.admin.business
@@ -186,7 +187,7 @@ public class AdminMain {
 
     /**
      * Migrate the Fedora Foxml files.
-     *
+     * 
      * @param args
      *            The arguments.
      */
@@ -218,17 +219,17 @@ public class AdminMain {
 
     /**
      * Clear the item cache, get all items and store them in the item cache.
-     *
+     * 
      * @param args
      *            The arguments.
      */
     private void recache(final String[] args) {
-        RecacherInterface recache =
+        RecacherInterface recacher =
             (RecacherInterface) beanFactory.getBean(ID_RECACHER);
 
         try {
-            recache.clearCache();
-            recache.storeResources();
+            recacher.clearCache();
+            recacher.storeResources();
         }
         catch (Exception e) {
             log.error(e);
@@ -239,7 +240,7 @@ public class AdminMain {
     /**
      * delete index, get all items and containers that are released and put the
      * resourceIds into the indexer message queue.
-     *
+     * 
      * @param args
      *            The arguments.
      */
@@ -257,7 +258,7 @@ public class AdminMain {
                 reindexer.getFilteredOrganizationalUnits();
 
             // Delete index
-            reindexer.sendDeleteIndexMessage();
+            reindexer.clearIndex();
 
             log
                 .info("scheduling " + itemHrefs.size()

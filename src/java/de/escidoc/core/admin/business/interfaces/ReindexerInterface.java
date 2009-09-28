@@ -34,6 +34,14 @@ import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException
 public interface ReindexerInterface {
 
     /**
+     * Clear all resources from index.
+     * 
+     * @throws ApplicationServerSystemException
+     *             Thrown if an internal error occurred.
+     */
+    void clearIndex() throws ApplicationServerSystemException;
+
+    /**
      * Close Connection to SB-Indexing-Queue.
      * 
      * @admin
@@ -41,23 +49,20 @@ public interface ReindexerInterface {
     void close();
 
     /**
-     * Get all publicly available Items 
-     * from OM and put hrefs into Vector.
+     * Get all publicly available Items from OM and put hrefs into Vector.
      * 
-     * @return Vector<String> item-hrefs
+     * @return Vector item-hrefs
      * 
      * @throws ApplicationServerSystemException
      *             e
      * @admin
      */
-    Vector<String> getFilteredItems()
-        throws ApplicationServerSystemException;
+    Vector<String> getFilteredItems() throws ApplicationServerSystemException;
 
     /**
-     * Get all publicly available Containers 
-     * from OM and put hrefs into Vector.
+     * Get all publicly available Containers from OM and put hrefs into Vector.
      * 
-     * @return Vector<String> container-hrefs
+     * @return Vector container-hrefs
      * 
      * @throws ApplicationServerSystemException
      *             e
@@ -67,10 +72,10 @@ public interface ReindexerInterface {
         throws ApplicationServerSystemException;
 
     /**
-     * Get all publicly available Organizational Units 
-     * from OUM and put hrefs into Vector.
+     * Get all publicly available Organizational Units from OUM and put hrefs
+     * into Vector.
      * 
-     * @return Vector<String> org-unit-hrefs
+     * @return Vector org-unit-hrefs
      * 
      * @throws ApplicationServerSystemException
      *             e
@@ -82,7 +87,8 @@ public interface ReindexerInterface {
     /**
      * retrieve resource.
      * 
-     * @param resource String resourceIdentifier
+     * @param resource
+     *            String resourceIdentifier
      * @return String resource as xml.
      * 
      * @throws ApplicationServerSystemException
@@ -95,55 +101,40 @@ public interface ReindexerInterface {
     /**
      * get object from FedoraManagementDeviationHandler.
      * 
-     * @param resource String resourceIdentifier
+     * @param resource
+     *            String resourceIdentifier
      * @return Object resource as xml.
      * 
      * @throws ApplicationServerSystemException
      *             e
      * @admin
      */
-    Object fedoraExport(
-			final String resource)
-	throws ApplicationServerSystemException;
-	
+    Object fedoraExport(final String resource)
+        throws ApplicationServerSystemException;
+
     /**
      * get fulltext from FedoraAccessDeviationHandler.
      * 
-     * @param resource String resourceIdentifier
+     * @param resource
+     *            String resourceIdentifier
      * @return Object resource as Object.
      * 
      * @throws ApplicationServerSystemException
      *             e
      * @admin
      */
-    Object fedoraGetDatastreamDissemination(
-			final String resource)
-	throws ApplicationServerSystemException;
-	
-	/**
-     * Send delete-index Message to SB.
-     * 
-     * @throws ApplicationServerSystemException
-     *             e
-     * @admin
-     */
-    void sendDeleteIndexMessage()
+    Object fedoraGetDatastreamDissemination(final String resource)
         throws ApplicationServerSystemException;
 
     /**
-     * Send update-index Message to SB.
-     * 
      * @param resource
      *            String resource.
      * @param objectType
-     *            String objectType (Item, Container...).
+     *            type of the resource.
      * 
      * @throws ApplicationServerSystemException
      *             e
-     * @admin
      */
-    void sendUpdateIndexMessage(final String resource, 
-    						final String objectType)
+    void sendUpdateIndexMessage(final String resource, final String objectType)
         throws ApplicationServerSystemException;
-
 }

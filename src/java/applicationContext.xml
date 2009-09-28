@@ -58,7 +58,7 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
 		</property>
 	</bean>
 
-	<!-- RECACHE -->
+	<!-- RECACHER -->
 	<bean id="de.escidoc.core.admin.Recacher" class="de.escidoc.core.admin.business.Recacher">
 		<constructor-arg value="${fedora.user}" />
 		<constructor-arg value="${fedora.password}" />
@@ -103,6 +103,8 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
 		</property>
 	</bean>
 	<bean id="de.escidoc.core.admin.Reindexer" class="de.escidoc.core.admin.business.Reindexer">
+                <constructor-arg value="${clearIndex}" />
+                <constructor-arg value="${indexNamePrefix}" />
 		<property name="queueUser">
 			<value>${indexerQueueUser}</value>
 		</property>

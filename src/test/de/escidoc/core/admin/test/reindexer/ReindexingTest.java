@@ -111,7 +111,7 @@ public class ReindexingTest extends ReindexingTestBase {
         numberOfContainerHits = getNumberOfHits(searchResult);
 
         // delete index
-        getReindexer().sendDeleteIndexMessage();
+        getReindexer().clearIndex();
 
         // check if no items are found any longer
         searchResult =
