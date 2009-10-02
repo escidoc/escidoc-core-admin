@@ -36,10 +36,10 @@ import static de.escidoc.core.admin.common.util.spring.SpringConstants.ID_REINDE
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.Vector;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.BeanFactory;
@@ -52,8 +52,8 @@ import de.escidoc.core.admin.business.interfaces.DataBaseMigrationInterface;
 import de.escidoc.core.admin.business.interfaces.RecacherInterface;
 import de.escidoc.core.admin.business.interfaces.ReindexerInterface;
 import de.escidoc.core.common.business.Constants;
-import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException;
 import de.escidoc.core.common.exceptions.system.IntegritySystemException;
+import de.escidoc.core.common.exceptions.system.SystemException;
 import de.escidoc.core.common.util.logger.AppLogger;
 import de.escidoc.core.common.util.string.StringUtility;
 
@@ -250,11 +250,11 @@ public class AdminMain {
 
         try {
             // Get all released Items
-            Vector<String> itemHrefs = reindexer.getFilteredItems();
+            Collection<String> itemHrefs = reindexer.getFilteredItems();
             // Get all released Containers
-            Vector<String> containerHrefs = reindexer.getFilteredContainers();
+            Collection<String> containerHrefs = reindexer.getFilteredContainers();
             // Get all public viewable organizational-units
-            Vector<String> orgUnitHrefs =
+            Collection<String> orgUnitHrefs =
                 reindexer.getFilteredOrganizationalUnits();
 
             // Delete index
@@ -302,7 +302,7 @@ public class AdminMain {
             }
 
         }
-        catch (ApplicationServerSystemException e) {
+        catch (SystemException e) {
             log.error(e);
         }
         finally {

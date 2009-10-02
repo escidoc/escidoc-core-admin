@@ -27,19 +27,20 @@
  * All rights reserved.  Use is subject to license terms.
  */package de.escidoc.core.admin.business.interfaces;
 
-import java.util.Vector;
+import java.util.Collection;
 
 import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException;
+import de.escidoc.core.common.exceptions.system.SystemException;
 
 public interface ReindexerInterface {
 
     /**
      * Clear all resources from index.
      * 
-     * @throws ApplicationServerSystemException
+     * @throws SystemException
      *             Thrown if an internal error occurred.
      */
-    void clearIndex() throws ApplicationServerSystemException;
+    void clearIndex() throws SystemException;
 
     /**
      * Close Connection to SB-Indexing-Queue.
@@ -53,23 +54,23 @@ public interface ReindexerInterface {
      * 
      * @return Vector item-hrefs
      * 
-     * @throws ApplicationServerSystemException
-     *             e
+     * @throws SystemException
+     *             Thrown if an internal error occurred.
      * @admin
      */
-    Vector<String> getFilteredItems() throws ApplicationServerSystemException;
+    Collection<String> getFilteredItems() throws SystemException;
 
     /**
      * Get all publicly available Containers from OM and put hrefs into Vector.
      * 
      * @return Vector container-hrefs
      * 
-     * @throws ApplicationServerSystemException
-     *             e
+     * @throws SystemException
+     *             Thrown if an internal error occurred.
      * @admin
      */
-    Vector<String> getFilteredContainers()
-        throws ApplicationServerSystemException;
+    Collection<String> getFilteredContainers()
+        throws SystemException;
 
     /**
      * Get all publicly available Organizational Units from OUM and put hrefs
@@ -77,12 +78,12 @@ public interface ReindexerInterface {
      * 
      * @return Vector org-unit-hrefs
      * 
-     * @throws ApplicationServerSystemException
-     *             e
+     * @throws SystemException
+     *             Thrown if an internal error occurred.
      * @admin
      */
-    Vector<String> getFilteredOrganizationalUnits()
-        throws ApplicationServerSystemException;
+    Collection<String> getFilteredOrganizationalUnits()
+        throws SystemException;
 
     /**
      * retrieve resource.

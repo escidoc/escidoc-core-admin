@@ -29,6 +29,10 @@
 package de.escidoc.core.admin.business;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -41,11 +45,18 @@ import javax.jms.QueueConnectionFactory;
 import javax.jms.QueueSession;
 import javax.jms.Session;
 
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpConnectionManager;
+import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
+
 import de.escidoc.core.admin.business.interfaces.ReindexerInterface;
 import de.escidoc.core.admin.common.util.EscidocCoreHandler;
 import de.escidoc.core.admin.common.util.stax.handler.ListHrefHandler;
 import de.escidoc.core.common.business.Constants;
 import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException;
+import de.escidoc.core.common.exceptions.system.SystemException;
+import de.escidoc.core.common.util.configuration.EscidocConfiguration;
 import de.escidoc.core.common.util.logger.AppLogger;
 import de.escidoc.core.common.util.stax.StaxParser;
 import de.escidoc.core.common.util.xml.XmlUtility;
@@ -164,8 +175,12 @@ public class Reindexer implements ReindexerInterface {
      *            clear the index before adding objects to it
      * @param indexNamePrefix
      *            name of the index (may be null for "all indexes")
+     * 
+     * @throws SystemException
+     *             Thrown if a framework internal error occurs.
      */
-    public Reindexer(final String clearIndex, final String indexNamePrefix) {
+    public Reindexer(final String clearIndex, final String indexNamePrefix)
+        throws SystemException {
         this.clearIndex = Boolean.valueOf(clearIndex);
         this.indexNamePrefix = indexNamePrefix;
     }
@@ -200,50 +215,52 @@ public class Reindexer implements ReindexerInterface {
      * 
      * @return Vector item-hrefs
      * 
-     * @throws ApplicationServerSystemException
+     * @throws SystemException
      *             e
      * @admin
      * @see de.escidoc.core.admin.business
      *      .interfaces.ReindexerInterface#getPublicItems()
      */
-    public Vector<String> getFilteredItems()
-        throws ApplicationServerSystemException {
-        return getFilteredObjects(RELEASED_WITHDRAWN_ITEMS_FILTER,
-            ITEM_FILTER_URL, ITEM_LIST_ELEMENT_NAME, ITEM_ELEMENT_NAME);
+    public Collection<String> getFilteredItems() throws SystemException {
+        return removeExistingIds(getFilteredObjects(
+            RELEASED_WITHDRAWN_ITEMS_FILTER, ITEM_FILTER_URL,
+            ITEM_LIST_ELEMENT_NAME, ITEM_ELEMENT_NAME),
+            Constants.ITEM_OBJECT_TYPE);
     }
 
     /**
      * 
      * @return Vector container-hrefs
      * 
-     * @throws ApplicationServerSystemException
+     * @throws SystemException
      *             e
      * @admin
      * @see de.escidoc.core.admin.business
      *      .interfaces.ReindexerInterface#getPublicContainers()
      */
-    public Vector<String> getFilteredContainers()
-        throws ApplicationServerSystemException {
-        return getFilteredObjects(RELEASED_WITHDRAWN_CONTAINERS_FILTER,
-            CONTAINER_FILTER_URL, CONTAINER_LIST_ELEMENT_NAME,
-            CONTAINER_ELEMENT_NAME);
+    public Collection<String> getFilteredContainers() throws SystemException {
+        return removeExistingIds(getFilteredObjects(
+            RELEASED_WITHDRAWN_CONTAINERS_FILTER, CONTAINER_FILTER_URL,
+            CONTAINER_LIST_ELEMENT_NAME, CONTAINER_ELEMENT_NAME),
+            Constants.CONTAINER_OBJECT_TYPE);
     }
 
     /**
      * 
      * @return Vector org-unit-hrefs
      * 
-     * @throws ApplicationServerSystemException
+     * @throws SystemException
      *             e
      * @admin
      * @see de.escidoc.core.admin.business
      *      .interfaces.ReindexerInterface#getPublicOrganizationalUnits()
      */
-    public Vector<String> getFilteredOrganizationalUnits()
-        throws ApplicationServerSystemException {
-        return getFilteredObjects(OPEN_CLOSED_ORG_UNITS_FILTER,
-            ORG_UNIT_FILTER_URL, ORG_UNIT_LIST_ELEMENT_NAME,
-            ORG_UNIT_ELEMENT_NAME);
+    public Collection<String> getFilteredOrganizationalUnits()
+        throws SystemException {
+        return removeExistingIds(getFilteredObjects(
+            OPEN_CLOSED_ORG_UNITS_FILTER, ORG_UNIT_FILTER_URL,
+            ORG_UNIT_LIST_ELEMENT_NAME, ORG_UNIT_ELEMENT_NAME),
+            Constants.ORGANIZATIONAL_UNIT_OBJECT_TYPE);
     }
 
     /**
@@ -308,6 +325,39 @@ public class Reindexer implements ReindexerInterface {
     }
 
     /**
+     * Remove all ids from the given list which already exist in the given
+     * index.
+     * 
+     * @param ids
+     *            list of resource ids
+     * @param objectType
+     *            String name of the resource (eg Item, Container...).
+     * 
+     * @return filtered list of resource ids
+     * @throws SystemException
+     *             Thrown if a framework internal error occurs.
+     */
+    private Collection<String> removeExistingIds(
+        final Collection<String> ids, final String objectType)
+        throws SystemException {
+        Collection<String> result = null;
+
+        if (clearIndex) {
+            result = ids;
+        }
+        else {
+            result = new Vector<String>();
+            for (String id : ids) {
+                if (!exists(id.substring(id.lastIndexOf('/') + 1), objectType,
+                    indexNamePrefix)) {
+                    result.add(id);
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
      * @param resource
      *            resource
      * @return String resourceXml
@@ -327,6 +377,93 @@ public class Reindexer implements ReindexerInterface {
             log.error(e);
             throw new ApplicationServerSystemException(e);
         }
+    }
+
+    /**
+     * Check if the given id already exists in the given index.
+     * 
+     * @param id
+     *            resource id
+     * @param objectType
+     *            String name of the resource (eg Item, Container...).
+     * @param indexNamePrefix
+     *            name of the index (null or "all" means to search in all
+     *            indexes)
+     * 
+     * @return true if the resource already exists
+     * @throws SystemException
+     *             Thrown if a framework internal error occurs.
+     */
+    private boolean exists(
+        final String id, final String objectType, final String indexNamePrefix)
+        throws SystemException {
+        boolean result = false;
+        HashMap<String, HashMap<String, Object>> resourceParameters =
+            de.escidoc.core.common.business.indexing.Constants.OBJECT_TYPE_PARAMETERS
+                .get(objectType);
+
+        if ((id != null) && (resourceParameters != null)) {
+            if (indexNamePrefix == null || indexNamePrefix.trim().length() == 0
+                || indexNamePrefix.equalsIgnoreCase("all")) {
+                for (String indexNamePrefix2 : resourceParameters.keySet()) {
+                    result = exists(id, indexNamePrefix2);
+                    if (result) {
+                        break;
+                    }
+                }
+            }
+            else {
+                result = exists(id, indexNamePrefix);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Check if the given id already exists in the given index.
+     * 
+     * @param id
+     *            resource id
+     * @param indexNamePrefix
+     *            name of the index
+     * 
+     * @return true if the resource already exists
+     * @throws SystemException
+     *             Thrown if a framework internal error occurs.
+     */
+    private boolean exists(final String id, final String indexNamePrefix)
+        throws SystemException {
+        boolean result = false;
+
+        try {
+            HttpClient client = new HttpClient();
+            HttpConnectionManager connectionManager =
+                client.getHttpConnectionManager();
+            HttpConnectionManagerParams params = connectionManager.getParams();
+
+            params.setConnectionTimeout(5000);
+
+            GetMethod method =
+                new GetMethod(EscidocConfiguration.getInstance().get(
+                    EscidocConfiguration.ESCIDOC_CORE_BASEURL)
+                    + "/srw/search/" + indexNamePrefix + "_all?query=PID=" + id);
+
+            if (client.executeMethod(method) == HttpURLConnection.HTTP_OK) {
+                Pattern numberOfRecordsPattern =
+                    Pattern.compile("numberOfRecords>(.*?)<");
+                Matcher m =
+                    numberOfRecordsPattern.matcher(method
+                        .getResponseBodyAsString());
+
+                if (m.find()) {
+                    result = Integer.parseInt(m.group(1)) > 0;
+                }
+            }
+        }
+        catch (IOException e) {
+            throw new SystemException(e);
+        }
+        return result;
     }
 
     /**
