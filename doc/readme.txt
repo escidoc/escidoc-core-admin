@@ -115,21 +115,22 @@ may also contain a transformation of the objects itself.
         - Fedora has been migrated (if necessary)
         - eSciDocCore Services including fedora repository are started
 
-	- Workflow:
-		- delete all resources from cache database
-		- get all resources from eSciDoc
-		- put these resources into the cache database
+	Workflow:
+	- delete all resources from cache database
+	- get all resources from eSciDoc
+	- put these resources into the cache database
 
-	- Usage:
-		- modify admin-tool.properties:
-			- escidocOmUrl : URL of OM
-            - fedora.user : Fedora admin user name
-            - fedora.password : Fedora admin password
-            - fedora.url : URL of Fedora
-            - datasource.* : JDBC properties for eSciDoc database
-            - persistentHandle: persistent handle of eSciDoc systemadmin
-
-        - Execute 
+	Usage:
+	- modify admin-tool.properties:
+		- escidocOmUrl : URL of OM
+		- fedora.user : Fedora admin user name
+		- fedora.password : Fedora admin password
+		- fedora.url : URL of Fedora
+		- datasource.* : JDBC properties for eSciDoc database
+		- persistentHandle: persistent handle of eSciDoc systemadmin
+		- clearCache: set to false if the cache should not be emptied before adding
+		  objects to it
+        - execute 
             - java -Xmx1024m -Xms512m -XX:MaxPermSize=1024m -jar eSciDocCoreAdmin.jar recache
             or
             - target recache of ant file build.xml
@@ -140,30 +141,34 @@ may also contain a transformation of the objects itself.
 4.) Regenerate index for search
 -------------------------------
 
-    Prerequisites for reindexing:
-    - Database has been migrated (if necessary)
-    - Fedora has been migrated (if necessary)
-    - Object cache has been regenerated (if necessary)
-    - eSciDocCore Services including fedora repository are started
+	Prerequisites for reindexing:
+	- Database has been migrated (if necessary)
+	- Fedora has been migrated (if necessary)
+	- Object cache has been regenerated (if necessary)
+	- eSciDocCore Services including fedora repository are started
 
-    Use this when 
-    - structure/schema of items or containers changes
-    - Structure of index-database changed (new index etc.)
+	Use this when 
+	- structure/schema of items or containers changes
+	- Structure of index-database changed (new index etc.)
     
-    - Workflow:
-        - get all items/container-hrefs from om where status = released
-        - delete index-databases
-        - put item-hrefs in SB-indexing queue -> reindex items
-        - put container-hrefs in SB-indexing queue -> reindex containers
+	Workflow:
+	- get all items/container-hrefs from om where status = released
+	- delete index-databases
+	- put item-hrefs in SB-indexing queue -> reindex items
+	- put container-hrefs in SB-indexing queue -> reindex containers
         
-    - Usage:
+	Usage:
         - modify admin-tool.properties:
-            - escidocOmUrl : URL of OM
-            - escidocSbUrl: URL of naming-service of SB
-            - persistentHandle: persistent handle of eSciDoc systemadmin
-        - Execute 
+		- escidocOmUrl : URL of OM
+		- escidocSbUrl: URL of naming-service of SB
+		- persistentHandle: persistent handle of eSciDoc systemadmin
+		- clearIndex: set to false if the index should not be emptied before adding
+		  objects to it
+		- indexNamePrefix: set to "escidoc", "escidocou", "escidocoaipmh" if you want
+		  to rebuild only one specific index, "all" otherwise
+        - execute 
             - java -jar eSciDocCoreAdmin.jar reindex 
             or
             - target reindex of ant file build.xml
-          The admin-tool.properties must be placed in the directory from that 
-          the admin tool is executed.
+            The admin-tool.properties must be placed in the directory from that 
+            the admin tool is executed.
