@@ -285,8 +285,7 @@ public class Recacher extends DbResourceCache implements RecacherInterface {
      */
     public void clearCache() throws IOException {
         if (clearCache) {
-            executeSqlScript(scriptPrefix + "list.drop.sql");
-            executeSqlScript(scriptPrefix + "list.create.sql");
+            executeSqlScript(scriptPrefix + "list.clear.sql");
         }
     }
 
