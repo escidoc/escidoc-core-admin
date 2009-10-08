@@ -28,6 +28,12 @@
  */
 package de.escidoc.core.admin.business;
 
+import static de.escidoc.core.common.business.Constants.CONTAINER_OBJECT_TYPE;
+import static de.escidoc.core.common.business.Constants.CONTENT_RELATION2_OBJECT_TYPE;
+import static de.escidoc.core.common.business.Constants.CONTEXT_OBJECT_TYPE;
+import static de.escidoc.core.common.business.Constants.ITEM_OBJECT_TYPE;
+import static de.escidoc.core.common.business.Constants.ORGANIZATIONAL_UNIT_OBJECT_TYPE;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -55,9 +61,9 @@ import fedora.client.FedoraClient;
 
 /**
  * Provides methods used for recaching.
- *
+ * 
  * @spring.bean id="de.escidoc.core.admin.Recacher"
- *
+ * 
  * @admin
  */
 public class Recacher extends DbResourceCache implements RecacherInterface {
@@ -72,21 +78,27 @@ public class Recacher extends DbResourceCache implements RecacherInterface {
      */
     private static final String INSERT_CONTAINER =
         "INSERT INTO list.container (id, rest_content, soap_content) VALUES "
-        + "(?, ?, ?)";
+            + "(?, ?, ?)";
+
+    /**
+     * SQL statement to insert a context.
+     */
+    private static final String INSERT_CONTENT_RELATION =
+        "INSERT INTO list.content_relation (id, rest_content, soap_content) "
+            + "VALUES (?, ?, ?)";
 
     /**
      * SQL statement to insert a context.
      */
     private static final String INSERT_CONTEXT =
         "INSERT INTO list.context (id, rest_content, soap_content) VALUES "
-        + "(?, ?, ?)";
+            + "(?, ?, ?)";
 
     /**
      * SQL statement to insert an item.
      */
     private static final String INSERT_ITEM =
-        "INSERT INTO list.item (id, rest_content, soap_content) VALUES "
-        + "(?, ?, ?)";
+        "INSERT INTO list.item (id, rest_content, soap_content) VALUES (?, ?, ?)";
 
     /**
      * SQL statement to insert an organizational unit.
@@ -95,57 +107,71 @@ public class Recacher extends DbResourceCache implements RecacherInterface {
         "INSERT INTO list.ou (id, rest_content, soap_content) VALUES (?, ?, ?)";
 
     /**
-     * Triplestore query to get a list of all containers.
+     * Triple store query to get a list of all containers.
      */
     private static final String CONTAINER_LIST_QUERY =
         "/risearch?type=triples&lang=spo&format=N-Triples&query=*%20%3chttp://"
-        + "www.w3.org/1999/02/22-rdf-syntax-ns%23type%3e%20%3chttp://escidoc.d"
-        + "e/core/01/resources/Container%3e";
+            + "www.w3.org/1999/02/22-rdf-syntax-ns%23type%3e%20%3c"
+            + CONTAINER_OBJECT_TYPE + "%3e";
 
     /**
-     * Triplestore query to get a list of all context.
+     * Triple store query to get a list of all content relations.
+     */
+    private static final String CONTENT_RELATION_LIST_QUERY =
+        "/risearch?type=triples&lang=spo&format=N-Triples&query=*%20%3chttp://"
+            + "www.w3.org/1999/02/22-rdf-syntax-ns%23type%3e%20%3c"
+            + CONTENT_RELATION2_OBJECT_TYPE + "%3e";
+
+    /**
+     * Triple store query to get a list of all contexts.
      */
     private static final String CONTEXT_LIST_QUERY =
         "/risearch?type=triples&lang=spo&format=N-Triples&query=*%20%3chttp://"
-        + "www.w3.org/1999/02/22-rdf-syntax-ns%23type%3e%20%3chttp://escidoc.d"
-        + "e/core/01/resources/Context%3e";
+            + "www.w3.org/1999/02/22-rdf-syntax-ns%23type%3e%20%3c"
+            + CONTEXT_OBJECT_TYPE + "%3e";
 
     /**
-     * Triplestore query to get a list of all items.
+     * Triple store query to get a list of all items.
      */
     private static final String ITEM_LIST_QUERY =
         "/risearch?type=triples&lang=spo&format=N-Triples&query=*%20%3chttp://"
-        + "www.w3.org/1999/02/22-rdf-syntax-ns%23type%3e%20%3chttp://escidoc.d"
-        + "e/core/01/resources/Item%3e";
+            + "www.w3.org/1999/02/22-rdf-syntax-ns%23type%3e%20%3c"
+            + ITEM_OBJECT_TYPE + "%3e";
 
     /**
-     * Triplestore query to get a list of all organizational units.
+     * Triple store query to get a list of all organizational units.
      */
     private static final String OU_LIST_QUERY =
         "/risearch?type=triples&lang=spo&format=N-Triples&query=*%20%3chttp://"
-        + "www.w3.org/1999/02/22-rdf-syntax-ns%23type%3e%20%3chttp://escidoc.d"
-        + "e/core/01/resources/OrganizationalUnit%3e";
+            + "www.w3.org/1999/02/22-rdf-syntax-ns%23type%3e%20%3c"
+            + ORGANIZATIONAL_UNIT_OBJECT_TYPE + "%3e";
 
     /**
-     * Axis URL to the container handler.
+     * Axis URI to the container handler.
      */
     private static final String AXIS_CONTAINER_HANDLER_TARGET_NAMESPACE =
         "http://localhost:8080/axis/services/ContainerHandlerService";
 
     /**
-     * Axis URL to the context handler.
+     * Axis URI to the content relation handler.
+     */
+    private static final String AXIS_CONTENT_RELATION_HANDLER_TARGET_NAMESPACE =
+        "http://localhost:8080/axis/services/ContentRelationHandlerService";
+
+    /**
+     * Axis URI to the context handler.
      */
     private static final String AXIS_CONTEXT_HANDLER_TARGET_NAMESPACE =
         "http://localhost:8080/axis/services/ContextHandlerService";
 
     /**
-     * Axis URL to the item handler.
+     * Axis URI to the item handler.
      */
     private static final String AXIS_ITEM_HANDLER_TARGET_NAMESPACE =
         "http://localhost:8080/axis/services/ItemHandlerService";
 
     /**
-     * Axis URL to the organizational unit handler.
+     * Axis URI to the organizational unit handler.
      */
     private static final String AXIS_OU_HANDLER_TARGET_NAMESPACE =
         "http://localhost:8080/axis/services/OrganizationalUnitHandlerService";
@@ -159,6 +185,11 @@ public class Recacher extends DbResourceCache implements RecacherInterface {
      * eSciDoc URL to the container handler.
      */
     private static final String CONTAINER_URL = "/ir/container/";
+
+    /**
+     * eSciDoc URL to the content relation handler.
+     */
+    private static final String CONTENT_RELATION_URL = "/ir/content-relation/";
 
     /**
      * eSciDoc URL to the context handler.
@@ -218,7 +249,7 @@ public class Recacher extends DbResourceCache implements RecacherInterface {
 
     /**
      * Construct a new Recacher object.
-     *
+     * 
      * @param aFedoraUser
      *            privileged Fedora user
      * @param aFedoraPassword
@@ -227,9 +258,11 @@ public class Recacher extends DbResourceCache implements RecacherInterface {
      *            Fedora base URL
      * @param aScriptPrefix
      *            prefix for database script names (mainly for MySQL)
-     * @param clearCache clear the cache before adding objects to it
-     *
-     * @throws IOException Thrown if reading the configuration failed.
+     * @param clearCache
+     *            clear the cache before adding objects to it
+     * 
+     * @throws IOException
+     *             Thrown if reading the configuration failed.
      */
     public Recacher(final String aFedoraUser, final String aFedoraPassword,
         final String aFedoraUrl, final String aScriptPrefix,
@@ -238,15 +271,17 @@ public class Recacher extends DbResourceCache implements RecacherInterface {
         this.fedoraPassword = aFedoraPassword;
         this.fedoraUrl = aFedoraUrl;
         this.scriptPrefix =
-            ((aScriptPrefix != null) && (aScriptPrefix.length() > 0))
-            ? aScriptPrefix + "." : "";
+            ((aScriptPrefix != null) && (aScriptPrefix.length() > 0)) ? aScriptPrefix
+                + "."
+                : "";
         this.clearCache = Boolean.valueOf(clearCache);
     }
 
     /**
      * Clear all resources from cache.
-     *
-     * @throws IOException Thrown if an I/O error occurred.
+     * 
+     * @throws IOException
+     *             Thrown if an I/O error occurred.
      */
     public void clearCache() throws IOException {
         if (clearCache) {
@@ -257,7 +292,7 @@ public class Recacher extends DbResourceCache implements RecacherInterface {
 
     /**
      * Delete a resource from the database cache.
-     *
+     * 
      * @param id
      *            resource id
      */
@@ -266,10 +301,12 @@ public class Recacher extends DbResourceCache implements RecacherInterface {
 
     /**
      * Execute an SQL script, continue on error.
-     *
-     * @param scriptName SQL script name (loaded from class path)
-     *
-     * @throws IOException Thrown if an I/O error occurred.
+     * 
+     * @param scriptName
+     *            SQL script name (loaded from class path)
+     * 
+     * @throws IOException
+     *             Thrown if an I/O error occurred.
      */
     private void executeSqlScript(final String scriptName) throws IOException {
         InputStream resource =
@@ -286,10 +323,10 @@ public class Recacher extends DbResourceCache implements RecacherInterface {
 
     /**
      * Extract the subject from the given triple.
-     *
+     * 
      * @param triple
      *            the triple from which the subject has to be extracted
-     *
+     * 
      * @return the subject of the given triple
      */
     private String getSubject(final String triple) {
@@ -307,12 +344,12 @@ public class Recacher extends DbResourceCache implements RecacherInterface {
 
     /**
      * Retrieve a single resource from eSciDoc (REST form).
-     *
+     * 
      * @param url
      *            eScidoc URL to retrieve the resource
      * @param id
      *            resource id
-     *
+     * 
      * @return XML representation of this resource
      * @throws ApplicationServerSystemException
      *             Thrown if eSciDoc failed to receive the resource.
@@ -330,12 +367,12 @@ public class Recacher extends DbResourceCache implements RecacherInterface {
 
     /**
      * Retrieve a single resource from eSciDoc (SOAP form).
-     *
+     * 
      * @param namespace
      *            target namespace
      * @param id
      *            resource id
-     *
+     * 
      * @return XML representation of this resource
      * @throws ApplicationServerSystemException
      *             Thrown if eSciDoc failed to receive the resource.
@@ -367,7 +404,7 @@ public class Recacher extends DbResourceCache implements RecacherInterface {
 
     /**
      * Injects the data source.
-     *
+     * 
      * @spring.property ref="escidoc-core.DataSource"
      * @param myDataSource
      *            data source from Spring
@@ -378,7 +415,7 @@ public class Recacher extends DbResourceCache implements RecacherInterface {
 
     /**
      * Store all available resources of the given type in the database cache.
-     *
+     * 
      * @param type
      *            must be "container" or "item"
      * @param listQuery
@@ -387,7 +424,7 @@ public class Recacher extends DbResourceCache implements RecacherInterface {
      *            eSciDoc URL to retrieve a resource of the given type
      * @param resourceNamespace
      *            target namespace for the given resource type
-     *
+     * 
      * @throws SystemException
      *             Thrown if eSciDoc failed to receive a resource.
      * @throws IOException
@@ -396,13 +433,12 @@ public class Recacher extends DbResourceCache implements RecacherInterface {
      *             The given string cannot be parsed.
      */
     private void store(
-        final String type, final String listQuery, final String resourceUrl,
-        final String resourceNamespace)
+        final ResourceType type, final String listQuery,
+        final String resourceUrl, final String resourceNamespace)
         throws IOException, ParseException, SystemException {
         BufferedReader input = null;
 
         try {
-            resourceType = ResourceType.valueOf(type.toUpperCase());
             fc = new FedoraClient(fedoraUrl, fedoraUser, fedoraPassword);
             input =
                 new BufferedReader(new InputStreamReader(fc
@@ -420,12 +456,14 @@ public class Recacher extends DbResourceCache implements RecacherInterface {
                         subject.substring(subject.indexOf('/') + 1);
 
                     if (!clearCache && exists(id)) {
-                        log.info(type + " " + subject + " already exists");
+                        log.info(type.getLabel() + " " + subject
+                            + " already exists");
                     }
                     else {
-                        log.info("store " + type + " " + subject);
+                        log.info("store " + type.getLabel() + " " + subject);
 
-                        String xmlDataRest = retrieveResourceRest(resourceUrl, id);
+                        String xmlDataRest =
+                            retrieveResourceRest(resourceUrl, id);
                         String xmlDataSoap =
                             retrieveResourceSoap(resourceNamespace, id);
 
@@ -441,9 +479,11 @@ public class Recacher extends DbResourceCache implements RecacherInterface {
             if (time == 0) {
                 time = 1;
             }
-            log.info("stored " + count + " " + type + "s in " + time + "s ("
-                + (count / time) + "." + (count % time) + " " + type + "s/s)");
-        } finally {
+            log.info("stored " + count + " " + type.getLabel() + "s in " + time
+                + "s (" + (count / time) + "." + (count % time) + " " + type.getLabel()
+                + "s/s)");
+        }
+        finally {
             if (input != null) {
                 input.close();
             }
@@ -452,14 +492,14 @@ public class Recacher extends DbResourceCache implements RecacherInterface {
 
     /**
      * Store the container in the database cache.
-     *
+     * 
      * @param id
      *            container id
      * @param xmlDataRest
      *            complete container as XML (REST form)
      * @param xmlDataSoap
      *            complete container as XML (SOAP form)
-     *
+     * 
      * @throws IOException
      *             Thrown if an I/O error occurred.
      * @throws ParseException
@@ -468,22 +508,42 @@ public class Recacher extends DbResourceCache implements RecacherInterface {
     private void storeContainer(
         final String id, final String xmlDataRest, final String xmlDataSoap)
         throws IOException, ParseException {
-        getJdbcTemplate()
-            .update(
-                INSERT_CONTAINER,
-                new Object[] {id, xmlDataRest, xmlDataSoap});
+        getJdbcTemplate().update(INSERT_CONTAINER,
+            new Object[] { id, xmlDataRest, xmlDataSoap });
+    }
+
+    /**
+     * Store the content relation in the database cache.
+     * 
+     * @param id
+     *            content relation id
+     * @param xmlDataRest
+     *            complete content relation as XML (REST form)
+     * @param xmlDataSoap
+     *            complete content relation as XML (SOAP form)
+     * 
+     * @throws IOException
+     *             Thrown if an I/O error occurred.
+     * @throws ParseException
+     *             A date string cannot be parsed.
+     */
+    private void storeContentRelation(
+        final String id, final String xmlDataRest, final String xmlDataSoap)
+        throws IOException, ParseException {
+        getJdbcTemplate().update(INSERT_CONTENT_RELATION,
+            new Object[] { id, xmlDataRest, xmlDataSoap });
     }
 
     /**
      * Store the context in the database cache.
-     *
+     * 
      * @param id
      *            context id
      * @param xmlDataRest
      *            complete context as XML (REST form)
      * @param xmlDataSoap
      *            complete context as XML (SOAP form)
-     *
+     * 
      * @throws IOException
      *             Thrown if an I/O error occurred.
      * @throws ParseException
@@ -492,21 +552,20 @@ public class Recacher extends DbResourceCache implements RecacherInterface {
     private void storeContext(
         final String id, final String xmlDataRest, final String xmlDataSoap)
         throws IOException, ParseException {
-        getJdbcTemplate().update(
-            INSERT_CONTEXT,
-            new Object[] {id, xmlDataRest, xmlDataSoap});
+        getJdbcTemplate().update(INSERT_CONTEXT,
+            new Object[] { id, xmlDataRest, xmlDataSoap });
     }
 
     /**
      * Store the item in the database cache.
-     *
+     * 
      * @param id
      *            item id
      * @param xmlDataRest
      *            complete item as XML (REST form)
      * @param xmlDataSoap
      *            complete item as XML (SOAP form)
-     *
+     * 
      * @throws IOException
      *             Thrown if an I/O error occurred.
      * @throws ParseException
@@ -515,22 +574,20 @@ public class Recacher extends DbResourceCache implements RecacherInterface {
     private void storeItem(
         final String id, final String xmlDataRest, final String xmlDataSoap)
         throws IOException, ParseException {
-        getJdbcTemplate()
-            .update(
-                INSERT_ITEM,
-                new Object[] {id, xmlDataRest, xmlDataSoap});
+        getJdbcTemplate().update(INSERT_ITEM,
+            new Object[] { id, xmlDataRest, xmlDataSoap });
     }
 
     /**
      * Store the organizational unit in the database cache.
-     *
+     * 
      * @param id
      *            organizational unit id
      * @param xmlDataRest
      *            complete organizational unit as XML (REST form)
      * @param xmlDataSoap
      *            complete organizational unit as XML (SOAP form)
-     *
+     * 
      * @throws IOException
      *             Thrown if an I/O error occurred.
      * @throws ParseException
@@ -539,21 +596,20 @@ public class Recacher extends DbResourceCache implements RecacherInterface {
     private void storeOU(
         final String id, final String xmlDataRest, final String xmlDataSoap)
         throws IOException, ParseException {
-        getJdbcTemplate().update(
-            INSERT_OU,
-            new Object[] {id, xmlDataRest, xmlDataSoap});
+        getJdbcTemplate().update(INSERT_OU,
+            new Object[] { id, xmlDataRest, xmlDataSoap });
     }
 
     /**
      * Store the resource in the database cache.
-     *
+     * 
      * @param id
      *            resource id
      * @param restXml
      *            complete resource as REST XML
      * @param soapXml
      *            complete resource as SOAP XML
-     *
+     * 
      * @throws SystemException
      *             A date string cannot be parsed.
      */
@@ -564,7 +620,7 @@ public class Recacher extends DbResourceCache implements RecacherInterface {
 
     /**
      * Store a resource in the database cache.
-     *
+     * 
      * @param type
      *            must be "container", "context", "item" or "ou"
      * @param id
@@ -573,30 +629,36 @@ public class Recacher extends DbResourceCache implements RecacherInterface {
      *            complete item as XML (REST form)
      * @param xmlDataSoap
      *            complete item as XML (SOAP form)
-     *
+     * 
      * @throws IOException
      *             Thrown if an I/O error occurred.
      * @throws ParseException
      *             The given string cannot be parsed.
      */
     private void storeResource(
-        final String type, final String id, final String xmlDataRest,
+        final ResourceType type, final String id, final String xmlDataRest,
         final String xmlDataSoap) throws IOException, ParseException {
 
-        if (type.equals("container")) {
+        if (type == ResourceType.CONTAINER) {
             storeContainer(id, xmlDataRest, xmlDataSoap);
-        } else if (type.equals("context")) {
+        }
+        else if (type == ResourceType.CONTENT_RELATION) {
+            storeContentRelation(id, xmlDataRest, xmlDataSoap);
+        }
+        else if (type == ResourceType.CONTEXT) {
             storeContext(id, xmlDataRest, xmlDataSoap);
-        } else if (type.equals("item")) {
+        }
+        else if (type == ResourceType.ITEM) {
             storeItem(id, xmlDataRest, xmlDataSoap);
-        } else if (type.equals("ou")) {
+        }
+        else if (type == ResourceType.OU) {
             storeOU(id, xmlDataRest, xmlDataSoap);
         }
     }
 
     /**
      * Store all available resources in the database cache.
-     *
+     * 
      * @throws SystemException
      *             Thrown if eSciDoc failed to receive a resource.
      * @throws IOException
@@ -604,22 +666,27 @@ public class Recacher extends DbResourceCache implements RecacherInterface {
      * @throws ParseException
      *             The given string cannot be parsed.
      */
-    public final void storeResources()
-        throws IOException, ParseException, SystemException {
+    public final void storeResources() throws IOException, ParseException,
+        SystemException {
         // dummy call to prevent
         // "org.apache.commons.discovery.DiscoveryException: No implementation
         // defined for org.apache.commons.logging.LogFactory"
         try {
             retrieveResourceSoap(AXIS_ITEM_HANDLER_TARGET_NAMESPACE,
                 "escidoc:1");
-        } catch (Exception e) {
         }
-        store("container", CONTAINER_LIST_QUERY, CONTAINER_URL,
+        catch (Exception e) {
+        }
+        store(ResourceType.CONTAINER, CONTAINER_LIST_QUERY, CONTAINER_URL,
             AXIS_CONTAINER_HANDLER_TARGET_NAMESPACE);
-        store("context", CONTEXT_LIST_QUERY, CONTEXT_URL,
+        store(ResourceType.CONTENT_RELATION, CONTENT_RELATION_LIST_QUERY,
+            CONTENT_RELATION_URL,
+            AXIS_CONTENT_RELATION_HANDLER_TARGET_NAMESPACE);
+        store(ResourceType.CONTEXT, CONTEXT_LIST_QUERY, CONTEXT_URL,
             AXIS_CONTEXT_HANDLER_TARGET_NAMESPACE);
-        store("ou", OU_LIST_QUERY, OU_URL, AXIS_OU_HANDLER_TARGET_NAMESPACE);
-        store("item", ITEM_LIST_QUERY, ITEM_URL,
+        store(ResourceType.OU, OU_LIST_QUERY, OU_URL,
+            AXIS_OU_HANDLER_TARGET_NAMESPACE);
+        store(ResourceType.ITEM, ITEM_LIST_QUERY, ITEM_URL,
             AXIS_ITEM_HANDLER_TARGET_NAMESPACE);
     }
 }
