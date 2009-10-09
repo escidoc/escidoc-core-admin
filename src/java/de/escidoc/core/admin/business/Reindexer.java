@@ -117,7 +117,7 @@ public class Reindexer implements ReindexerInterface {
             + "closed" + "</filter>"
             + "<limit>0</limit><offset>0</offset></param>";
 
-    private static final int FILTER_LIMIT = 5000;
+    private static final int FILTER_LIMIT = 1000;
 
     private static final String FEDORA_ACCESS_DEVIATION_HANDLER_TARGET_NAMESPACE =
         "http://localhost:8080/axis/services/access";
