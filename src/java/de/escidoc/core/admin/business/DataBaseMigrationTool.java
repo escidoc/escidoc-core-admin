@@ -52,8 +52,9 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 
 /**
- * Provides a method used for migrating the database to the most current version.
- *
+ * Provides a method used for migrating the database to the most current
+ * version.
+ * 
  * @author Andr&eacute; Schenk
  * 
  * @spring.bean id="de.escidoc.core.admin.DataBaseMigrationTool"
@@ -90,8 +91,8 @@ public class DataBaseMigrationTool extends DbDao
      * Database query to get the latest version.
      */
     private static final String QUERY_LATEST_VERSION =
-        "SELECT * FROM " + TABLE_NAME + " WHERE " + COLUMN_DATE + "=(SELECT MAX("
-        + COLUMN_DATE + ") FROM " + TABLE_NAME + ")";
+        "SELECT * FROM " + TABLE_NAME + " WHERE " + COLUMN_DATE
+            + "=(SELECT MAX(" + COLUMN_DATE + ") FROM " + TABLE_NAME + ")";
 
     /**
      * Directory which contains the SQL scripts.
@@ -113,22 +114,28 @@ public class DataBaseMigrationTool extends DbDao
      * Attributes needed to call an Ant target.
      */
     private Project project = new Project();
+
     private Target target = new Target();
+
     private SQLExec sqlExec = new SQLExec();
 
     /**
      * Construct a new DataBaseMigrationTool object.
-     *
-     * @param driverClassName name of the JDBC driver
-     * @param url JDBCL URL
-     * @param username name of the database user
-     * @param password password of the database user
+     * 
+     * @param driverClassName
+     *            name of the JDBC driver
+     * @param url
+     *            JDBCL URL
+     * @param username
+     *            name of the database user
+     * @param password
+     *            password of the database user
      * @param scriptPrefix
      *            prefix for database script names (mainly for MySQL)
      */
-    public DataBaseMigrationTool(
-        final String driverClassName, final String url, final String username,
-        final String password, final String scriptPrefix) {
+    public DataBaseMigrationTool(final String driverClassName,
+        final String url, final String username, final String password,
+        final String scriptPrefix) {
         this.scriptPrefix = scriptPrefix;
         project.init();
         target.setProject(project);
@@ -142,28 +149,29 @@ public class DataBaseMigrationTool extends DbDao
 
     /**
      * Get the current database version from the database.
-     *
+     * 
      * @return current database version
      */
     private Version getDBVersion() {
         Version result = null;
 
         try {
-            result = (Version) getJdbcTemplate().query(QUERY_LATEST_VERSION,
-                new ResultSetExtractor() {
-                    public Object extractData(final ResultSet rs)
-                        throws SQLException {
-                        Version result = null;
+            result =
+                (Version) getJdbcTemplate().query(QUERY_LATEST_VERSION,
+                    new ResultSetExtractor() {
+                        public Object extractData(final ResultSet rs)
+                            throws SQLException {
+                            Version result = null;
 
-                        if (rs.next()) {
-                            result = new Version(
-                                rs.getInt(COLUMN_MAJOR_NUMBER),
-                                rs.getInt(COLUMN_MINOR_NUMBER),
-                                rs.getInt(COLUMN_REVISION_NUMBER));
+                            if (rs.next()) {
+                                result =
+                                    new Version(rs.getInt(COLUMN_MAJOR_NUMBER),
+                                        rs.getInt(COLUMN_MINOR_NUMBER), rs
+                                            .getInt(COLUMN_REVISION_NUMBER));
+                            }
+                            return result;
                         }
-                        return result;
-                    }
-                });
+                    });
             if (result == null) {
                 // version table is empty
                 result = new Version(1, 0, 0);
@@ -177,20 +185,22 @@ public class DataBaseMigrationTool extends DbDao
     }
 
     /**
-     * Get an ordered list of all available updates found in the given directory.
-     *
-     * @param dirName directory which contains sub directories with the SQL scripts
-     *
+     * Get an ordered list of all available updates found in the given
+     * directory.
+     * 
+     * @param dirName
+     *            directory which contains sub directories with the SQL scripts
+     * 
      * @return ordered list of all available updates
      */
-    private Collection <Version> getUpdates(final String dirName) {
-        Collection <Version> result = new TreeSet <Version>();
+    private Collection<Version> getUpdates(final String dirName) {
+        Collection<Version> result = new TreeSet<Version>();
         File dir = new File(dirName);
-        File [] updates = dir.listFiles(new FileFilter() {
-                public boolean accept(final File pathname) {
-                    return (pathname != null) && (pathname.isDirectory());
-                }
-            });
+        File[] updates = dir.listFiles(new FileFilter() {
+            public boolean accept(final File pathname) {
+                return (pathname != null) && (pathname.isDirectory());
+            }
+        });
 
         if (updates != null) {
             for (File update : updates) {
@@ -201,15 +211,18 @@ public class DataBaseMigrationTool extends DbDao
     }
 
     /**
-     * Compare the current database structure with the structure stored in an XML
-     * file.
-     *
-     * @param fingerprintFile XML file with the database finger print
-     *
+     * Compare the current database structure with the structure stored in an
+     * XML file.
+     * 
+     * @param fingerprintFile
+     *            XML file with the database finger print
+     * 
      * @return true if both structures are equal
-     * @throws IOException Thrown if the XML file could not be read
-     * @throws SQLException Thrown if the structure of the database could not be
-     *         determined
+     * @throws IOException
+     *             Thrown if the XML file could not be read
+     * @throws SQLException
+     *             Thrown if the structure of the database could not be
+     *             determined
      */
     private boolean isConsistent(final String fingerprintFile)
         throws IOException, SQLException {
@@ -224,11 +237,14 @@ public class DataBaseMigrationTool extends DbDao
     /**
      * See Interface for functional description.
      * 
-     * @throws IntegritySystemException Thrown in case the content of the database is not as expected.
+     * @throws IntegritySystemException
+     *             Thrown in case the content of the database is not as
+     *             expected.
      * @see de.escidoc.core.admin.business.interfaces.DataBaseMigrationInterface#migrate()
      */
     public void migrate() throws IntegritySystemException {
-        Collection <Version> updates = getUpdates(DIRECTORY_SCRIPTS);
+        // search for available updates
+        Collection<Version> updates = getUpdates(DIRECTORY_SCRIPTS);
 
         log.info("available updates: " + updates);
 
@@ -236,17 +252,30 @@ public class DataBaseMigrationTool extends DbDao
 
         log.info("current DB version: " + dbVersion);
 
-        String fingerprintFile = "/de/escidoc/core/common/util/db/fingerprints/"
-            + dbVersion.toString() + ".xml";
-
+        // check database integrity
         try {
+            // check database structure
+            final String fingerprintFile =
+                "/de/escidoc/core/common/util/db/fingerprints/"
+                    + dbVersion.toString() + ".xml";
+
             if (!isConsistent(fingerprintFile)) {
                 throw new IntegritySystemException(
-                "The database is not in the expected state to run the migration. "
-                + "Please compare the file \""
-                + System.getProperty("java.io.tmpdir") + "/fingerprint.xml\" "
-                + "with \"" + fingerprintFile + "\" which is included in the "
-                + "class path.");
+                    "The database is not in the expected state to run the "
+                        + "migration. Please compare the file \""
+                        + System.getProperty("java.io.tmpdir")
+                        + "/fingerprint.xml\" " + "with \"" + fingerprintFile
+                        + "\" which is included in the class path.");
+            }
+
+            // check database owner
+            final String owner = getConnection().getMetaData().getUserName();
+
+            if (!owner.equals(sqlExec.getUserId())) {
+                throw new IntegritySystemException(
+                    "The configured database user \"" + sqlExec.getUserId()
+                        + "\" differs from the database owner \"" + owner
+                        + "\".");
             }
         }
         catch (Exception e) {
@@ -269,7 +298,7 @@ public class DataBaseMigrationTool extends DbDao
 
     /**
      * Injects the data source.
-     *
+     * 
      * @spring.property ref="escidoc-core.DataSource"
      * @param myDataSource
      *            data source from Spring
@@ -280,19 +309,22 @@ public class DataBaseMigrationTool extends DbDao
 
     /**
      * Update the database to the given version.
-     *
-     * @param version the new version of the database
-     *
-     * @throws IOException Thrown if an error occurred while reading the SQL scripts
+     * 
+     * @param version
+     *            the new version of the database
+     * 
+     * @throws IOException
+     *             Thrown if an error occurred while reading the SQL scripts
      */
     private void update(final Version version) throws IOException {
-        File sqlDir = new File(
-            new File(DIRECTORY_SCRIPTS, version.toString()), scriptPrefix);
-        String [] scripts = sqlDir.list(new FilenameFilter() {
-                public boolean accept(final File dir, final String name) {
-                    return (name != null) && (name.endsWith(".sql"));
-                }
-            });
+        File sqlDir =
+            new File(new File(DIRECTORY_SCRIPTS, version.toString()),
+                scriptPrefix);
+        String[] scripts = sqlDir.list(new FilenameFilter() {
+            public boolean accept(final File dir, final String name) {
+                return (name != null) && (name.endsWith(".sql"));
+            }
+        });
         FileSet set = new FileSet();
 
         set.setDir(sqlDir);
