@@ -23,7 +23,7 @@
 /*
  * Copyright 2006-2009 Fachinformationszentrum Karlsruhe Gesellschaft
  * fuer wissenschaftlich-technische Information mbH and Max-Planck-
- * Gesellschaft zur Foerderung der Wissenschaft e.V.  
+ * Gesellschaft zur Foerderung der Wissenschaft e.V.
  * All rights reserved.  Use is subject to license terms.
  */
 package de.escidoc.core.admin.business;
@@ -34,6 +34,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.TreeSet;
 import javax.sql.DataSource;
@@ -65,7 +66,7 @@ public class DataBaseMigrationTool extends DbDao
     /**
      * Database table name for the version information.
      */
-    private static final String TABLE_NAME = "adm.version";
+    private static final String VERSION_TABLE_NAME = "adm.version";
 
     /**
      * Database column name for the major number.
@@ -76,6 +77,11 @@ public class DataBaseMigrationTool extends DbDao
      * Database column name for the minor number.
      */
     private static final String COLUMN_MINOR_NUMBER = "minor_number";
+
+    /**
+     * Database column name for the owner name.
+     */
+    private static final String COLUMN_USENAME = "usename";
 
     /**
      * Database column name for the revision number.
@@ -91,8 +97,16 @@ public class DataBaseMigrationTool extends DbDao
      * Database query to get the latest version.
      */
     private static final String QUERY_LATEST_VERSION =
-        "SELECT * FROM " + TABLE_NAME + " WHERE " + COLUMN_DATE
-            + "=(SELECT MAX(" + COLUMN_DATE + ") FROM " + TABLE_NAME + ")";
+        "SELECT * FROM " + VERSION_TABLE_NAME + " WHERE " + COLUMN_DATE
+            + "=(SELECT MAX(" + COLUMN_DATE + ") FROM " + VERSION_TABLE_NAME
+            + ")";
+
+    /**
+     * Database query to get the owner.
+     */
+    private static final String QUERY_OWNER =
+        "SELECT * FROM pg_database, pg_user WHERE usesysid=pg_database.datdba "
+            + "AND datname=''{0}''";
 
     /**
      * Directory which contains the SQL scripts.
@@ -145,6 +159,30 @@ public class DataBaseMigrationTool extends DbDao
         sqlExec.setUrl(url);
         sqlExec.setUserid(username);
         sqlExec.setPassword(password);
+    }
+
+    /**
+     * Get the owner of the current database.
+     * 
+     * @return database owner
+     * @throws SQLException
+     *             Thrown if the structure of the database could not be
+     *             determined
+     */
+    private String getDBOwner() throws SQLException {
+        return (String) getJdbcTemplate().query(
+            MessageFormat.format(QUERY_OWNER, getConnection().getCatalog()),
+            new ResultSetExtractor() {
+                public Object extractData(final ResultSet rs)
+                    throws SQLException {
+                    String result = null;
+
+                    if (rs.next()) {
+                        result = rs.getString(COLUMN_USENAME);
+                    }
+                    return result;
+                }
+            });
     }
 
     /**
@@ -269,7 +307,7 @@ public class DataBaseMigrationTool extends DbDao
             }
 
             // check database owner
-            final String owner = getConnection().getMetaData().getUserName();
+            final String owner = getDBOwner();
 
             if (!owner.equals(sqlExec.getUserId())) {
                 throw new IntegritySystemException(
