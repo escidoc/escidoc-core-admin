@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.5.xsd"
+	default-autowire="no" default-lazy-init="true"
+	default-dependency-check="none">
+	<bean id="de.escidoc.core.admin.PropertyPlaceholderConfigurer"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath:admin-tool.properties</value>
+				<value>file:admin-tool.properties</value>
+			</list>
+		</property>
+		<property name="ignoreResourceNotFound" value="true" />
+	</bean>
+	<bean id="de.escidoc.core.admin.ReaderDataSource" class="org.apache.commons.dbcp.BasicDataSource">
+		<property name="driverClassName" value="${datasource.driverClassName}" />
+		<property name="url" value="${datasource.url}" />
+		<property name="username" value="${datasource.username}" />
+		<property name="password" value="${datasource.password}" />
+	</bean>
+	<bean id="de.escidoc.core.admin.DataSource" class="org.apache.commons.dbcp.BasicDataSource">
+		<property name="driverClassName" value="${datasource.driverClassName}" />
+		<property name="url" value="${datasource.url}" />
+		<property name="username" value="${datasource.username}" />
+		<property name="password" value="${datasource.password}" />
+	</bean>
+	<bean id="de.escidoc.core.admin.ReadertxManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource">
+			<ref bean="de.escidoc.core.admin.ReaderDataSource" />
+		</property>
+	</bean>
+	<bean id="de.escidoc.core.admin.ReadertxProxyTemplate"
+		class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean"
+		abstract="true" lazy-init="true">
+		<property name="transactionManager">
+			<ref bean="de.escidoc.core.admin.ReadertxManager" />
+		</property>
+		<property name="transactionAttributes">
+			<props>
+				<prop key="*">PROPAGATION_REQUIRED</prop>
+			</props>
+		</property>
+	</bean>
+	<bean id="de.escidoc.core.admin.DataBaseMigrationTool"
+		class="de.escidoc.core.admin.business.DataBaseMigrationTool">
+                <constructor-arg value="${datasource.driverClassName}" />
+                <constructor-arg value="${datasource.url}" />
+                <constructor-arg value="${datasource.username}" />
+                <constructor-arg value="${datasource.password}" />
+		<constructor-arg value="${datasource.script.prefix}" />
+		<property name="myDataSource">
+			<ref bean="de.escidoc.core.admin.DataSource" />
+		</property>
+	</bean>
+
+	<!-- RECACHER -->
+	<bean id="de.escidoc.core.admin.Recacher" class="de.escidoc.core.admin.business.Recacher">
+		<constructor-arg value="${fedora.user}" />
+		<constructor-arg value="${fedora.password}" />
+		<constructor-arg value="${fedora.url}" />
+		<constructor-arg value="${datasource.script.prefix}" />
+                <constructor-arg value="${clearCache}" />
+		<property name="dataSource">
+			<ref bean="de.escidoc.core.admin.DataSource" />
+		</property>
+		<property name="escidocCoreHandler">
+			<ref bean="de.escidoc.core.admin.EscidocCoreHandlerWithSecurity" />
+		</property>
+	</bean>
+
+	<!-- REINDEXER -->
+	<bean id="de.escidoc.core.admin.EscidocCoreHandler" class="de.escidoc.core.admin.common.util.EscidocCoreHandler">
+		<constructor-arg value="${escidocOmUrl}" />
+	</bean>
+	<bean id="de.escidoc.core.admin.EscidocCoreHandlerWithSecurity"
+		class="de.escidoc.core.admin.common.util.EscidocCoreHandler">
+		<constructor-arg index="0" value="${escidocOmUrl}" />
+		<constructor-arg index="1" value="${persistentHandle}" />
+	</bean>
+	<bean id="de.escidoc.core.admin.QueueConnectionFactory"
+		class="de.escidoc.core.admin.common.util.spring.RemoteJndiLocator"
+		lazy-init="true">
+		<property name="jndiName">
+			<value>ConnectionFactory</value>
+		</property>
+		<property name="jndiUrl">
+			<value>${escidocSbUrl}</value>
+		</property>
+	</bean>
+	<bean id="de.escidoc.core.admin.IndexerMessageQueue"
+		class="de.escidoc.core.admin.common.util.spring.RemoteJndiLocator"
+		lazy-init="true">
+		<property name="jndiName">
+			<value>queue/IndexerMessageQueue</value>
+		</property>
+		<property name="jndiUrl">
+			<value>${escidocSbUrl}</value>
+		</property>
+	</bean>
+	<bean id="de.escidoc.core.admin.Reindexer" class="de.escidoc.core.admin.business.Reindexer">
+                <constructor-arg value="${clearIndex}" />
+                <constructor-arg value="${indexNamePrefix}" />
+		<property name="queueUser">
+			<value>${indexerQueueUser}</value>
+		</property>
+		<property name="queuePassword">
+			<value>${indexerQueuePassword}</value>
+		</property>
+		<property name="escidocCoreHandler">
+			<ref bean="de.escidoc.core.admin.EscidocCoreHandlerWithSecurity" />
+		</property>
+		<property name="queueConnectionFactory">
+			<ref bean="de.escidoc.core.admin.QueueConnectionFactory" />
+		</property>
+		<property name="indexerMessageQueue">
+			<ref bean="de.escidoc.core.admin.IndexerMessageQueue" />
+		</property>
+	</bean>
+</beans>
