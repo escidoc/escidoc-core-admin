@@ -37,6 +37,11 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
 
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
@@ -59,6 +64,17 @@ public class FoxmlMigrationTool {
      * Charset used for file I/O.
      */
     private static final String CHARSET = "utf-8";
+    
+    /*
+     * A Pattern to parse a String in order to create a Date
+     */
+    public static final String PATH_DATE_PATTERN =
+        "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+
+    /*
+     * A Pattern to create a path in the file system from a Date
+     */
+    public static final String PATH_DATE_PATTERN2 = "yyyy/MMdd/HH/mm";
 
     /**
      * The logger.
@@ -69,6 +85,7 @@ public class FoxmlMigrationTool {
     private final String srcDirectory;
     private final String destDirectory;
     private final Transformer transformer;
+    private static String datastreamDestDirectory;
 
     private int count = 0;
 
@@ -85,9 +102,11 @@ public class FoxmlMigrationTool {
      * @throws Exception thrown if the XSL transformation failed
      */
     public FoxmlMigrationTool(final String srcDirectory,
-        final String destDirectory, final String stylesheet) throws Exception {
+        final String destDirectory, final String datastreamDirectory, 
+        final String stylesheet) throws Exception {
         this.srcDirectory  = srcDirectory;
         this.destDirectory = destDirectory;
+        datastreamDestDirectory = datastreamDirectory;
 
         TransformerFactory factory = TransformerFactory.newInstance();
 
@@ -179,6 +198,43 @@ public class FoxmlMigrationTool {
         }
     }
 
+    
+    /**
+     * Replaces a semicolon in a provided String by an underscore.
+     * 
+     * @param fedoraObjid
+     * @return a String with a replaced semicolon
+     */
+    public static String getFileName(final String fedoraObjid) {
+        return fedoraObjid.replaceFirst(":", "_");
+    }
+
+    /**
+     * Generates a path of the directories hierarchy in the file system from the
+     * provided time stamp. Creates directories according the generated path.
+     * 
+     * @param creationDate
+     *            provided time stamp
+     * @return a path of the directories hierarchy
+     * @throws ParseException
+     */
+    public static String getNewPath(String creationDate) throws ParseException {
+        DateFormat formatter1 = new SimpleDateFormat(PATH_DATE_PATTERN);
+        DateFormat formatter2 = new SimpleDateFormat(PATH_DATE_PATTERN2);
+
+        TimeZone tz = TimeZone.getTimeZone("GMT+1");
+        formatter1.setTimeZone(tz);
+        Date date = formatter1.parse(creationDate);
+        String path = formatter2.format(date);
+
+        File dir = new File(datastreamDestDirectory, path);
+
+        dir.mkdirs();
+        path = dir.getPath();
+
+        return path;
+    }
+
     /**
      * Main method to start the XSL transformation.
      *
@@ -189,7 +245,7 @@ public class FoxmlMigrationTool {
      */
     public static void main(final String [] args) throws Exception {
         if (args.length == 3) {
-            new FoxmlMigrationTool(args [0], args[1], args[2]);
+            new FoxmlMigrationTool(args [0], args[1], args[2], args[4]);
         }
         else {
             System.err.println(
