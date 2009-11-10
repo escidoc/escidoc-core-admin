@@ -88,6 +88,7 @@
 			<arg value="foxml-migration"/>
 			<arg value="${foxml.src.dir}"/>
 			<arg value="${foxml.target.dir}"/>
+			<arg value="${datastreams.target.dir}"/>
 			<arg value="xsl/GeneralToFedora30.xsl"/>
                         <sysproperty key="javax.xml.transform.TransformerFactory" value="net.sf.saxon.TransformerFactoryImpl"/>
 			<classpath>
