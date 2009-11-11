@@ -5,9 +5,9 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:fedoraxsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:foxml="info:fedora/fedora-system:def/foxml#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
 	xmlns:escidocVersions="http://www.escidoc.de/schemas/versionhistory/0.3"
-	xmlns:java="de.escidoc.core.admin.business.FoxmlMigrationTool"
+	xmlns:java="de.escidoc.core.om.business.CallJavaFromXslt"
 	exclude-result-prefixes="java">
-	<xsl:import href="Container.xsl"/>
+	<xsl:import href="ContainerToRelease1_2.xsl"/>
     <xsl:import href="ContentModelToRelease1_2.xsl"/>
 	<xsl:variable name="objectType"
 		select="/foxml:digitalObject/foxml:datastream/foxml:datastreamVersion/foxml:xmlContent/rdf:RDF/rdf:Description/rdf:type/@rdf:resource" />
