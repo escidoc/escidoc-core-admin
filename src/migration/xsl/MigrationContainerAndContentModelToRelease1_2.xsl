@@ -4,27 +4,12 @@
 	fedoraxsi:schemaLocation="info:fedora/fedora-system:def/foxml# http://www.fedora.info/definitions/1/0/foxml1-0.xsd"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:fedoraxsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:foxml="info:fedora/fedora-system:def/foxml#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-	xmlns:escidocVersions="http://www.escidoc.de/schemas/versionhistory/0.3"
-	xmlns:java="de.escidoc.core.om.business.CallJavaFromXslt"
-	exclude-result-prefixes="java">
+	xmlns:escidocVersions="http://www.escidoc.de/schemas/versionhistory/0.3">
 	<xsl:import href="ContainerToRelease1_2.xsl"/>
     <xsl:import href="ContentModelToRelease1_2.xsl"/>
 	<xsl:variable name="objectType"
 		select="/foxml:digitalObject/foxml:datastream/foxml:datastreamVersion/foxml:xmlContent/rdf:RDF/rdf:Description/rdf:type/@rdf:resource" />
-	<xsl:variable name="creationDateRelsExt"
-		select="/foxml:digitalObject/foxml:datastream[@ID='RELS-EXT']/foxml:datastreamVersion[position()=last()]/@CREATED" />
-	<xsl:variable name="creationDateVersionHistory"
-		select="/foxml:digitalObject/foxml:datastream[@ID='version-history']/foxml:datastreamVersion/@CREATED" />
-	<xsl:variable name="objectId" select="/foxml:digitalObject/@PID" />
-	<xsl:variable name="fileName" select="java:getFileName($objectId)" />
-	<xsl:variable name="pathEscidocRelsExt" select="java:getNewPath($creationDateRelsExt)" />
-	<xsl:variable name="pathVersionHistory"
-		select="java:getNewPath($creationDateVersionHistory)" />
-
-	<xsl:variable name="counter"
-		select="/foxml:digitalObject/foxml:datastream[@ID='RELS-EXT']/count(foxml:datastreamVersion)-1" />
-
-
+	
 
 	<xsl:output encoding="utf-8" method="xml" />
 	<xsl:template match="/">
