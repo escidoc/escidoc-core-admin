@@ -5,7 +5,7 @@
 	xmlns:fedoraxsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:foxml="info:fedora/fedora-system:def/foxml#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
 	xmlns:escidocVersions="http://www.escidoc.de/schemas/versionhistory/0.3"
-	xmlns:java="de.escidoc.core.admin.business.FoxmlMigrationTool"
+	xmlns:java="de.escidoc.core.om.business.CallJavaFromXslt"
 	exclude-result-prefixes="fedoraxsi xsl java">
 
 	<xsl:output encoding="utf-8" method="xml" />
@@ -32,7 +32,7 @@
 				<!-- bereits im Ausgangsdokument enthaltene Ergebnis-Tags ignorieren -->
 				<xsl:when test="@ID='RELS-EXT'">
 					<xsl:variable name="countVersions"
-						select="count(foxml:datastreamVersion) div 2 -1" />
+						select="count(foxml:datastreamVersion) idiv 2 -1" />
 					<xsl:element name="foxml:datastream"
 						namespace="info:fedora/fedora-system:def/foxml#">
 						<!-- Attribute übernehmen -->
@@ -147,7 +147,7 @@
 									namespace="info:fedora/fedora-system:def/foxml#">
 									<xsl:attribute name="TYPE" select="'INTERNAL_ID'" />
 									<xsl:attribute name="REF"
-										select="concat($fileName,'+ESCIDOC_RELS_EXT+ESCIDOC_RELS_EXT.',$counter)" />
+										select="concat($PID,'+ESCIDOC_RELS_EXT+ESCIDOC_RELS_EXT.',$counter)" />
 								</xsl:element>
 							</xsl:element>
 						</xsl:for-each>
@@ -229,7 +229,7 @@
 									namespace="info:fedora/fedora-system:def/foxml#">
 									<xsl:attribute name="TYPE" select="'INTERNAL_ID'" />
 									<xsl:attribute name="REF"
-										select="concat($fileName,'+version-history+',$versionNumber)" />
+										select="concat($PID,'+version-history+',$versionNumber)" />
 								</xsl:element>
 							</xsl:element>
 						</xsl:for-each>
