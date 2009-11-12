@@ -5,7 +5,8 @@
 	xmlns:fedoraxsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:foxml="info:fedora/fedora-system:def/foxml#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
 	xmlns:escidocVersions="http://www.escidoc.de/schemas/versionhistory/0.3"
-	xmlns:java="de.escidoc.core.om.business.CallJavaFromXslt"
+	xmlns:java="de.escidoc.core.admin.business.FoxmlMigrationTool"
+	
 	exclude-result-prefixes="fedoraxsi xsl java">
 
 	<xsl:output encoding="utf-8" method="xml" />
