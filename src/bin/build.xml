@@ -56,7 +56,7 @@
 		</java>
 	</target>
 
-	<target name="data-migration" depends="db-migration, foxml-migration" />
+	<target name="data-migration-from1.1-to1.2" depends="db-migration, foxml-migration-from1.1-to1.2" />
 
 	<target name="post-data-migration">
 		<echo>The first step of migration has finished successfully.</echo>
@@ -103,15 +103,11 @@
 				</target>
 	
 	<target name="backup-foxmls" depends="check-foxmls" unless="old.foxmls.present">
-		 <copy todir="${foxml.src.dir}.old">
-				    <fileset dir="${foxml.src.dir}"/>
-				  </copy>
-				
+		<move file="${foxml.src.dir}" todir="${foxml.src.dir}.old" failonerror="false"/>
+				<mkdir dir="${foxml.src.dir}" /> 	
 					</target>
 	
 	
-
-
 	<target name="foxml-migration-old" depends="prepare-foxml-migration">
 		<echo>Starting migration of fedora repository</echo>
 		<java jar="eSciDocCoreAdmin.jar" fork="true">
@@ -141,7 +137,7 @@
 	</target>
 
 	
-	<target name="foxml-migration" depends="backup-foxmls, backup-datastreams">
+	<target name="foxml-migration-from1.1-to1.2" depends="backup-foxmls, backup-datastreams">
 			<echo>Starting migration of fedora repository</echo>
 			<java jar="eSciDocCoreAdmin.jar" fork="true">
 				<arg value="foxml-migration"/>
