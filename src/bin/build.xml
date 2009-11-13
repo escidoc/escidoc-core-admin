@@ -82,7 +82,37 @@
 		<echo>Finished</echo>
 	</target>
 
-	<target name="foxml-migration" depends="prepare-foxml-migration">
+	<target name="check-foxmls">
+
+	<available file="${foxml.src.dir}.old" type="dir"
+		           property="old.foxmls.present"/>
+		</target>
+	
+	<target name="check-datastreams">
+
+		<available file="${datastreams.src.dir}.old" type="dir"
+			           property="old.datastreams.present"/>
+			</target>
+	
+	<target name="backup-datastreams" depends="check-datastreams" unless="old.datastreams.present">
+		
+		<copy todir="${datastreams.src.dir}.old">
+						    <fileset dir="${datastreams.src.dir}"/>
+						  </copy>
+			
+				</target>
+	
+	<target name="backup-foxmls" depends="check-foxmls" unless="old.foxmls.present">
+		 <copy todir="${foxml.src.dir}.old">
+				    <fileset dir="${foxml.src.dir}"/>
+				  </copy>
+				
+					</target>
+	
+	
+
+
+	<target name="foxml-migration-old" depends="prepare-foxml-migration">
 		<echo>Starting migration of fedora repository</echo>
 		<java jar="eSciDocCoreAdmin.jar" fork="true">
 			<arg value="foxml-migration"/>
@@ -110,7 +140,36 @@
 		<echo>Finished</echo>
 	</target>
 
-	<target name="prepare-foxml-migration">
+	
+	<target name="foxml-migration" depends="backup-foxmls, backup-datastreams">
+			<echo>Starting migration of fedora repository</echo>
+			<java jar="eSciDocCoreAdmin.jar" fork="true">
+				<arg value="foxml-migration"/>
+				<arg value="${foxml.src.dir}.old"/>
+				<arg value="${foxml.src.dir}"/>
+				<arg value="${datastreams.src.dir}"/>
+				<arg value="xsl/MigrationContainerAndContentModelToRelease1_2.xsl"/>
+	                        <sysproperty key="javax.xml.transform.TransformerFactory" value="net.sf.saxon.TransformerFactoryImpl"/>
+				<classpath>
+					<path refid="build.classpath"/>
+				</classpath>
+			</java>
+			<!-- delete all FOXML files with 0 bytes length -->
+	                <!-- Unfortunately this doesn't work with directories containing a lot of files. -->
+	<!--
+			<delete>
+				<restrict>
+					<fileset dir="${foxml.target.dir}" includes="**/*">
+						<size when="eq" value="0">
+						</size>
+					</fileset>
+				</restrict>
+			</delete>
+	-->
+			<echo>Finished</echo>
+		</target>
+	
+	<target name="prepare-foxml-migration" >
 		<echo>Preparing migration of fedora repository</echo>
 		<move file="${foxml.target.dir}" todir="${foxml.target.dir}.bak" failonerror="false"/>
 		<mkdir dir="${foxml.target.dir}" />
@@ -119,4 +178,6 @@
 		<largecopy fromdir="${datastreams.src.dir}" todir="${data.target.dir}"/>
 		<echo>Finished</echo>
 	</target>
+	
+	
 </project>
