@@ -222,9 +222,11 @@ public class FoxmlMigrationTool {
         DateFormat formatter1 = new SimpleDateFormat(PATH_DATE_PATTERN);
         DateFormat formatter2 = new SimpleDateFormat(PATH_DATE_PATTERN2);
 
-        TimeZone tz = TimeZone.getTimeZone("GMT+1");
+        TimeZone tz = TimeZone.getDefault();
         formatter1.setTimeZone(tz);
         Date date = formatter1.parse(creationDate);
+       
+        formatter2.setTimeZone(tz);
         String path = formatter2.format(date);
 
         File dir = new File(datastreamDestDirectory, path);
