@@ -13,15 +13,27 @@
 
 	<xsl:output encoding="utf-8" method="xml" />
 	<xsl:template match="/">
-		<xsl:if
-			test="($objectType = 'http://escidoc.de/core/01/resources/Container')
-			or ($objectType = 'http://escidoc.de/core/01/resources/ContentModel')">
+	
 			<xsl:for-each select="foxml:digitalObject">
 				<xsl:element name="foxml:digitalObject" namespace="info:fedora/fedora-system:def/foxml#">
 					<!-- alle Attribute und Namespaces ans Root-Element anhängen -->
+					<xsl:namespace name="fedoraxsi" select="'http://www.w3.org/2001/XMLSchema-instance'"/>
 					<xsl:for-each select="@*">
-						<xsl:copy />
-					</xsl:for-each>
+							<xsl:variable name="name" select="name()" />
+							<!--  changed a value of the attribute 'ID' -->
+							<xsl:choose>
+								<!--  changed a value of the attribute 'CONTROL_GROUP' -->
+								<xsl:when test="$name = 'xsi:schemaLocation'">
+									<xsl:attribute name="fedoraxsi:schemaLocation" namespace="http://www.w3.org/2001/XMLSchema-instance" select="."/>
+								</xsl:when>
+								<xsl:otherwise>
+									<xsl:attribute name="{$name}"><xsl:value-of
+										select="." />
+											</xsl:attribute>
+								</xsl:otherwise>
+							</xsl:choose>
+						</xsl:for-each>
+					
 					<xsl:for-each select="foxml:objectProperties">
 						<xsl:copy-of select="." copy-namespaces="no" />
 
@@ -34,11 +46,16 @@
 										<xsl:when test="$objectType = 'http://escidoc.de/core/01/resources/ContentModel'">
 											<xsl:call-template name="cmTemplate"/>
 										</xsl:when>
+										<xsl:otherwise>
+										<xsl:for-each select="foxml:datastream">
+										<xsl:copy-of select="." copy-namespaces="no" />
+										</xsl:for-each>
+										</xsl:otherwise>
 									</xsl:choose>
 					
 				</xsl:element>
 			</xsl:for-each>
-		</xsl:if>
+		
 	</xsl:template>
 
 </xsl:stylesheet>
