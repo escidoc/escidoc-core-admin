@@ -49,8 +49,8 @@ if you had modified them in the meantime.
 2.) Migration of Fedora Repository 
 ----------------------------------
 
-Fedora 3.0beta1 -> Fedora 3.0
-eSciDoc 1.0beta3 -> eSciDoc 1.0beta4
+   Fedora 3.0beta1 -> Fedora 3.0
+   eSciDoc 1.0beta3 -> eSciDoc 1.0beta4
 
 The migration procedure first backups the folders 
 ${FEDORA_HOME}/data/datastreams and ${FEDORA_HOME}/data/objects from the new
@@ -103,6 +103,48 @@ may also contain a transformation of the objects itself.
           and database, or set this to a value higher than the maximum id.
 
 
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Migration of 1.1 -> 1.2
+The migration procedure first copies the folder 
+${FEDORA_HOME}/data/datastreams and backups the folder ${FEDORA_HOME}/data/objects from the current
+Fedora repository. After that all FOXML files are transformed to the requirements of 1.2. 
+
+    Prerequisites:
+    - Ant in version 1.7.0
+	- stopped eSciDoc
+	- stopped Fedora 
+	
+    - Usage:
+	    1) Modify admin-tool.properties
+	      - define the location of the current repository in the property fedora-src.home
+	      	e.g. fedora-src.home=/repository/fedora3.2.1 
+	      	or on Windows
+	      	fedora-src.home=C:/repository/fedora3.2.1
+	   2) Increase the available memory by setting the system property ANT_OPTS.
+          At least to following values:
+          ANT_OPTS=-Xmx1024m -Xms512m -XX:MaxPermSize=256m
+
+      	3) The admin-tool.properties has to be placed in the same directory where  
+          the admin tool is going to be executed.
+          Execute target foxml-migration-from1.1-to1.2 of ant file build.xml
+          
+       	4) Rebuild the Fedora 3.2 resource index and SQL database. 
+       	   
+          The index and SQL database rebuild is supported by tools from Fedora.
+          Call fedora-rebuild script, located in 
+          fedora3.home/server/bin, and follow the instructions.
+          (For SQL and index rebuild see also 
+          http://fedora-commons.org/confluence/display/FCR30/
+              Command-Line+Utilities#Command-LineUtilities-rebuild)
+
+        5) Check the highest id value for escidoc in the fedora 3 database, 
+          table public.pidgen. This value should be the highest id that has been 
+          reported during the previous rebuild step. Sometimes, this value is 
+          less than the maximum id. In this case, either retry rebuilding index 
+          and database, or set this to a value higher than the maximum id.
+	   
+	      
+        
 3.) Regenerate cache for filter methods (fast lists)
 ----------------------------------------------------
 
