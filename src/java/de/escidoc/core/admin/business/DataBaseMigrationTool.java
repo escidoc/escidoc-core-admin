@@ -120,8 +120,16 @@ public class DataBaseMigrationTool extends DbDao
         new AppLogger(DataBaseMigrationTool.class.getName());
 
     /**
-     * Database prefix for other databases than Postgres.
+     * Database settings.
      */
+    private final String driverClassName;
+
+    private final String url;
+
+    private final String username;
+
+    private final String password;
+
     private final String scriptPrefix;
 
     /**
@@ -130,8 +138,6 @@ public class DataBaseMigrationTool extends DbDao
     private Project project = new Project();
 
     private Target target = new Target();
-
-    private SQLExec sqlExec = new SQLExec();
 
     /**
      * Construct a new DataBaseMigrationTool object.
@@ -150,15 +156,13 @@ public class DataBaseMigrationTool extends DbDao
     public DataBaseMigrationTool(final String driverClassName,
         final String url, final String username, final String password,
         final String scriptPrefix) {
+        this.driverClassName = driverClassName;
+        this.url = url;
+        this.username = username;
+        this.password = password;
         this.scriptPrefix = scriptPrefix;
         project.init();
         target.setProject(project);
-        sqlExec.setProject(project);
-        sqlExec.setOwningTarget(target);
-        sqlExec.setDriver(driverClassName);
-        sqlExec.setUrl(url);
-        sqlExec.setUserid(username);
-        sqlExec.setPassword(password);
     }
 
     /**
@@ -252,24 +256,38 @@ public class DataBaseMigrationTool extends DbDao
      * Compare the current database structure with the structure stored in an
      * XML file.
      * 
-     * @param fingerprintFile
-     *            XML file with the database finger print
-     * 
-     * @return true if both structures are equal
-     * @throws IOException
-     *             Thrown if the XML file could not be read
-     * @throws SQLException
-     *             Thrown if the structure of the database could not be
-     *             determined
+     * @throws IntegritySystemException
+     *             Thrown in case the content of the database is not in a
+     *             consistent state.
      */
-    private boolean isConsistent(final String fingerprintFile)
-        throws IOException, SQLException {
-        Fingerprint currentFingerprint = new Fingerprint(getConnection());
-        Fingerprint storedFingerprint =
-            Fingerprint.readObject(getClass().getResourceAsStream(
-                fingerprintFile));
+    private void checkConsistency() throws IntegritySystemException {
+        Version dbVersion = getDBVersion();
+        String fingerprintFile =
+            "/de/escidoc/core/common/util/db/fingerprints/"
+                + dbVersion.toString() + ".xml";
+        try {
+            Fingerprint currentFingerprint = new Fingerprint(getConnection());
+            Fingerprint storedFingerprint =
+                Fingerprint.readObject(getClass().getResourceAsStream(
+                    fingerprintFile));
 
-        return storedFingerprint.compareTo(currentFingerprint) == 0;
+            if (storedFingerprint.compareTo(currentFingerprint) != 0) {
+                throw new IntegritySystemException(
+                    "The database is not in the expected state to run "
+                        + "the migration. Please compare the file \""
+                        + System.getProperty("java.io.tmpdir")
+                        + "/fingerprint.xml\" " + "with \"" + fingerprintFile
+                        + "\" which is included in the class path.");
+            }
+        }
+        catch (IOException e) {
+            throw new IntegritySystemException(
+                "could not check the database consistency", e);
+        }
+        catch (SQLException e) {
+            throw new IntegritySystemException(
+                "could not check the database consistency", e);
+        }
     }
 
     /**
@@ -281,37 +299,13 @@ public class DataBaseMigrationTool extends DbDao
      * @see de.escidoc.core.admin.business.interfaces.DataBaseMigrationInterface#migrate()
      */
     public void migrate() throws IntegritySystemException {
-        // search for available updates
-        Collection<Version> updates = getUpdates(DIRECTORY_SCRIPTS);
-
-        log.info("available updates: " + updates);
-
-        Version dbVersion = getDBVersion();
-
-        log.info("current DB version: " + dbVersion);
-
-        // check database integrity
+        // check database owner
         try {
-            // check database structure
-            final String fingerprintFile =
-                "/de/escidoc/core/common/util/db/fingerprints/"
-                    + dbVersion.toString() + ".xml";
-
-            if (!isConsistent(fingerprintFile)) {
-                throw new IntegritySystemException(
-                    "The database is not in the expected state to run the "
-                        + "migration. Please compare the file \""
-                        + System.getProperty("java.io.tmpdir")
-                        + "/fingerprint.xml\" " + "with \"" + fingerprintFile
-                        + "\" which is included in the class path.");
-            }
-
-            // check database owner
             final String owner = getDBOwner();
 
-            if (!owner.equals(sqlExec.getUserId())) {
+            if (!owner.equals(username)) {
                 throw new IntegritySystemException(
-                    "The configured database user \"" + sqlExec.getUserId()
+                    "The configured database user \"" + username
                         + "\" differs from the database owner \"" + owner
                         + "\".");
             }
@@ -321,13 +315,28 @@ public class DataBaseMigrationTool extends DbDao
                 "could not check the database consistency", e);
         }
 
+        // search for all available updates
+        Collection<Version> updates = getUpdates(DIRECTORY_SCRIPTS);
+
+        log.info("available updates: " + updates);
+
         try {
             for (Version version : updates) {
+                Version dbVersion = getDBVersion();
+
                 if (version.compareTo(dbVersion) > 0) {
+                    log.info("current DB version: " + dbVersion);
+
+                    // check database structure before migration
+                    checkConsistency();
+
+                    // do the migration
                     log.info("migrate to " + version + " ...");
                     update(version);
                 }
             }
+            // check database structure after migration
+            checkConsistency();
         }
         catch (IOException e) {
             throw new IntegritySystemException(e);
@@ -358,6 +367,7 @@ public class DataBaseMigrationTool extends DbDao
         File sqlDir =
             new File(new File(DIRECTORY_SCRIPTS, version.toString()),
                 scriptPrefix);
+        SQLExec sqlExec = new SQLExec();
         String[] scripts = sqlDir.list(new FilenameFilter() {
             public boolean accept(final File dir, final String name) {
                 return (name != null) && (name.endsWith(".sql"));
@@ -365,6 +375,12 @@ public class DataBaseMigrationTool extends DbDao
         });
         FileSet set = new FileSet();
 
+        sqlExec.setProject(project);
+        sqlExec.setOwningTarget(target);
+        sqlExec.setDriver(driverClassName);
+        sqlExec.setUrl(url);
+        sqlExec.setUserid(username);
+        sqlExec.setPassword(password);
         set.setDir(sqlDir);
         set.setProject(project);
         for (String script : scripts) {
