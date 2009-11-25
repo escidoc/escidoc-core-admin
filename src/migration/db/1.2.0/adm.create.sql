@@ -1,0 +1,1 @@
+INSERT INTO adm.version VALUES (1, 2, 0, CURRENT_TIMESTAMP);
