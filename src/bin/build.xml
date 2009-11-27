@@ -1,34 +1,35 @@
 <?xml version="1.0"?>
 <project name="eSciDocCore Admin Tools" default="reindex" basedir=".">
 
-	<property file="admin-tool.properties" />
-	
+	<property name="admin-tool.properties" value="admin-tool.properties" />
+	<property file="${admin-tool.properties}" />
+
 	<path id="build.classpath">
 		<fileset dir="." includes="eSciDocCoreAdmin.jar" />
 		<fileset dir="." includes="lib/saxon8.jar" />
 	</path>
 
 	<macrodef name="largecopy">
-		<attribute name="fromdir"/>
-		<attribute name="todir"/>
+		<attribute name="fromdir" />
+		<attribute name="todir" />
 		<sequential>
 			<pathconvert property="fromdir.local">
-				<path location="@{fromdir}"/>
+				<path location="@{fromdir}" />
 			</pathconvert>
 			<pathconvert property="todir.local">
-				<path location="@{todir}"/>
+				<path location="@{todir}" />
 			</pathconvert>
 			<exec executable="cp" osfamily="unix">
-				<arg value="-r"/>
-				<arg value="${fromdir.local}"/>
-				<arg value="${todir.local}"/>
+				<arg value="-r" />
+				<arg value="${fromdir.local}" />
+				<arg value="${todir.local}" />
 			</exec>
 			<exec executable="xcopy" osfamily="windows">
-				<arg value="/I"/>
-				<arg value="/S"/>
-				<arg value="/Y"/>
-				<arg value="${fromdir.local}"/>
-				<arg value="${todir.local}\datastreams"/>
+				<arg value="/I" />
+				<arg value="/S" />
+				<arg value="/Y" />
+				<arg value="${fromdir.local}" />
+				<arg value="${todir.local}\datastreams" />
 			</exec>
 		</sequential>
 	</macrodef>
@@ -43,9 +44,9 @@
 
 	<target name="recache">
 		<java jar="eSciDocCoreAdmin.jar" fork="true">
-                        <jvmarg value="-Xmx1024m"/>
-                        <jvmarg value="-Xms512m"/>
-                        <jvmarg value="-XX:MaxPermSize=1024m"/>
+			<jvmarg value="-Xmx1024m" />
+			<jvmarg value="-Xms512m" />
+			<jvmarg value="-XX:MaxPermSize=1024m" />
 			<arg value="recache" />
 		</java>
 	</target>
@@ -76,6 +77,10 @@
 
 	<target name="db-migration">
 		<echo>Starting database migration</echo>
+		<filter filtersfile="${admin-tool.properties}" />
+		<copy todir="db-processed" filtering="true">
+			<fileset dir="db" />
+		</copy>
 		<java jar="eSciDocCoreAdmin.jar" fork="true">
 			<arg value="db-migration" />
 		</java>

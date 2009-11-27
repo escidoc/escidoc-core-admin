@@ -109,9 +109,15 @@ public class DataBaseMigrationTool extends DbDao
             + "AND datname=''{0}''";
 
     /**
+     * Database query to check the creator id.
+     */
+    private static final String QUERY_CREATOR_ID =
+        "SELECT id FROM aa.user_account WHERE id=''{0}''";
+
+    /**
      * Directory which contains the SQL scripts.
      */
-    private static final String DIRECTORY_SCRIPTS = "db";
+    private static final String DIRECTORY_SCRIPTS = "db-processed";
 
     /**
      * The logger.
@@ -131,6 +137,8 @@ public class DataBaseMigrationTool extends DbDao
     private final String password;
 
     private final String scriptPrefix;
+
+    private final String creatorId;
 
     /**
      * Attributes needed to call an Ant target.
@@ -152,17 +160,44 @@ public class DataBaseMigrationTool extends DbDao
      *            password of the database user
      * @param scriptPrefix
      *            prefix for database script names (mainly for MySQL)
+     * @param creatorId
+     *            id of a user account which will be inserted as creator in the
+     *            SQL scripts
      */
     public DataBaseMigrationTool(final String driverClassName,
         final String url, final String username, final String password,
-        final String scriptPrefix) {
+        final String scriptPrefix, final String creatorId) {
         this.driverClassName = driverClassName;
         this.url = url;
         this.username = username;
         this.password = password;
         this.scriptPrefix = scriptPrefix;
+        this.creatorId = creatorId;
         project.init();
         target.setProject(project);
+    }
+
+    /**
+     * Check if the configured creator id exists in the database.
+     * 
+     * @return true if the creator id exists
+     * @throws SQLException
+     *             Thrown if the SQL query failed.
+     */
+    private boolean creatorExists() throws SQLException {
+        return getJdbcTemplate().query(
+            MessageFormat.format(QUERY_CREATOR_ID, creatorId),
+            new ResultSetExtractor() {
+                public Object extractData(final ResultSet rs)
+                    throws SQLException {
+                    String result = null;
+
+                    if (rs.next()) {
+                        result = rs.getString(1);
+                    }
+                    return result;
+                }
+            }) != null;
     }
 
     /**
@@ -313,6 +348,19 @@ public class DataBaseMigrationTool extends DbDao
         catch (Exception e) {
             throw new IntegritySystemException(
                 "could not check the database consistency", e);
+        }
+
+        // check if the creator exists
+        try {
+            if (!creatorExists()) {
+                throw new IntegritySystemException(
+                    "The configured creator id \"" + creatorId
+                        + "\" does not exist in the database.");
+            }
+        }
+        catch (SQLException e) {
+            throw new IntegritySystemException(
+                "could not check if the creator id exists", e);
         }
 
         // search for all available updates
