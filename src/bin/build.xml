@@ -106,7 +106,7 @@
 	</target>
 
 	<target name="backup-foxmls" depends="check-foxmls" unless="old.foxmls.present">
-		<move file="${foxml.src.dir}" todir="${foxml.src.dir}.old" failonerror="false" />
+		<move file="${foxml.src.dir}" tofile="${foxml.src.dir}.old" failonerror="false" />
 		<mkdir dir="${foxml.src.dir}" />
 	</target>
 
