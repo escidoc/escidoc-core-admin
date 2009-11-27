@@ -46,13 +46,13 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
 			</props>
 		</property>
 	</bean>
-	<bean id="de.escidoc.core.admin.DataBaseMigrationTool"
-		class="de.escidoc.core.admin.business.DataBaseMigrationTool">
-                <constructor-arg value="${datasource.driverClassName}" />
-                <constructor-arg value="${datasource.url}" />
-                <constructor-arg value="${datasource.username}" />
-                <constructor-arg value="${datasource.password}" />
+	<bean id="de.escidoc.core.admin.DataBaseMigrationTool" class="de.escidoc.core.admin.business.DataBaseMigrationTool">
+		<constructor-arg value="${datasource.driverClassName}" />
+		<constructor-arg value="${datasource.url}" />
+		<constructor-arg value="${datasource.username}" />
+		<constructor-arg value="${datasource.password}" />
 		<constructor-arg value="${datasource.script.prefix}" />
+		<constructor-arg value="${creator_id}" />
 		<property name="myDataSource">
 			<ref bean="de.escidoc.core.admin.DataSource" />
 		</property>
@@ -64,7 +64,7 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
 		<constructor-arg value="${fedora.password}" />
 		<constructor-arg value="${fedora.url}" />
 		<constructor-arg value="${datasource.script.prefix}" />
-                <constructor-arg value="${clearCache}" />
+		<constructor-arg value="${clearCache}" />
 		<property name="dataSource">
 			<ref bean="de.escidoc.core.admin.DataSource" />
 		</property>
@@ -103,8 +103,8 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
 		</property>
 	</bean>
 	<bean id="de.escidoc.core.admin.Reindexer" class="de.escidoc.core.admin.business.Reindexer">
-                <constructor-arg value="${clearIndex}" />
-                <constructor-arg value="${indexNamePrefix}" />
+		<constructor-arg value="${clearIndex}" />
+		<constructor-arg value="${indexNamePrefix}" />
 		<property name="queueUser">
 			<value>${indexerQueueUser}</value>
 		</property>
