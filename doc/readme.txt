@@ -18,10 +18,10 @@ Index
 1.) Migration of the eSciDocCore database
 -----------------------------------------
 
-Migration of 1.0 -> 1.1
+Migration to 1.2
 
-There were several changes to the eSciDocCore database between release 1.0 and
-1.1. To start the migration process the following tasks are necessary:
+There were several changes to the eSciDocCore database between earlier releases and
+1.2. To start the migration process the following tasks are necessary:
 
 	1.) Stop eSciDoc (at least eSciDocCore)
 	2.) Install new Software (see installation document)
