@@ -57,7 +57,7 @@
 		</java>
 	</target>
 
-	<target name="data-migration" depends="db-migration, foxml-migration" />
+	<target name="data-migration-from1.1-to1.2" depends="db-migration, foxml-migration-from1.1-to1.2" />
 
 	<target name="post-data-migration">
 		<echo>The first step of migration has finished successfully.</echo>
@@ -87,21 +87,46 @@
 		<echo>Finished</echo>
 	</target>
 
+	<target name="check-foxmls">
+
+		<available file="${foxml.src.dir}.old" type="dir" property="old.foxmls.present" />
+	</target>
+
+	<target name="check-datastreams">
+
+		<available file="${datastreams.src.dir}.old" type="dir" property="old.datastreams.present" />
+	</target>
+
+	<target name="backup-datastreams" depends="check-datastreams" unless="old.datastreams.present">
+
+		<copy todir="${datastreams.src.dir}.old">
+			<fileset dir="${datastreams.src.dir}" />
+		</copy>
+
+	</target>
+
+	<target name="backup-foxmls" depends="check-foxmls" unless="old.foxmls.present">
+		<move file="${foxml.src.dir}" tofile="${foxml.src.dir}.old" failonerror="false" />
+		<mkdir dir="${foxml.src.dir}" />
+	</target>
+
+
 	<target name="foxml-migration" depends="prepare-foxml-migration">
 		<echo>Starting migration of fedora repository</echo>
 		<java jar="eSciDocCoreAdmin.jar" fork="true">
-			<arg value="foxml-migration"/>
-			<arg value="${foxml.src.dir}"/>
-			<arg value="${foxml.target.dir}"/>
-			<arg value="xsl/GeneralToFedora30.xsl"/>
-                        <sysproperty key="javax.xml.transform.TransformerFactory" value="net.sf.saxon.TransformerFactoryImpl"/>
+			<arg value="foxml-migration" />
+			<arg value="${foxml.src.dir}" />
+			<arg value="${foxml.target.dir}" />
+			<arg value="${datastreams.target.dir}" />
+			<arg value="xsl/GeneralToFedora30.xsl" />
+			<sysproperty key="javax.xml.transform.TransformerFactory" value="net.sf.saxon.TransformerFactoryImpl" />
 			<classpath>
-				<path refid="build.classpath"/>
+				<path refid="build.classpath" />
 			</classpath>
 		</java>
 		<!-- delete all FOXML files with 0 bytes length -->
-                <!-- Unfortunately this doesn't work with directories containing a lot of files. -->
-<!--
+		<!-- Unfortunately this doesn't work with directories containing a lot of files. -->
+		<!--
 		<delete>
 			<restrict>
 				<fileset dir="${foxml.target.dir}" includes="**/*">
@@ -114,13 +139,44 @@
 		<echo>Finished</echo>
 	</target>
 
-	<target name="prepare-foxml-migration">
-		<echo>Preparing migration of fedora repository</echo>
-		<move file="${foxml.target.dir}" todir="${foxml.target.dir}.bak" failonerror="false"/>
-		<mkdir dir="${foxml.target.dir}" />
-		<move file="${datastreams.target.dir}" todir="${datastreams.target.dir}.bak" failonerror="false"/>
-		<mkdir dir="${datastreams.target.dir}" />
-		<largecopy fromdir="${datastreams.src.dir}" todir="${data.target.dir}"/>
+
+	<target name="foxml-migration-from1.1-to1.2" depends="backup-foxmls, backup-datastreams">
+		<echo>Starting migration of fedora repository</echo>
+		<java jar="eSciDocCoreAdmin.jar" fork="true">
+			<arg value="foxml-migration" />
+			<arg value="${foxml.src.dir}.old" />
+			<arg value="${foxml.src.dir}" />
+			<arg value="${datastreams.src.dir}" />
+			<arg value="xsl/MigrationContainerAndContentModelToRelease1_2.xsl" />
+			<sysproperty key="javax.xml.transform.TransformerFactory" value="net.sf.saxon.TransformerFactoryImpl" />
+			<classpath>
+				<path refid="build.classpath" />
+			</classpath>
+		</java>
+		<!-- delete all FOXML files with 0 bytes length -->
+		<!-- Unfortunately this doesn't work with directories containing a lot of files. -->
+		<!--
+			<delete>
+				<restrict>
+					<fileset dir="${foxml.target.dir}" includes="**/*">
+						<size when="eq" value="0">
+						</size>
+					</fileset>
+				</restrict>
+			</delete>
+	-->
 		<echo>Finished</echo>
 	</target>
+
+	<target name="prepare-foxml-migration">
+		<echo>Preparing migration of fedora repository</echo>
+		<move file="${foxml.target.dir}" todir="${foxml.target.dir}.bak" failonerror="false" />
+		<mkdir dir="${foxml.target.dir}" />
+		<move file="${datastreams.target.dir}" todir="${datastreams.target.dir}.bak" failonerror="false" />
+		<mkdir dir="${datastreams.target.dir}" />
+		<largecopy fromdir="${datastreams.src.dir}" todir="${data.target.dir}" />
+		<echo>Finished</echo>
+	</target>
+
+
 </project>
