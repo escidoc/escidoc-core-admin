@@ -195,7 +195,7 @@ public class AdminMain {
 
         log.info("Foxml migration invoked");
         try {
-            new FoxmlMigrationTool(args[1], args[2], args[3]);
+            new FoxmlMigrationTool(args[1], args[2], args[3], args[4]);
         }
         catch (Exception e) {
             log.error(e.getMessage(), e);
