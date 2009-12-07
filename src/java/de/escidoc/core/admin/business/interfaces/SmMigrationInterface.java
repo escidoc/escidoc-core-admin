@@ -27,6 +27,7 @@
  * All rights reserved.  Use is subject to license terms.
  */package de.escidoc.core.admin.business.interfaces;
 
+import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException;
 import de.escidoc.core.common.exceptions.system.IntegritySystemException;
 
 /**
@@ -43,5 +44,5 @@ public interface SmMigrationInterface {
      *             expected.
      */
     void migrate()
-        throws IntegritySystemException;
+        throws ApplicationServerSystemException;
 }

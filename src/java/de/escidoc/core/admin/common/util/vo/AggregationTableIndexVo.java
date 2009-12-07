@@ -29,16 +29,16 @@
 
 package de.escidoc.core.admin.common.util.vo;
 
-public class AggregationTableField {
+import java.util.ArrayList;
+import java.util.Collection;
+
+public class AggregationTableIndexVo {
 
     String id = null;
-    int fieldTypeId = 0;
     String name = null;
-    String feed = null;
-    String xpath = null;
-    String data_type = null;
-    String reduceTo = null;
     int listIndex = 0;
+    Collection<AggregationTableIndexFieldVo> AggregationTableIndexFields = 
+                                new ArrayList<AggregationTableIndexFieldVo>();
     /**
      * @return the id
      */
@@ -50,18 +50,6 @@ public class AggregationTableField {
      */
     public void setId(String id) {
         this.id = id;
-    }
-    /**
-     * @return the fieldTypeId
-     */
-    public int getFieldTypeId() {
-        return fieldTypeId;
-    }
-    /**
-     * @param fieldTypeId the fieldTypeId to set
-     */
-    public void setFieldTypeId(int fieldTypeId) {
-        this.fieldTypeId = fieldTypeId;
     }
     /**
      * @return the name
@@ -76,54 +64,6 @@ public class AggregationTableField {
         this.name = name;
     }
     /**
-     * @return the feed
-     */
-    public String getFeed() {
-        return feed;
-    }
-    /**
-     * @param feed the feed to set
-     */
-    public void setFeed(String feed) {
-        this.feed = feed;
-    }
-    /**
-     * @return the xpath
-     */
-    public String getXpath() {
-        return xpath;
-    }
-    /**
-     * @param xpath the xpath to set
-     */
-    public void setXpath(String xpath) {
-        this.xpath = xpath;
-    }
-    /**
-     * @return the data_type
-     */
-    public String getData_type() {
-        return data_type;
-    }
-    /**
-     * @param dataType the data_type to set
-     */
-    public void setData_type(String dataType) {
-        data_type = dataType;
-    }
-    /**
-     * @return the reduceTo
-     */
-    public String getReduceTo() {
-        return reduceTo;
-    }
-    /**
-     * @param reduceTo the reduceTo to set
-     */
-    public void setReduceTo(String reduceTo) {
-        this.reduceTo = reduceTo;
-    }
-    /**
      * @return the listIndex
      */
     public int getListIndex() {
@@ -134,6 +74,19 @@ public class AggregationTableField {
      */
     public void setListIndex(int listIndex) {
         this.listIndex = listIndex;
+    }
+    /**
+     * @return the aggregationTableIndexFields
+     */
+    public Collection<AggregationTableIndexFieldVo> getAggregationTableIndexFields() {
+        return AggregationTableIndexFields;
+    }
+    /**
+     * @param aggregationTableIndexFields the aggregationTableIndexFields to set
+     */
+    public void setAggregationTableIndexFields(
+            Collection<AggregationTableIndexFieldVo> aggregationTableIndexFields) {
+        AggregationTableIndexFields = aggregationTableIndexFields;
     }
     
 }

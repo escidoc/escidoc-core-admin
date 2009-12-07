@@ -36,10 +36,10 @@ public class AggregationTableVo {
     private String id = null;
     private String name = null;
     private int listIndex = 0;
-    private Collection<AggregationTableField> aggregationTableFields = 
-                                    new ArrayList<AggregationTableField>();
-    private Collection<AggregationTableIndexField> aggregationTableIndexFields = 
-                                    new ArrayList<AggregationTableIndexField>();
+    private Collection<AggregationTableFieldVo> aggregationTableFields = 
+                                    new ArrayList<AggregationTableFieldVo>();
+    private Collection<AggregationTableIndexVo> aggregationTableIndexes = 
+                                    new ArrayList<AggregationTableIndexVo>();
     /**
      * @return the id
      */
@@ -79,28 +79,28 @@ public class AggregationTableVo {
     /**
      * @return the aggregationTableFields
      */
-    public Collection<AggregationTableField> getAggregationTableFields() {
+    public Collection<AggregationTableFieldVo> getAggregationTableFields() {
         return aggregationTableFields;
     }
     /**
      * @param aggregationTableFields the aggregationTableFields to set
      */
     public void setAggregationTableFields(
-            Collection<AggregationTableField> aggregationTableFields) {
+            Collection<AggregationTableFieldVo> aggregationTableFields) {
         this.aggregationTableFields = aggregationTableFields;
     }
     /**
      * @return the aggregationTableIndexFields
      */
-    public Collection<AggregationTableIndexField> getAggregationTableIndexFields() {
-        return aggregationTableIndexFields;
+    public Collection<AggregationTableIndexVo> getAggregationTableIndexes() {
+        return aggregationTableIndexes;
     }
     /**
      * @param aggregationTableIndexFields the aggregationTableIndexFields to set
      */
     public void setAggregationTableIndexFields(
-            Collection<AggregationTableIndexField> aggregationTableIndexFields) {
-        this.aggregationTableIndexFields = aggregationTableIndexFields;
+            Collection<AggregationTableIndexVo> aggregationTableIndexes) {
+        this.aggregationTableIndexes = aggregationTableIndexes;
     }
     
 

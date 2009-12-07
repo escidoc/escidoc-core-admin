@@ -29,7 +29,7 @@
 
 package de.escidoc.core.admin.common.util.vo;
 
-public class AggregationTableIndexField {
+public class AggregationTableIndexFieldVo {
 
     String id = null;
     String field = null;

@@ -206,7 +206,7 @@ public class AdminMain {
             dbm.migrate();
             log.info("Migration successfully completed.\n");
         }
-        catch (IntegritySystemException e) {
+        catch (SystemException e) {
             log.error(e);
         }
         catch (CannotCreateTransactionException e) {

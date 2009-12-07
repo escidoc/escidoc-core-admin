@@ -32,17 +32,14 @@ package de.escidoc.core.admin.common.util.vo;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import de.escidoc.core.sm.business.persistence.hibernate.AggregationStatisticDataSelector;
-import de.escidoc.core.sm.business.persistence.hibernate.AggregationTable;
-
 public class AggregationDefinitionVo {
 
     private String id = null;
-    private Collection<AggregationTable> aggregationTables = 
-                                new ArrayList<AggregationTable>();
-    private Collection<AggregationStatisticDataSelector> 
+    private Collection<AggregationTableVo> aggregationTables = 
+                                new ArrayList<AggregationTableVo>();
+    private Collection<AggregationStatisticDataSelectorVo> 
                     aggregationStatisticDataSelectors = 
-                        new ArrayList<AggregationStatisticDataSelector>();
+                        new ArrayList<AggregationStatisticDataSelectorVo>();
     /**
      * @return the id
      */
@@ -58,26 +55,26 @@ public class AggregationDefinitionVo {
     /**
      * @return the aggregationTables
      */
-    public Collection<AggregationTable> getAggregationTables() {
+    public Collection<AggregationTableVo> getAggregationTables() {
         return aggregationTables;
     }
     /**
      * @param aggregationTables the aggregationTables to set
      */
-    public void setAggregationTables(Collection<AggregationTable> aggregationTables) {
+    public void setAggregationTables(Collection<AggregationTableVo> aggregationTables) {
         this.aggregationTables = aggregationTables;
     }
     /**
      * @return the aggregationStatisticDataSelectors
      */
-    public Collection<AggregationStatisticDataSelector> getAggregationStatisticDataSelectors() {
+    public Collection<AggregationStatisticDataSelectorVo> getAggregationStatisticDataSelectors() {
         return aggregationStatisticDataSelectors;
     }
     /**
      * @param aggregationStatisticDataSelectors the aggregationStatisticDataSelectors to set
      */
     public void setAggregationStatisticDataSelectors(
-            Collection<AggregationStatisticDataSelector> aggregationStatisticDataSelectors) {
+            Collection<AggregationStatisticDataSelectorVo> aggregationStatisticDataSelectors) {
         this.aggregationStatisticDataSelectors = aggregationStatisticDataSelectors;
     }
     
