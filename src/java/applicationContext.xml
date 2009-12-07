@@ -58,6 +58,18 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
 		</property>
 	</bean>
 
+    <bean id="de.escidoc.core.admin.SmMigrationTool" class="de.escidoc.core.admin.business.SmMigrationTool">
+        <constructor-arg value="${datasource.driverClassName}" />
+        <constructor-arg value="${datasource.url}" />
+        <constructor-arg value="${datasource.username}" />
+        <constructor-arg value="${datasource.password}" />
+        <constructor-arg value="${datasource.script.prefix}" />
+        <constructor-arg value="${creator_id}" />
+        <property name="myDataSource">
+            <ref bean="de.escidoc.core.admin.DataSource" />
+        </property>
+    </bean>
+
 	<!-- RECACHER -->
 	<bean id="de.escidoc.core.admin.Recacher" class="de.escidoc.core.admin.business.Recacher">
 		<constructor-arg value="${fedora.user}" />
