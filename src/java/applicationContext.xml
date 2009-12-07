@@ -64,7 +64,6 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
         <constructor-arg value="${datasource.username}" />
         <constructor-arg value="${datasource.password}" />
         <constructor-arg value="${datasource.script.prefix}" />
-        <constructor-arg value="${creator_id}" />
         <property name="myDataSource">
             <ref bean="de.escidoc.core.admin.DataSource" />
         </property>
