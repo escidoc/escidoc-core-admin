@@ -23,26 +23,25 @@
 /*
  * Copyright 2008 Fachinformationszentrum Karlsruhe Gesellschaft
  * fuer wissenschaftlich-technische Information mbH and Max-Planck-
- * Gesellschaft zur Foerderung der Wissenschaft e.V.
+ * Gesellschaft zur Foerderung der Wissenschaft e.V.  
  * All rights reserved.  Use is subject to license terms.
+ */package de.escidoc.core.admin.business.interfaces;
+
+import de.escidoc.core.common.exceptions.system.IntegritySystemException;
+
+/**
+ * Performs changes in the framework-internal database, schema sm.
+ * 
+ * @author MIH 
  */
-package de.escidoc.core.admin.common.util.spring;
+public interface SmMigrationInterface {
 
-public class SpringConstants {
-
-    public static final String ID_RECACHER = "de.escidoc.core.admin.Recacher";
-
-    public static final String ID_REINDEXER = "de.escidoc.core.admin.Reindexer";
-
-    public static final String ID_DATA_BASE_MIGRATION_TOOL =
-        "de.escidoc.core.admin.DataBaseMigrationTool";
-
-    public static final String ID_SM_MIGRATION_TOOL =
-        "de.escidoc.core.admin.SmMigrationTool";
-
-    public static final String ID_APPLICATION_CONTEXT =
-        "de.escidoc.core.admin.context";
-
-    public static final String BEAN_REF_FACTORY = "adminBeanRefFactory.xml";
-
+    /**
+     * Migrates the SM Tables<br>
+     * @throws IntegritySystemException
+     *             Thrown in case the content of the database is not as
+     *             expected.
+     */
+    void migrate()
+        throws IntegritySystemException;
 }
