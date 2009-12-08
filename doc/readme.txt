@@ -18,10 +18,10 @@ Index
 1.) Migration of the eSciDocCore database
 -----------------------------------------
 
-Migration of 1.0 -> 1.1
+Migration to 1.2
 
-There were several changes to the eSciDocCore database between release 1.0 and
-1.1. To start the migration process the following tasks are necessary:
+There were several changes to the eSciDocCore database between earlier releases and
+1.2. To start the migration process the following tasks are necessary:
 
 	1.) Stop eSciDoc (at least eSciDocCore)
 	2.) Install new Software (see installation document)
@@ -107,7 +107,8 @@ may also contain a transformation of the objects itself.
 Migration of 1.1 -> 1.2
 The migration procedure first copies the folder 
 ${FEDORA_HOME}/data/datastreams and backups the folder ${FEDORA_HOME}/data/objects from the current
-Fedora repository. After that all FOXML files are transformed to the requirements of 1.2. 
+Fedora repository. After that all FOXML files are transformed to the requirements of 1.2 and contain
+valid DC records. 
 
     Prerequisites:
     - Ant in version 1.7.0
@@ -142,8 +143,8 @@ Fedora repository. After that all FOXML files are transformed to the requirement
           reported during the previous rebuild step. Sometimes, this value is 
           less than the maximum id. In this case, either retry rebuilding index 
           and database, or set this to a value higher than the maximum id.
-	   
-	      
+
+	      	   
         
 3.) Regenerate cache for filter methods (fast lists)
 ----------------------------------------------------
