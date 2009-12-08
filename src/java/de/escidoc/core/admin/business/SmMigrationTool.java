@@ -103,6 +103,9 @@ public class SmMigrationTool extends DbDao
     private final String QUERY_REPORT_DEFINITIONS = 
         "select * from sm.report_definitions;";
 
+    private final String QUERY_ROLE_ID = 
+        "select id from aa.escidoc_role where lower(role_name) = ?;";
+
     private final String UPDATE_AGGREGATION_TABLES = 
             "insert into sm.aggregation_tables "
             + "(id, aggregation_definition_id, name, list_index) "
@@ -304,14 +307,24 @@ public class SmMigrationTool extends DbDao
             ReportDefinitionVo reportDefinitionVo) {
         for (ReportDefinitionRoleVo reportDefinitionRoleVo : reportDefinitionVo
                 .getReportDefinitionRoles()) {
+            String roleId = reportDefinitionRoleVo.getRoleId();
+            try {
+                List result = getJdbcTemplate().queryForList(
+                        QUERY_ROLE_ID,
+                        new Object[] {roleId.toLowerCase()});
+                if (result != null && !result.isEmpty()) {
+                    Map map = (Map) result.iterator().next();
+                    roleId = (String) map.get("id");
+                }
+            } catch (Exception e) {}
+            
             getJdbcTemplate()
                     .update(
                     UPDATE_REPORT_DEFINITION_ROLES,
                     new Object[] {
                     reportDefinitionRoleVo.getId(),
                     reportDefinitionVo.getId(),
-                    reportDefinitionRoleVo
-                    .getRoleId(),
+                    roleId,
                     reportDefinitionRoleVo
                     .getListIndex() });
         }
