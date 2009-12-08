@@ -8,7 +8,7 @@
 	xmlns:foxml="info:fedora/fedora-system:def/foxml#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
 
 	exclude-result-prefixes="fedoraxsi xsl rdf">
-
+	<xsl:import href="DcTemplate.xsl"/>
 	<xsl:output encoding="utf-8" method="xml" />
 	<!--
 		<xsl:template match="/"> <xsl:call-template name="cmTemplate" />
@@ -28,7 +28,7 @@
 			<xsl:choose>
 				<!-- falls 'DC', dann Inhalt kopieren -->
 				<xsl:when test="@ID='DC'">
-					<xsl:copy-of select="." copy-namespaces="no" />
+					<xsl:call-template name="dcTemplate"/>
 				</xsl:when>
 				<!-- falls 'DC-MAPPING', dann Inhalt kopieren -->
 				<xsl:when test="@ID='DC-MAPPING'">
