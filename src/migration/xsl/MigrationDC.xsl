@@ -45,16 +45,32 @@
 									<xsl:copy />
 								</xsl:for-each>
 								<xsl:for-each select="foxml:datastreamVersion">
-									<xsl:element name="foxml:datastreamVersion" namespace="info:fedora/fedora-system:def/foxml#">
+									<xsl:element name="foxml:datastreamVersion"
+										namespace="info:fedora/fedora-system:def/foxml#">
 										<xsl:for-each select="@*">
 											<xsl:copy />
 										</xsl:for-each>
 										<xsl:for-each select="foxml:xmlContent">
-											<xsl:element name="foxml:xmlContent" namespace="info:fedora/fedora-system:def/foxml#">
+											<xsl:element name="foxml:xmlContent"
+												namespace="info:fedora/fedora-system:def/foxml#">
 												<xsl:for-each select="oai_dc:dc">
-													<xsl:element name="oai_dc:dc" namespace="http://www.openarchives.org/OAI/2.0/oai_dc/">
+													<xsl:element name="oai_dc:dc"
+														namespace="http://www.openarchives.org/OAI/2.0/oai_dc/">
 														<xsl:namespace name="xsi"
-					select="'http://www.w3.org/2001/XMLSchema-instance'" />
+															select="'http://www.w3.org/2001/XMLSchema-instance'" />
+														<xsl:namespace name="dc"
+															select="'http://purl.org/dc/elements/1.1/'" />
+														<xsl:choose>
+															<xsl:when test="@xsi:schemaLocation">
+
+															</xsl:when>
+															<xsl:otherwise>
+																<xsl:attribute name="xsi:schemaLocation"
+																	namespace="http://www.w3.org/2001/XMLSchema-instance"
+																	select="'http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd'" />
+															</xsl:otherwise>
+														</xsl:choose>
+
 														<xsl:for-each select="@*">
 															<xsl:copy />
 														</xsl:for-each>
