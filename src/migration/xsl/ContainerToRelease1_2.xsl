@@ -6,9 +6,9 @@
 	xmlns:foxml="info:fedora/fedora-system:def/foxml#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
 	xmlns:escidocVersions="http://www.escidoc.de/schemas/versionhistory/0.3"
 	xmlns:java="de.escidoc.core.admin.business.FoxmlMigrationTool"
-	
-	exclude-result-prefixes="fedoraxsi xsl java">
 
+	exclude-result-prefixes="fedoraxsi xsl java">
+	<xsl:import href="DcTemplate.xsl" />
 	<xsl:output encoding="utf-8" method="xml" />
 	<xsl:variable name="creationDateRelsExt"
 		select="/foxml:digitalObject/foxml:datastream[@ID='RELS-EXT']/foxml:datastreamVersion[position()=last()]/@CREATED" />
@@ -255,6 +255,9 @@
 							</xsl:for-each>
 						</xsl:element>
 					</xsl:result-document>
+				</xsl:when>
+				<xsl:when test="@ID='DC'">
+				<xsl:call-template name="dcTemplate"/>
 				</xsl:when>
 				<xsl:otherwise>
 					<xsl:copy-of select="." copy-namespaces="no" />
