@@ -133,6 +133,12 @@ public class SmMigrationTool extends DbDao
         + "(id, report_definition_id, role_id, list_index) "
         + "values (?, ?, ?, ?)";
 
+    private final String DROP_AGGREGATION_DEFINITION_XML_DATA = 
+        "ALTER TABLE sm.aggregation_definitions DROP COLUMN xml_data";
+
+    private final String DROP_REPORT_DEFINITION_XML_DATA = 
+        "ALTER TABLE sm.report_definitions DROP COLUMN xml_data";
+
     /**
      * Construct a new DataBaseMigrationTool object.
      * 
@@ -171,6 +177,7 @@ public class SmMigrationTool extends DbDao
     public void migrate() throws ApplicationServerSystemException {
         handleAggregationDefinitions();
         handleReportDefinitions();
+        dropFields();
     }
     
     private void handleAggregationDefinitions() throws ApplicationServerSystemException {
@@ -216,6 +223,16 @@ public class SmMigrationTool extends DbDao
                                 handler.getReportDefinitionVo();
                 writeAllowedRoles(reportDefinitionVo);
             }
+        } catch (Exception e) {
+            log.error(e);
+            throw new ApplicationServerSystemException(e);
+        }
+    }
+    
+    private void dropFields() throws ApplicationServerSystemException {
+        try {
+            getJdbcTemplate().execute(DROP_AGGREGATION_DEFINITION_XML_DATA);
+            getJdbcTemplate().execute(DROP_REPORT_DEFINITION_XML_DATA);
         } catch (Exception e) {
             log.error(e);
             throw new ApplicationServerSystemException(e);
