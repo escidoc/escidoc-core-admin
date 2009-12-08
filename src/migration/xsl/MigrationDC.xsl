@@ -18,9 +18,9 @@
 					select="'http://www.w3.org/2001/XMLSchema-instance'" />
 				<xsl:for-each select="@*">
 					<xsl:variable name="name" select="name()" />
-					<!--  changed a value of the attribute 'ID' -->
+					
 					<xsl:choose>
-						<!--  changed a value of the attribute 'CONTROL_GROUP' -->
+						<!--  changed a prefix in the declaration of a name space http://www.w3.org/2001/XMLSchema-instance -->
 						<xsl:when test="$name = 'xsi:schemaLocation'">
 							<xsl:attribute name="fedoraxsi:schemaLocation"
 								namespace="http://www.w3.org/2001/XMLSchema-instance" select="." />
