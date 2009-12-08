@@ -35,15 +35,20 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
+import org.apache.tools.ant.Project;
+import org.apache.tools.ant.Target;
+
 import de.escidoc.core.admin.business.interfaces.SmMigrationInterface;
 import de.escidoc.core.admin.common.util.stax.handler.AggregationDefinitionStaxHandler;
-import de.escidoc.core.admin.common.util.stax.handler.ListHrefHandler;
+import de.escidoc.core.admin.common.util.stax.handler.ReportDefinitionStaxHandler;
 import de.escidoc.core.admin.common.util.vo.AggregationDefinitionVo;
 import de.escidoc.core.admin.common.util.vo.AggregationStatisticDataSelectorVo;
 import de.escidoc.core.admin.common.util.vo.AggregationTableFieldVo;
 import de.escidoc.core.admin.common.util.vo.AggregationTableIndexFieldVo;
 import de.escidoc.core.admin.common.util.vo.AggregationTableIndexVo;
 import de.escidoc.core.admin.common.util.vo.AggregationTableVo;
+import de.escidoc.core.admin.common.util.vo.ReportDefinitionRoleVo;
+import de.escidoc.core.admin.common.util.vo.ReportDefinitionVo;
 import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException;
 import de.escidoc.core.common.exceptions.system.IntegritySystemException;
 import de.escidoc.core.common.util.logger.AppLogger;
@@ -80,6 +85,15 @@ public class SmMigrationTool extends DbDao
 
     private final String scriptPrefix;
     
+    private final String creatorId;
+
+    /**
+     * Attributes needed to call an Ant target.
+     */
+    private Project project = new Project();
+
+    private Target target = new Target();
+
     /**
      * Queries.
      */
@@ -114,6 +128,11 @@ public class SmMigrationTool extends DbDao
         + "(id, aggregation_definition_id, selector_type, xpath, list_index) "
         + "values (?, ?, ?, ?, ?)";
 
+    private final String UPDATE_REPORT_DEFINITION_ROLES = 
+        "insert into sm.report_definition_roles "
+        + "(id, report_definition_id, role_id, list_index) "
+        + "values (?, ?, ?, ?)";
+
     /**
      * Construct a new DataBaseMigrationTool object.
      * 
@@ -130,12 +149,15 @@ public class SmMigrationTool extends DbDao
      */
     public SmMigrationTool(final String driverClassName,
         final String url, final String username, final String password,
-        final String scriptPrefix) {
+        final String scriptPrefix, final String creatorId) {
         this.driverClassName = driverClassName;
         this.url = url;
         this.username = username;
         this.password = password;
         this.scriptPrefix = scriptPrefix;
+        this.creatorId = creatorId;
+        project.init();
+        target.setProject(project);
     }
 
     /**
@@ -168,8 +190,8 @@ public class SmMigrationTool extends DbDao
                 AggregationDefinitionVo aggregationDefinitionVo = 
                                 handler.getAggregationDefinition();
                 writeTables(aggregationDefinitionVo);
+                writeStatisticDataSelectors(aggregationDefinitionVo);
             }
-            System.out.println("OK");
         } catch (Exception e) {
             log.error(e);
             throw new ApplicationServerSystemException(e);
@@ -184,17 +206,16 @@ public class SmMigrationTool extends DbDao
                 Map map = (Map) iter.next();
                 String xml = (String) map.get("xml_data");
                 StaxParser sp = new StaxParser();
-                AggregationDefinitionStaxHandler handler =
-                        new AggregationDefinitionStaxHandler(sp);
+                ReportDefinitionStaxHandler handler =
+                        new ReportDefinitionStaxHandler(sp);
                 sp.addHandler(handler);
 
                 sp.parse(new ByteArrayInputStream(xml
                         .getBytes(XmlUtility.CHARACTER_ENCODING)));
-                AggregationDefinitionVo aggregationDefinitionVo = 
-                                handler.getAggregationDefinition();
-                writeTables(aggregationDefinitionVo);
+                ReportDefinitionVo reportDefinitionVo = 
+                                handler.getReportDefinitionVo();
+                writeAllowedRoles(reportDefinitionVo);
             }
-            System.out.println("OK");
         } catch (Exception e) {
             log.error(e);
             throw new ApplicationServerSystemException(e);
@@ -236,22 +257,49 @@ public class SmMigrationTool extends DbDao
                         new Object[] { aggregationTableIndexFieldVo.getId(),
                         aggregationTableIndexVo.getId(),
                         aggregationTableIndexFieldVo.getField(),
-                        aggregationTableIndexVo.getListIndex() });
+                        aggregationTableIndexFieldVo.getListIndex() });
                 }
 
             }
         }
-        for (AggregationStatisticDataSelectorVo aggregationStatisticDataSelectorVo 
-                    : aggregationDefinitionVo.getAggregationStatisticDataSelectors()) {
-            getJdbcTemplate().update(UPDATE_AGGREGATION_STATISTIC_DATA_SELECTORS,
-                new Object[] { aggregationStatisticDataSelectorVo.getId(),
-                aggregationDefinitionVo.getId(),
-                aggregationStatisticDataSelectorVo.getSelectorType(),
-                aggregationStatisticDataSelectorVo.getXpath(),
-                aggregationStatisticDataSelectorVo.getListIndex() });
+    }
+    
+    private void writeStatisticDataSelectors(
+            AggregationDefinitionVo aggregationDefinitionVo) {
+        for (AggregationStatisticDataSelectorVo aggregationStatisticDataSelectorVo : aggregationDefinitionVo
+                .getAggregationStatisticDataSelectors()) {
+            getJdbcTemplate()
+                    .update(
+                            UPDATE_AGGREGATION_STATISTIC_DATA_SELECTORS,
+                            new Object[] {
+                                    aggregationStatisticDataSelectorVo.getId(),
+                                    aggregationDefinitionVo.getId(),
+                                    aggregationStatisticDataSelectorVo
+                                            .getSelectorType(),
+                                    aggregationStatisticDataSelectorVo
+                                            .getXpath(),
+                                    aggregationStatisticDataSelectorVo
+                                            .getListIndex() });
         }
     }
     
+    private void writeAllowedRoles(
+            ReportDefinitionVo reportDefinitionVo) {
+        for (ReportDefinitionRoleVo reportDefinitionRoleVo : reportDefinitionVo
+                .getReportDefinitionRoles()) {
+            getJdbcTemplate()
+                    .update(
+                    UPDATE_REPORT_DEFINITION_ROLES,
+                    new Object[] {
+                    reportDefinitionRoleVo.getId(),
+                    reportDefinitionVo.getId(),
+                    reportDefinitionRoleVo
+                    .getRoleId(),
+                    reportDefinitionRoleVo
+                    .getListIndex() });
+        }
+    }
+
     /**
      * Injects the data source.
      * 

@@ -144,7 +144,7 @@ public class AggregationDefinitionStaxHandler extends DefaultHandler {
                     aggregationTableField.setDataType(s);
                 }
                 else if ("xpath".equals(element.getLocalName())) {
-                    aggregationTableField.setXpath(s);
+                    aggregationTableField.setXpath(s.replaceAll("\\s+", " "));
                 }
                 else if ("reduce-to".equals(element.getLocalName())) {
                     aggregationTableField.setReduceTo(s);
@@ -161,7 +161,7 @@ public class AggregationDefinitionStaxHandler extends DefaultHandler {
                     indexField.setField(s);
                     indexField.setListIndex(tableIndexFieldIndex);
                     indexField.setId(aggregationTableIndex.getId() 
-                                    + ":field" + tableIndexFieldIndex);
+                                    + "field" + tableIndexFieldIndex);
                     aggregationTableIndex
                         .getAggregationTableIndexFields().add(indexField);
                 }
@@ -175,7 +175,7 @@ public class AggregationDefinitionStaxHandler extends DefaultHandler {
         else if (inStatisticDataSelector) {
             if ("xpath".equals(element.getLocalName())) {
                 aggregationStatisticDataSelector
-                    .setXpath(s);
+                    .setXpath(s.replaceAll("\\s+", " "));
             }
         }
         else {
@@ -203,7 +203,7 @@ public class AggregationDefinitionStaxHandler extends DefaultHandler {
             aggregationTable = new AggregationTableVo();
             aggregationTable.setListIndex(tableIndex);
             aggregationTable.setId(
-                    aggregationDefinition.getId() + ":table" + tableIndex);
+                    aggregationDefinition.getId() + "table" + tableIndex);
         }
         else if (tableFieldPath.equals(currentPath)) {
             inTableField = true;
@@ -211,7 +211,7 @@ public class AggregationDefinitionStaxHandler extends DefaultHandler {
             aggregationTableField = new AggregationTableFieldVo();
             aggregationTableField.setListIndex(tableFieldIndex);
             aggregationTableField.setId(
-                    aggregationTable.getId() + ":field" + tableFieldIndex);
+                    aggregationTable.getId() + "field" + tableFieldIndex);
         }
         else if (tableIndexPath.equals(currentPath)) {
             inTableIndex = true;
@@ -220,7 +220,7 @@ public class AggregationDefinitionStaxHandler extends DefaultHandler {
             aggregationTableIndex = new AggregationTableIndexVo();
             aggregationTableIndex.setListIndex(tableIndexIndex);
             aggregationTableIndex.setId(
-                    aggregationDefinition.getId() + ":index" + tableIndexIndex);
+                    aggregationTable.getId() + "index" + tableIndexIndex);
         }
         else if (statisticDataSelectorPath.equals(currentPath)) {
             inStatisticDataSelector = true;
@@ -231,7 +231,7 @@ public class AggregationDefinitionStaxHandler extends DefaultHandler {
                                     statisticDataSelectorIndex);
             aggregationStatisticDataSelector.setId(
                     aggregationDefinition.getId() 
-                    + ":selector" + statisticDataSelectorIndex);
+                    + "selector" + statisticDataSelectorIndex);
         }
         else if ("info-field".equals(element.getLocalName())) {
             aggregationTableField.setFieldTypeId(1);

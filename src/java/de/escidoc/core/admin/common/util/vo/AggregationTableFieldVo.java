@@ -109,7 +109,7 @@ public class AggregationTableFieldVo {
      * @param dataType the data_type to set
      */
     public void setDataType(String dataType) {
-        dataType = dataType;
+        this.dataType = dataType;
     }
     /**
      * @return the reduceTo

@@ -40,6 +40,8 @@ import java.util.TreeSet;
 import javax.sql.DataSource;
 
 import de.escidoc.core.admin.business.interfaces.DataBaseMigrationInterface;
+import de.escidoc.core.admin.business.interfaces.SmMigrationInterface;
+import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException;
 import de.escidoc.core.common.exceptions.system.IntegritySystemException;
 import de.escidoc.core.common.util.Version;
 import de.escidoc.core.common.util.db.Fingerprint;
@@ -119,6 +121,8 @@ public class DataBaseMigrationTool extends DbDao
      */
     private static final String DIRECTORY_SCRIPTS = "db-processed";
 
+    SmMigrationInterface smMigration;
+    
     /**
      * The logger.
      */
@@ -381,12 +385,18 @@ public class DataBaseMigrationTool extends DbDao
                     // do the migration
                     log.info("migrate to " + version + " ...");
                     update(version);
+                    if (version.toString().equals("1.3.0")) {
+                        smMigration.migrate();
+                    }
                 }
             }
             // check database structure after migration
             checkConsistency();
         }
         catch (IOException e) {
+            throw new IntegritySystemException(e);
+        }
+        catch (ApplicationServerSystemException e) {
             throw new IntegritySystemException(e);
         }
     }
@@ -400,6 +410,16 @@ public class DataBaseMigrationTool extends DbDao
      */
     public final void setMyDataSource(final DataSource myDataSource) {
         super.setDataSource(myDataSource);
+    }
+
+    /**
+     * Injects the sm migration tool.
+     * 
+     * @spring.property ref="de.escidoc.core.admin.SmMigrationTool"
+     * @param smMigration smMigrationTool
+     */
+    public final void setSmMigrationTool(final SmMigrationInterface smMigration) {
+        this.smMigration = smMigration;
     }
 
     /**
