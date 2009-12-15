@@ -136,6 +136,9 @@
 	<target name="foxml-migration-dc" depends="backup-foxmls, recreate-foxml-directory">
 		<echo>Starting migration of fedora repository</echo>
 		<java jar="eSciDocCoreAdmin.jar" fork="true">
+			<jvmarg value="-Xmx512m" />
+			 <jvmarg value="-Xms512m" />
+			 <jvmarg value="-XX:MaxPermSize=1024m" />
 			<arg value="foxml-migration" />
 			<arg value="${foxml.src.dir}.old" />
 			<arg value="${foxml.src.dir}" />
