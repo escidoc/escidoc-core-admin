@@ -27,13 +27,11 @@
 					<xsl:for-each select="@*">
 						<xsl:copy />
 					</xsl:for-each>
-					<!--					<xsl:for-each-->
-					<!--
+					<xsl:for-each
 						select="*[name()!='escidocVersions:events' and
 						name()!='escidocVersions:comment']">
-					-->
-					<!--						<xsl:copy-of select="." copy-namespaces="no" />-->
-					<!--					</xsl:for-each>-->
+						<xsl:copy-of select="." copy-namespaces="no" />
+					</xsl:for-each>
 					<xsl:for-each select="escidocVersions:comment">
 						<xsl:element name="escidocVersions:comment"
 							namespace="http://www.escidoc.de/schemas/versionhistory/0.3">
