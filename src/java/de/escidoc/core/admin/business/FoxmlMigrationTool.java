@@ -146,6 +146,7 @@ public class FoxmlMigrationTool {
      */
     private void scanDir(final String dirName) throws Exception {
         File directory = new File(dirName);
+        System.out.println("directory " + dirName);
         String [] files = directory.list();
 
         if (files != null) {
@@ -235,6 +236,17 @@ public class FoxmlMigrationTool {
         path = dir.getPath();
 
         return path;
+    }
+    
+    /**
+     * Returns a rank of a framework from a provided build number.
+     */
+    public static String getFrameworkRank(String buildNr) throws ParseException {
+        if ((buildNr != null) && buildNr.contains("1.2")) {
+            return new String("1.2");
+        }
+        return new String("other");
+
     }
 
     /**
