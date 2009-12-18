@@ -5,10 +5,12 @@
 	xmlns:fedoraxsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:foxml="info:fedora/fedora-system:def/foxml#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
 	xmlns:escidocVersions="http://www.escidoc.de/schemas/versionhistory/0.3"
+	xmlns:premis="http://www.loc.gov/standards/premis/v1" xmlns:xlink="http://www.w3.org/1999/xlink"
+	xmlns:prop="http://escidoc.de/core/01/properties/" xmlns:version="http://escidoc.de/core/01/properties/version/"
 	xmlns:java="de.escidoc.core.admin.business.FoxmlMigrationTool"
-
 	exclude-result-prefixes="fedoraxsi xsl java">
 	<xsl:import href="DcTemplate.xsl" />
+	<xsl:import href="VersionHistoryTemplate.xsl" />
 	<xsl:output encoding="utf-8" method="xml" />
 	<xsl:variable name="creationDateRelsExt"
 		select="/foxml:digitalObject/foxml:datastream[@ID='RELS-EXT']/foxml:datastreamVersion[position()=last()]/@CREATED" />
@@ -238,26 +240,14 @@
 
 					<xsl:result-document
 						href="file:///{$pathVersionHistory}/{$fileName}+version-history+{$versionNumber}">
-						<xsl:element name="escidocVersions:version-history"
-							namespace="http://www.escidoc.de/schemas/versionhistory/0.3">
-							<!-- Attribute übernehmen -->
-							<xsl:for-each
-								select="foxml:datastreamVersion[1]//escidocVersions:version-history/@*">
-								<xsl:copy />
-							</xsl:for-each>
-							<!--
-								<xsl:for-each
-								select="foxml:datastreamVersion[1]//escidocVersions:version-history/escidocVersions:version[1]">
-							-->
-							<xsl:for-each
-								select="foxml:datastreamVersion[1]//escidocVersions:version-history/escidocVersions:version">
-								<xsl:copy-of select="." copy-namespaces="no" />
-							</xsl:for-each>
-						</xsl:element>
+						<xsl:for-each select="foxml:datastreamVersion[1]/foxml:xmlContent">
+							<xsl:call-template name="versionHistoryTemplate" />
+						</xsl:for-each>
+
 					</xsl:result-document>
 				</xsl:when>
 				<xsl:when test="@ID='DC'">
-				<xsl:call-template name="dcTemplate"/>
+					<xsl:call-template name="dcTemplate" />
 				</xsl:when>
 				<xsl:otherwise>
 					<xsl:copy-of select="." copy-namespaces="no" />
