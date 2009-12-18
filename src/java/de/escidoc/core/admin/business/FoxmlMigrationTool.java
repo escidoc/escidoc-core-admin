@@ -236,6 +236,17 @@ public class FoxmlMigrationTool {
 
         return path;
     }
+    
+    /**
+     * Returns a rank of a framework from a provided build number.
+     */
+    public static String getFrameworkRank(String buildNr) throws ParseException {
+        if (buildNr.contains("1.2")) {
+            return new String("1.2");
+        }
+        return new String("other");
+
+    }
 
     /**
      * Main method to start the XSL transformation.
