@@ -18,10 +18,10 @@ Index
 1.) Migration of the eSciDocCore database
 -----------------------------------------
 
-Migration to 1.2
+Migration of 1.0 -> 1.1
 
-There were several changes to the eSciDocCore database between earlier releases and
-1.2. To start the migration process the following tasks are necessary:
+There were several changes to the eSciDocCore database between release 1.0 and
+1.1. To start the migration process the following tasks are necessary:
 
 	1.) Stop eSciDoc (at least eSciDocCore)
 	2.) Install new Software (see installation document)
@@ -44,6 +44,10 @@ Warning:
 The migration tool cannot migrate the the XACML policies. If they did change then they
 will be overwritten with the new content. Please be sure to do a backup of your policies
 if you had modified them in the meantime.
+
+If the migration process terminated unexpectedly then you will get an inconsistent
+database. In that case the only way to proceed is to restore the backup, fix the problem
+which caused the migration process to fail and run the migration again.
 
 
 2.) Migration of Fedora Repository 
@@ -105,11 +109,13 @@ may also contain a transformation of the objects itself.
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Migration of 1.1.1/2/3->1.1.4 (Migration of DC data records and version-history)
 Migration of DC data records
-The migration procedure first copies the folder 
-backups the folder ${FEDORA_HOME}/data/objects from the current
+The migration procedure first backups the folder ${FEDORA_HOME}/data/objects from the current
 Fedora repository. After that DC datastream of all FOXML files are conform to
-the unqualified  DC-schema (http://purl.org/dc/elements/1.1/). 
+the unqualified  DC-schema (http://purl.org/dc/elements/1.1/). Furthermore, the migration procedure
+repairs wrongly encoded charactes in the version history of Items amd Containers, 
+caused by bug INFR-792 in the release 1.1.1 and previous releases.
 
     Prerequisites:
     - Ant in version 1.7.0
