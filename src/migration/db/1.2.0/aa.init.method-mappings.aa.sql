@@ -49,6 +49,11 @@ INSERT INTO aa.invocation_mappings (id, attribute_id, path, position, attribute_
   VALUES ('escidoc-im-user-group-retrieve-user-group-grant-2', 'info:escidoc/names:aa:1.0:resource:grant-id', '', 1,
           'http://www.w3.org/2001/XMLSchema#string', 0, false, '', 'escidoc:mm-user-group-retrieve-user-group-grant');
 
+INSERT INTO aa.method_mappings (id, class_name, method_name, action_name, exec_before, single_resource, resource_not_found_exception)
+  VALUES ('escidoc:mm-aa-init-handle-expiry-timestamp', 'de.escidoc.core.aa.service.UserManagementWrapper', 'initHandleExpiryTimestamp', 
+  'info:escidoc/names:aa:1.0:action:initHandleExpiryTimestamp', true, true,
+  'de.escidoc.core.common.exceptions.application.notfound.UserAccountNotFoundException');
+
 DELETE FROM aa.invocation_mappings WHERE id='escidoc-im-user-group-retrieve-grants-1';
 
 DELETE FROM aa.method_mappings WHERE id='escidoc:mm-user-group-retrieve-grants';
