@@ -119,7 +119,7 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
 	</bean>
 	<bean id="de.escidoc.core.admin.Reindexer" class="de.escidoc.core.admin.business.Reindexer">
 		<constructor-arg value="${clearIndex}" />
-		<constructor-arg value="${indexNamePrefix}" />
+		<constructor-arg value="${indexName}" />
 		<property name="queueUser">
 			<value>${indexerQueueUser}</value>
 		</property>
