@@ -164,25 +164,25 @@ public class Reindexer implements ReindexerInterface {
     private final boolean clearIndex;
 
     /**
-     * Property "indexNamePrefix" from configuration file.
+     * Property "indexName" from configuration file.
      */
-    private final String indexNamePrefix;
+    private final String indexName;
 
     /**
      * Construct a new Reindexer object.
      * 
      * @param clearIndex
      *            clear the index before adding objects to it
-     * @param indexNamePrefix
+     * @param indexName
      *            name of the index (may be null for "all indexes")
      * 
      * @throws SystemException
      *             Thrown if a framework internal error occurs.
      */
-    public Reindexer(final String clearIndex, final String indexNamePrefix)
+    public Reindexer(final String clearIndex, final String indexName)
         throws SystemException {
         this.clearIndex = Boolean.valueOf(clearIndex);
-        this.indexNamePrefix = indexNamePrefix;
+        this.indexName = indexName;
     }
 
     /**
@@ -193,11 +193,11 @@ public class Reindexer implements ReindexerInterface {
      */
     public void clearIndex() throws ApplicationServerSystemException {
         if (clearIndex) {
-            sendDeleteIndexMessage(Constants.ITEM_OBJECT_TYPE, indexNamePrefix);
+            sendDeleteIndexMessage(Constants.ITEM_OBJECT_TYPE, indexName);
             sendDeleteIndexMessage(Constants.CONTAINER_OBJECT_TYPE,
-                indexNamePrefix);
+                indexName);
             sendDeleteIndexMessage(Constants.ORGANIZATIONAL_UNIT_OBJECT_TYPE,
-                indexNamePrefix);
+                indexName);
         }
     }
 
@@ -349,7 +349,7 @@ public class Reindexer implements ReindexerInterface {
             result = new Vector<String>();
             for (String id : ids) {
                 if (!exists(id.substring(id.lastIndexOf('/') + 1), objectType,
-                    indexNamePrefix)) {
+                    indexName)) {
                     result.add(id);
                 }
             }
@@ -386,7 +386,7 @@ public class Reindexer implements ReindexerInterface {
      *            resource id
      * @param objectType
      *            String name of the resource (eg Item, Container...).
-     * @param indexNamePrefix
+     * @param indexName
      *            name of the index (null or "all" means to search in all
      *            indexes)
      * 
@@ -395,7 +395,7 @@ public class Reindexer implements ReindexerInterface {
      *             Thrown if a framework internal error occurs.
      */
     private boolean exists(
-        final String id, final String objectType, final String indexNamePrefix)
+        final String id, final String objectType, final String indexName)
         throws SystemException {
         boolean result = false;
         HashMap<String, HashMap<String, Object>> resourceParameters =
@@ -403,17 +403,17 @@ public class Reindexer implements ReindexerInterface {
                 .get(objectType);
 
         if ((id != null) && (resourceParameters != null)) {
-            if (indexNamePrefix == null || indexNamePrefix.trim().length() == 0
-                || indexNamePrefix.equalsIgnoreCase("all")) {
-                for (String indexNamePrefix2 : resourceParameters.keySet()) {
-                    result = exists(id, indexNamePrefix2);
+            if (indexName == null || indexName.trim().length() == 0
+                || indexName.equalsIgnoreCase("all")) {
+                for (String indexName2 : resourceParameters.keySet()) {
+                    result = exists(id, indexName2);
                     if (result) {
                         break;
                     }
                 }
             }
             else {
-                result = exists(id, indexNamePrefix);
+                result = exists(id, indexName);
             }
         }
         return result;
@@ -424,14 +424,14 @@ public class Reindexer implements ReindexerInterface {
      * 
      * @param id
      *            resource id
-     * @param indexNamePrefix
+     * @param indexName
      *            name of the index
      * 
      * @return true if the resource already exists
      * @throws SystemException
      *             Thrown if a framework internal error occurs.
      */
-    private boolean exists(final String id, final String indexNamePrefix)
+    private boolean exists(final String id, final String indexName)
         throws SystemException {
         boolean result = false;
 
@@ -446,7 +446,7 @@ public class Reindexer implements ReindexerInterface {
             GetMethod method =
                 new GetMethod(EscidocConfiguration.getInstance().get(
                     EscidocConfiguration.ESCIDOC_CORE_BASEURL)
-                    + "/srw/search/" + indexNamePrefix + "_all?query=PID=" + id);
+                    + "/srw/search/" + indexName + "?query=PID=" + id);
 
             if (client.executeMethod(method) == HttpURLConnection.HTTP_OK) {
                 Pattern numberOfRecordsPattern =
@@ -528,14 +528,14 @@ public class Reindexer implements ReindexerInterface {
     /**
      * @param objectType
      *            type of the resource.
-     * @param indexNamePrefix
+     * @param indexName
      *            name of the index (may be null for "all indexes")
      * 
      * @throws ApplicationServerSystemException
      *             e
      */
     private void sendDeleteIndexMessage(
-        final String objectType, final String indexNamePrefix)
+        final String objectType, final String indexName)
         throws ApplicationServerSystemException {
         try {
             if (queueConnection == null) {
@@ -548,8 +548,8 @@ public class Reindexer implements ReindexerInterface {
             message.setStringProperty(
                 Constants.INDEXER_QUEUE_OBJECT_TYPE_PARAMETER, objectType);
             message.setStringProperty(
-                Constants.INDEXER_QUEUE_PARAMETER_INDEX_NAME_PREFIX,
-                indexNamePrefix);
+                Constants.INDEXER_QUEUE_PARAMETER_INDEX_NAME,
+                indexName);
             messageProducer.send(message);
         }
         catch (Exception e) {
@@ -587,8 +587,8 @@ public class Reindexer implements ReindexerInterface {
             message.setStringProperty(
                 Constants.INDEXER_QUEUE_OBJECT_TYPE_PARAMETER, objectType);
             message.setStringProperty(
-                Constants.INDEXER_QUEUE_PARAMETER_INDEX_NAME_PREFIX,
-                indexNamePrefix);
+                Constants.INDEXER_QUEUE_PARAMETER_INDEX_NAME,
+                indexName);
             messageProducer.send(message);
         }
         catch (Exception e) {
