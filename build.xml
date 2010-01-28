@@ -19,6 +19,7 @@
 			<fileset dir="${bin.src.dir}" includes="**/*" />
 			<fileset dir="${doc.src.dir}" includes="**/*" />
 			<fileset dir="${etc.dir}" includes="admin-tool.properties" />
+			<fileset dir="${etc.dir}" includes="escidoc-core.properties" />
 			<fileset dir="${foxml-migration.src.dir}" />
 			<fileset dir="license/" />
 			<fileset file="${dist.build.dir}/${admin.jar.name}" />
@@ -65,6 +66,9 @@
 		</copy>
 		<copy todir="${java.build.dir}">
 			<fileset dir="${etc.dir}" includes="**/admin-tool.properties" />
+		</copy>
+		<copy todir="${java.build.dir}">
+			<fileset dir="${etc.dir}" includes="**/escidoc-core.properties" />
 		</copy>
 		<copy todir="${java.build.dir}">
 			<fileset dir="${test.src.dir}" includes="**/*.xml" />
