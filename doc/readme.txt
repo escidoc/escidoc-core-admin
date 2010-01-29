@@ -107,8 +107,10 @@ may also contain a transformation of the objects itself.
 Migration of 1.1 -> 1.2
 The migration procedure first copies the folder 
 ${FEDORA_HOME}/data/datastreams and backups the folder ${FEDORA_HOME}/data/objects from the current
-Fedora repository. After that all FOXML files are transformed to the requirements of 1.2 and contain
-valid DC records. 
+Fedora repository. After that all FOXML files are transformed to the requirements of 1.2 and their DC-records are conform to
+the unqualified  DC-schema (http://purl.org/dc/elements/1.1/). Furthermore, the migration procedure
+repairs wrongly encoded charactes in the version history of Items amd Containers, 
+caused by bug INFR-792 in the release 1.1.1 and previous releases.. 
 
     Prerequisites:
     - Ant in version 1.7.0
