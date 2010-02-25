@@ -29,6 +29,7 @@
 package de.escidoc.core.admin.business;
 
 import static de.escidoc.core.common.business.Constants.CONTAINER_OBJECT_TYPE;
+import static de.escidoc.core.common.business.Constants.CONTENT_MODEL_OBJECT_TYPE;
 import static de.escidoc.core.common.business.Constants.CONTENT_RELATION2_OBJECT_TYPE;
 import static de.escidoc.core.common.business.Constants.CONTEXT_OBJECT_TYPE;
 import static de.escidoc.core.common.business.Constants.ITEM_OBJECT_TYPE;
@@ -63,8 +64,6 @@ import fedora.client.FedoraClient;
  * Provides methods used for recaching.
  * 
  * @spring.bean id="de.escidoc.core.admin.Recacher"
- * 
- * @admin
  */
 public class Recacher extends DbResourceCache implements RecacherInterface {
 
@@ -81,7 +80,14 @@ public class Recacher extends DbResourceCache implements RecacherInterface {
             + "(?, ?, ?)";
 
     /**
-     * SQL statement to insert a context.
+     * SQL statement to insert a content model.
+     */
+    private static final String INSERT_CONTENT_MODEL =
+        "INSERT INTO list.content_model (id, rest_content, soap_content) "
+            + "VALUES (?, ?, ?)";
+
+    /**
+     * SQL statement to insert a content relation.
      */
     private static final String INSERT_CONTENT_RELATION =
         "INSERT INTO list.content_relation (id, rest_content, soap_content) "
@@ -113,6 +119,14 @@ public class Recacher extends DbResourceCache implements RecacherInterface {
         "/risearch?type=triples&lang=spo&format=N-Triples&query=*%20%3chttp://"
             + "www.w3.org/1999/02/22-rdf-syntax-ns%23type%3e%20%3c"
             + CONTAINER_OBJECT_TYPE + "%3e";
+
+    /**
+     * Triple store query to get a list of all content models.
+     */
+    private static final String CONTENT_MODEL_LIST_QUERY =
+        "/risearch?type=triples&lang=spo&format=N-Triples&query=*%20%3chttp://"
+            + "www.w3.org/1999/02/22-rdf-syntax-ns%23type%3e%20%3c"
+            + CONTENT_MODEL_OBJECT_TYPE + "%3e";
 
     /**
      * Triple store query to get a list of all content relations.
@@ -153,6 +167,12 @@ public class Recacher extends DbResourceCache implements RecacherInterface {
         "http://localhost:8080/axis/services/ContainerHandlerService";
 
     /**
+     * Axis URI to the content model handler.
+     */
+    private static final String AXIS_CONTENT_MODEL_HANDLER_TARGET_NAMESPACE =
+        "http://localhost:8080/axis/services/ContentModelHandlerService";
+
+    /**
      * Axis URI to the content relation handler.
      */
     private static final String AXIS_CONTENT_RELATION_HANDLER_TARGET_NAMESPACE =
@@ -185,6 +205,11 @@ public class Recacher extends DbResourceCache implements RecacherInterface {
      * eSciDoc URL to the container handler.
      */
     private static final String CONTAINER_URL = "/ir/container/";
+
+    /**
+     * eSciDoc URL to the content model handler.
+     */
+    private static final String CONTENT_MODEL_URL = "/cmm/content-model/";
 
     /**
      * eSciDoc URL to the content relation handler.
@@ -271,9 +296,8 @@ public class Recacher extends DbResourceCache implements RecacherInterface {
         this.fedoraPassword = aFedoraPassword;
         this.fedoraUrl = aFedoraUrl;
         this.scriptPrefix =
-            ((aScriptPrefix != null) && (aScriptPrefix.length() > 0)) ? aScriptPrefix
-                + "."
-                : "";
+            ((aScriptPrefix != null) && (aScriptPrefix.length() > 0))
+            ? aScriptPrefix + "." : "";
         this.clearCache = Boolean.valueOf(clearCache);
     }
 
@@ -368,7 +392,7 @@ public class Recacher extends DbResourceCache implements RecacherInterface {
      * Retrieve a single resource from eSciDoc (SOAP form).
      * 
      * @param namespace
-     *            target namespace
+     *            target name space
      * @param id
      *            resource id
      * 
@@ -416,13 +440,13 @@ public class Recacher extends DbResourceCache implements RecacherInterface {
      * Store all available resources of the given type in the database cache.
      * 
      * @param type
-     *            must be "container" or "item"
+     *            resource type
      * @param listQuery
      *            Fedora query to get a list of all resources of the given type
      * @param resourceUrl
      *            eSciDoc URL to retrieve a resource of the given type
      * @param resourceNamespace
-     *            target namespace for the given resource type
+     *            target name space for the given resource type
      * 
      * @throws SystemException
      *             Thrown if eSciDoc failed to receive a resource.
@@ -479,8 +503,8 @@ public class Recacher extends DbResourceCache implements RecacherInterface {
                 time = 1;
             }
             log.info("stored " + count + " " + type.getLabel() + "s in " + time
-                + "s (" + (count / time) + "." + (count % time) + " " + type.getLabel()
-                + "s/s)");
+                + "s (" + (count / time) + "." + (count % time) + " "
+                + type.getLabel() + "s/s)");
         }
         finally {
             if (input != null) {
@@ -508,6 +532,28 @@ public class Recacher extends DbResourceCache implements RecacherInterface {
         final String id, final String xmlDataRest, final String xmlDataSoap)
         throws IOException, ParseException {
         getJdbcTemplate().update(INSERT_CONTAINER,
+            new Object[] { id, xmlDataRest, xmlDataSoap });
+    }
+
+    /**
+     * Store the content model in the database cache.
+     * 
+     * @param id
+     *            content model id
+     * @param xmlDataRest
+     *            complete content model as XML (REST form)
+     * @param xmlDataSoap
+     *            complete content model as XML (SOAP form)
+     * 
+     * @throws IOException
+     *             Thrown if an I/O error occurred.
+     * @throws ParseException
+     *             A date string cannot be parsed.
+     */
+    private void storeContentModel(
+        final String id, final String xmlDataRest, final String xmlDataSoap)
+        throws IOException, ParseException {
+        getJdbcTemplate().update(INSERT_CONTENT_MODEL,
             new Object[] { id, xmlDataRest, xmlDataSoap });
     }
 
@@ -641,6 +687,9 @@ public class Recacher extends DbResourceCache implements RecacherInterface {
         if (type == ResourceType.CONTAINER) {
             storeContainer(id, xmlDataRest, xmlDataSoap);
         }
+        else if (type == ResourceType.CONTENTMODEL) {
+            storeContentModel(id, xmlDataRest, xmlDataSoap);
+        }
         else if (type == ResourceType.CONTENT_RELATION) {
             storeContentRelation(id, xmlDataRest, xmlDataSoap);
         }
@@ -678,6 +727,8 @@ public class Recacher extends DbResourceCache implements RecacherInterface {
         }
         store(ResourceType.CONTAINER, CONTAINER_LIST_QUERY, CONTAINER_URL,
             AXIS_CONTAINER_HANDLER_TARGET_NAMESPACE);
+        store(ResourceType.CONTENTMODEL, CONTENT_MODEL_LIST_QUERY,
+            CONTENT_MODEL_URL, AXIS_CONTENT_MODEL_HANDLER_TARGET_NAMESPACE);
         store(ResourceType.CONTENT_RELATION, CONTENT_RELATION_LIST_QUERY,
             CONTENT_RELATION_URL,
             AXIS_CONTENT_RELATION_HANDLER_TARGET_NAMESPACE);
