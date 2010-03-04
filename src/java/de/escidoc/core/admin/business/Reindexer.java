@@ -52,6 +52,7 @@ import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
 
 import de.escidoc.core.admin.business.interfaces.ReindexerInterface;
 import de.escidoc.core.admin.common.util.EscidocCoreHandler;
+import de.escidoc.core.admin.common.util.stax.handler.IndexConfigurationStaxHandler;
 import de.escidoc.core.admin.common.util.stax.handler.ListHrefHandler;
 import de.escidoc.core.common.business.Constants;
 import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException;
@@ -76,6 +77,9 @@ public class Reindexer implements ReindexerInterface {
 
     private static final String ORG_UNIT_FILTER_URL =
         "/oum/organizational-units/filter";
+
+    private static final String INDEX_CONFIGURATION_URL =
+                        "/adm/admin/get-index-configuration";
 
     private static final String ITEM_LIST_ELEMENT_NAME = "item-list";
 
@@ -140,6 +144,8 @@ public class Reindexer implements ReindexerInterface {
 
     private static Matcher OFFSET_MATCHER = OFFSET_PATTERN.matcher("");
 
+    HashMap<String, HashMap<String, HashMap<String, Object>>> indexConfiguration = null;
+    
     private static AppLogger log = new AppLogger(Reindexer.class.getName());
 
     private EscidocCoreHandler escidocCoreHandler;
@@ -399,8 +405,7 @@ public class Reindexer implements ReindexerInterface {
         throws SystemException {
         boolean result = false;
         HashMap<String, HashMap<String, Object>> resourceParameters =
-            de.escidoc.core.common.business.indexing.Constants.OBJECT_TYPE_PARAMETERS
-                .get(objectType);
+            getIndexConfiguration().get(objectType);
 
         if ((id != null) && (resourceParameters != null)) {
             if (indexName == null || indexName.trim().length() == 0
@@ -595,6 +600,30 @@ public class Reindexer implements ReindexerInterface {
             log.error(e);
             throw new ApplicationServerSystemException(e);
         }
+    }
+
+    /**
+     * @return the indexConfiguration
+     */
+    public HashMap<String, HashMap<String, HashMap<String, Object>>> 
+                                                getIndexConfiguration() 
+                                    throws ApplicationServerSystemException {
+        if (indexConfiguration == null) {
+            String indexConfigurationXml =
+                escidocCoreHandler.getRequestEscidoc(INDEX_CONFIGURATION_URL);
+            StaxParser sp = new StaxParser();
+            IndexConfigurationStaxHandler handler =
+                new IndexConfigurationStaxHandler(sp);
+            sp.addHandler(handler);
+            try {
+                sp.parse(new ByteArrayInputStream(indexConfigurationXml
+                        .getBytes(XmlUtility.CHARACTER_ENCODING)));
+            } catch (Exception e) {
+                throw new ApplicationServerSystemException(e);
+            }
+            indexConfiguration = handler.getIndexConfiguration();
+        }
+        return indexConfiguration;
     }
 
     /**
