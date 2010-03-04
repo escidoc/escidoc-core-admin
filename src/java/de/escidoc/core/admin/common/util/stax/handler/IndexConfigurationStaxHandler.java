@@ -42,7 +42,9 @@ import de.escidoc.core.common.util.xml.stax.handler.DefaultHandler;
 public class IndexConfigurationStaxHandler extends DefaultHandler {
 
     private HashMap<String, HashMap
-        <String, HashMap<String, Object>>> indexConfiguration;
+        <String, HashMap<String, Object>>> indexConfiguration = 
+            new HashMap<String, HashMap
+            <String, HashMap<String, Object>>>();
     
     private String resourceName = null;
 
