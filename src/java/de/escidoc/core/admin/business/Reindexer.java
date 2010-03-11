@@ -52,7 +52,6 @@ import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
 
 import de.escidoc.core.admin.business.interfaces.ReindexerInterface;
 import de.escidoc.core.admin.common.util.EscidocCoreHandler;
-import de.escidoc.core.admin.common.util.stax.handler.IndexConfigurationStaxHandler;
 import de.escidoc.core.admin.common.util.stax.handler.ListHrefHandler;
 import de.escidoc.core.common.business.Constants;
 import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException;
@@ -60,6 +59,7 @@ import de.escidoc.core.common.exceptions.system.SystemException;
 import de.escidoc.core.common.util.configuration.EscidocConfiguration;
 import de.escidoc.core.common.util.logger.AppLogger;
 import de.escidoc.core.common.util.stax.StaxParser;
+import de.escidoc.core.common.util.stax.handler.IndexConfigurationStaxHandler;
 import de.escidoc.core.common.util.xml.XmlUtility;
 
 /**

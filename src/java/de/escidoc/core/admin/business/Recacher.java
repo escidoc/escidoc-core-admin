@@ -687,7 +687,7 @@ public class Recacher extends DbResourceCache implements RecacherInterface {
         if (type == ResourceType.CONTAINER) {
             storeContainer(id, xmlDataRest, xmlDataSoap);
         }
-        else if (type == ResourceType.CONTENTMODEL) {
+        else if (type == ResourceType.CONTENT_MODEL) {
             storeContentModel(id, xmlDataRest, xmlDataSoap);
         }
         else if (type == ResourceType.CONTENT_RELATION) {
@@ -727,7 +727,7 @@ public class Recacher extends DbResourceCache implements RecacherInterface {
         }
         store(ResourceType.CONTAINER, CONTAINER_LIST_QUERY, CONTAINER_URL,
             AXIS_CONTAINER_HANDLER_TARGET_NAMESPACE);
-        store(ResourceType.CONTENTMODEL, CONTENT_MODEL_LIST_QUERY,
+        store(ResourceType.CONTENT_MODEL, CONTENT_MODEL_LIST_QUERY,
             CONTENT_MODEL_URL, AXIS_CONTENT_MODEL_HANDLER_TARGET_NAMESPACE);
         store(ResourceType.CONTENT_RELATION, CONTENT_RELATION_LIST_QUERY,
             CONTENT_RELATION_URL,
