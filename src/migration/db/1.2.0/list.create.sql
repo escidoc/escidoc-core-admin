@@ -5,7 +5,21 @@ CREATE TABLE list.content_relation (
   primary key (id)
 );
 
-CREATE LANGUAGE plpgsql;
+CREATE OR REPLACE FUNCTION public.create_plpgsql_language () RETURNS TEXT AS ' CREATE LANGUAGE plpgsql; SELECT ''language plpgsql created''::TEXT; ' LANGUAGE 'sql';
+
+SELECT CASE WHEN
+              (SELECT true::BOOLEAN
+                 FROM pg_language
+                WHERE lanname='plpgsql')
+            THEN
+              (SELECT 'language already installed'::TEXT)
+            ELSE
+              (SELECT public.create_plpgsql_language())
+            END;
+
+DROP FUNCTION public.create_plpgsql_language ();
+
+DROP TYPE IF EXISTS resource CASCADE;
 
 CREATE TYPE resource AS (resource_id TEXT);
 
