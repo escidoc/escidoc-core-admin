@@ -48,6 +48,7 @@ import org.apache.axis.encoding.ser.BeanDeserializerFactory;
 import org.apache.axis.encoding.ser.BeanSerializerFactory;
 import org.apache.axis.transport.http.HTTPSender;
 import org.apache.axis.transport.http.HTTPTransport;
+import org.apache.commons.httpclient.Cookie;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
@@ -61,7 +62,7 @@ import org.apache.ws.security.handler.WSHandlerConstants;
 import sun.misc.BASE64Decoder;
 import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException;
 import de.escidoc.core.common.util.logger.AppLogger;
-import de.escidoc.core.common.util.service.HttpRequester;
+import de.escidoc.core.common.util.service.ConnectionUtility;
 
 /**
  * Execute http-request to escidoc-core system.
@@ -75,7 +76,7 @@ public class EscidocCoreHandler {
     private static AppLogger log =
         new AppLogger(EscidocCoreHandler.class.getName());
 
-    private final HttpRequester httpRequester;
+    private final ConnectionUtility connectionUtility = new ConnectionUtility();
 
     private static final String LOGIN_PATH = "/aa/login?target=";
 
@@ -85,14 +86,16 @@ public class EscidocCoreHandler {
     private final Pattern userHandlePattern =
         Pattern.compile("(?s).*?href=\"\\?eSciDocUserHandle=(.*?)\".*");
 
-    private String login = null;
-
-    private String securityHandle = null;
+    private Cookie cookie = null;
 
     private final HashMap<String, Object> wsSecurityHash =
         new HashMap<String, Object>();
 
     private final BASE64Decoder decoder = new BASE64Decoder();
+
+    private static final String COOKIE_LOGIN = "escidocCookie";
+
+    private String escidocCoreUrl = null;
 
     /**
      * initialize EscidocCoreHandler with escidocCoreUrl to eSciDocCore-System.
@@ -103,7 +106,7 @@ public class EscidocCoreHandler {
      * @admin
      */
     public EscidocCoreHandler(final String escidocCoreUrl) {
-        httpRequester = new HttpRequester(escidocCoreUrl);
+        this.escidocCoreUrl = escidocCoreUrl;
     }
 
     /**
@@ -123,9 +126,10 @@ public class EscidocCoreHandler {
      */
     public EscidocCoreHandler(final String escidocCoreUrl, final String login,
         final String password) throws Exception {
-        this.login = login;
-        securityHandle = login(escidocCoreUrl, login, password);
-        httpRequester = new HttpRequester(escidocCoreUrl, securityHandle);
+        this.escidocCoreUrl = escidocCoreUrl;
+        cookie = new Cookie();
+        cookie.setName(COOKIE_LOGIN);
+        cookie.setValue(login(escidocCoreUrl, login, password));
     }
 
     /**
@@ -144,9 +148,10 @@ public class EscidocCoreHandler {
     public EscidocCoreHandler(
             final String escidocCoreUrl, 
             final String persistentHandle) throws Exception {
-        login = "escidoc";
-        securityHandle = persistentHandle;
-        httpRequester = new HttpRequester(escidocCoreUrl, securityHandle);
+        cookie = new Cookie();
+        this.escidocCoreUrl = escidocCoreUrl;
+        cookie.setName(COOKIE_LOGIN);
+        cookie.setValue(persistentHandle);
     }
 
     /**
@@ -170,7 +175,8 @@ public class EscidocCoreHandler {
         final String resource, final String postParam)
         throws ApplicationServerSystemException {
         try {
-            String result = httpRequester.doPost(resource, postParam);
+            String result = connectionUtility.postRequestURLAsString(
+                        new URL(escidocCoreUrl + resource), postParam, cookie);
             return result;
         }
         catch (Exception e) {
@@ -197,7 +203,8 @@ public class EscidocCoreHandler {
     public String getRequestEscidoc(final String resource)
         throws ApplicationServerSystemException {
         try {
-            String result = httpRequester.doGet(resource);
+            String result = connectionUtility.getRequestURLAsString(
+                    new URL(escidocCoreUrl + resource), cookie);
             return result;
         }
         catch (Exception e) {
@@ -227,7 +234,8 @@ public class EscidocCoreHandler {
             final String resource, final String putParam)
         throws ApplicationServerSystemException {
         try {
-            String result = httpRequester.doPut(resource, putParam);
+            String result = connectionUtility.putRequestURLAsString(
+                    new URL(escidocCoreUrl + resource), putParam, cookie);
             return result;
         }
         catch (Exception e) {
@@ -278,7 +286,7 @@ public class EscidocCoreHandler {
                 new BeanDeserializerFactory(mappingClass, poqn));
 
             // write security
-            if (securityHandle != null) {
+            if (cookie != null) {
                 fillWsSecurityHash();
             }
             if (wsSecurityHash != null) {
@@ -422,9 +430,9 @@ public class EscidocCoreHandler {
         wsSecurityHash.put(WSHandlerConstants.MUST_UNDERSTAND, "false");
         wsSecurityHash.put(WSHandlerConstants.ACTION, "UsernameToken");
         wsSecurityHash.put(WSHandlerConstants.PASSWORD_TYPE, "PasswordText");
-        wsSecurityHash.put(WSHandlerConstants.USER, login);
+        wsSecurityHash.put(WSHandlerConstants.USER, "");
         wsSecurityHash.put(WSHandlerConstants.PW_CALLBACK_REF, new PWCallback(
-            login, securityHandle));
+            "", cookie.getValue()));
 
     }
 
