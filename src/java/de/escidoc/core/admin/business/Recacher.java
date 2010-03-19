@@ -461,6 +461,7 @@ public class Recacher extends DbResourceCache implements RecacherInterface {
         throws IOException, ParseException, SystemException {
         BufferedReader input = null;
 
+        resourceType = type;
         try {
             fc = new FedoraClient(fedoraUrl, fedoraUser, fedoraPassword);
             input =
