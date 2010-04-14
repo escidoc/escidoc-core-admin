@@ -64,7 +64,7 @@ public class FoxmlMigrationTool {
      * Charset used for file I/O.
      */
     private static final String CHARSET = "utf-8";
-    
+
     /*
      * A Pattern to parse a String in order to create a Date
      */
@@ -83,41 +83,49 @@ public class FoxmlMigrationTool {
         new AppLogger(FoxmlMigrationTool.class.getName());
 
     private final String srcDirectory;
+
     private final String destDirectory;
-    private final Transformer transformer;
+
+    private final String stylesheet;
+
+    private final TransformerFactory factory = TransformerFactory.newInstance();
+
+    private Transformer transformer = null;
+
     private static String datastreamDestDirectory;
 
     private int count = 0;
 
     /**
      * Constructor.
-     *
-     * @param srcDirectory base directory where the original Foxml files are
-     *                     located
-     * @param destDirectory base directory where the transformed Foxml files
-     *                      will be placed (the directory will be created
-     *                      automatically if needed)
-     * @param stylesheet XSL style sheet to use for transformation
-     *
-     * @throws Exception thrown if the XSL transformation failed
+     * 
+     * @param srcDirectory
+     *            base directory where the original Foxml files are located
+     * @param destDirectory
+     *            base directory where the transformed Foxml files will be
+     *            placed (the directory will be created automatically if needed)
+     * @param stylesheet
+     *            XSL style sheet to use for transformation
+     * 
+     * @throws Exception
+     *             thrown if the XSL transformation failed
      */
     public FoxmlMigrationTool(final String srcDirectory,
-        final String destDirectory, final String datastreamDirectory, 
+        final String destDirectory, final String datastreamDirectory,
         final String stylesheet) throws Exception {
-        this.srcDirectory  = srcDirectory;
+        this.srcDirectory = srcDirectory;
         this.destDirectory = destDirectory;
+        this.stylesheet = stylesheet;
         datastreamDestDirectory = datastreamDirectory;
 
-        TransformerFactory factory = TransformerFactory.newInstance();
-
-        transformer = factory.newTransformer(new StreamSource(stylesheet));
         scanDir(srcDirectory);
     }
 
     /**
      * Create all parent directories of the given file if they do not yet exist.
-     *
-     * @param file Foxml file for which all parent directories must exist
+     * 
+     * @param file
+     *            Foxml file for which all parent directories must exist
      */
     private void createParentDirectories(final File file) {
         new File(file.getParent()).mkdirs();
@@ -166,23 +174,27 @@ public class FoxmlMigrationTool {
      * Do a XSL transformation for the given Foxml file. The target Foxml file
      * will be put into the destination directory preserving the same sub
      * directory structure.
-     *
-     * @param file source Foxml file
-     *
-     * @throws Exception thrown if the XSL transformation failed
+     * 
+     * @param file
+     *            source Foxml file
+     * 
+     * @throws Exception
+     *             thrown if the XSL transformation failed
      */
     private void transform(final File file) throws Exception {
         File target = getDestPath(file.getPath());
 
         createParentDirectories(target);
 
-        Reader source = new InputStreamReader(new FileInputStream(file), CHARSET);
-        Writer result = new OutputStreamWriter(new FileOutputStream(target),
-            CHARSET);
+        Reader source =
+            new InputStreamReader(new FileInputStream(file), CHARSET);
+        Writer result =
+            new OutputStreamWriter(new FileOutputStream(target), CHARSET);
 
         try {
-            transformer.transform(new StreamSource(source),
-                new StreamResult(result));
+            transformer = factory.newTransformer(new StreamSource(stylesheet));
+            transformer.transform(new StreamSource(source), new StreamResult(
+                result));
         }
         catch (Exception e) {
             log.error("failed to transform " + file, e);
@@ -198,7 +210,6 @@ public class FoxmlMigrationTool {
         }
     }
 
-    
     /**
      * Replaces a semicolon in a provided String by an underscore.
      * 
@@ -225,7 +236,7 @@ public class FoxmlMigrationTool {
         TimeZone tz = TimeZone.getDefault();
         formatter1.setTimeZone(tz);
         Date date = formatter1.parse(creationDate);
-       
+
         formatter2.setTimeZone(tz);
         String path = formatter2.format(date);
 
@@ -236,7 +247,7 @@ public class FoxmlMigrationTool {
 
         return path;
     }
-    
+
     /**
      * Returns a rank of a framework from a provided build number.
      */
@@ -250,20 +261,22 @@ public class FoxmlMigrationTool {
 
     /**
      * Main method to start the XSL transformation.
-     *
-     * @param args expected three arguments: source directory, target directory and
-     *             XSL stylesheet
-     *
-     * @throws Exception thrown if the XSL transformation failed
+     * 
+     * @param args
+     *            expected three arguments: source directory, target directory
+     *            and XSL stylesheet
+     * 
+     * @throws Exception
+     *             thrown if the XSL transformation failed
      */
-    public static void main(final String [] args) throws Exception {
+    public static void main(final String[] args) throws Exception {
         if (args.length == 3) {
-            new FoxmlMigrationTool(args [0], args[1], args[2], args[4]);
+            new FoxmlMigrationTool(args[0], args[1], args[2], args[4]);
         }
         else {
-            System.err.println(
-                "usage: FoxmlMigration <src directory> <dest directory> "
-                + "<XSL stylesheet>");
+            System.err
+                .println("usage: FoxmlMigration <src directory> <dest directory> "
+                    + "<XSL stylesheet>");
         }
     }
 }
