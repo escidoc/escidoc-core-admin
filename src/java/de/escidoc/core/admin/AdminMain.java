@@ -53,14 +53,11 @@ import de.escidoc.core.admin.business.interfaces.RecacherInterface;
 import de.escidoc.core.admin.business.interfaces.ReindexerInterface;
 import de.escidoc.core.common.business.Constants;
 import de.escidoc.core.common.exceptions.system.IntegritySystemException;
-import de.escidoc.core.common.exceptions.system.SystemException;
 import de.escidoc.core.common.util.logger.AppLogger;
 import de.escidoc.core.common.util.string.StringUtility;
 
 /**
  * Main Class for the Admin-Tool.
- * 
- * @admin
  */
 public class AdminMain {
 
@@ -98,32 +95,44 @@ public class AdminMain {
      * @throws IllegalAccessException
      *             e
      */
-    public static void main(final String[] args) throws NoSuchMethodException,
-        IllegalAccessException, InvocationTargetException {
-        AdminMain admin = new AdminMain();
+    public static void main(final String[] args) {
+        int result = 20;
 
-        // call has to have at least one argument
-        if (args.length == 0 || StringUtils.isEmpty(args[0])) {
-            admin.failMessage();
-            System.exit(-1);
+        try {
+            AdminMain admin = new AdminMain();
+
+            // call has to have at least one argument
+            if (args.length > 0 && !StringUtils.isEmpty(args[0])) {
+                String methodToCall = methods.get(args[0]);
+
+                if (!StringUtils.isEmpty(methodToCall)) {
+                    log.info("memory (free / max. available): "
+                        + Runtime.getRuntime().freeMemory() / 1024 / 1024
+                        + " MB" + " / " + Runtime.getRuntime().maxMemory()
+                        / 1024 / 1024 + " MB");
+
+                    Class<?>[] paramTypes = { String[].class };
+                    Method thisMethod =
+                        admin.getClass().getDeclaredMethod(methodToCall,
+                            paramTypes);
+
+                    thisMethod.invoke(admin, new Object[] { args });
+                    result = 0;
+                }
+                else {
+                    admin.failMessage("provided tool name: "
+                        + StringUtils.join(args, " "));
+                }
+            }
+            else {
+                admin.failMessage();
+            }
         }
-
-        String methodToCall = methods.get(args[0]);
-        if (StringUtils.isEmpty(methodToCall)) {
-            admin.failMessage("provided tool name: "
-                + StringUtils.join(args, " "));
-            System.exit(-1);
+        catch (Exception e) {
+            log.error(e);
+            e.printStackTrace();
         }
-
-        log.info("memory (free / max. available): "
-            + Runtime.getRuntime().freeMemory() / 1024 / 1024 + " MB" + " / "
-            + Runtime.getRuntime().maxMemory() / 1024 / 1024 + " MB");
-
-        Class< ? >[] paramTypes = { String[].class };
-        Method thisMethod =
-            admin.getClass().getDeclaredMethod(methodToCall, paramTypes);
-        thisMethod.invoke(admin, new Object[] { args });
-
+        System.exit(result);
     }
 
     /**
@@ -223,18 +232,12 @@ public class AdminMain {
      * @param args
      *            The arguments.
      */
-    private void recache(final String[] args) {
+    private void recache(final String[] args) throws Exception {
         RecacherInterface recacher =
             (RecacherInterface) beanFactory.getBean(ID_RECACHER);
 
-        try {
-            recacher.clearCache();
-            recacher.storeResources();
-        }
-        catch (Exception e) {
-            log.error(e);
-            e.printStackTrace();
-        }
+        recacher.clearCache();
+        recacher.storeResources();
     }
 
     /**
@@ -244,7 +247,7 @@ public class AdminMain {
      * @param args
      *            The arguments.
      */
-    private void reindex(final String[] args) {
+    private void reindex(final String[] args) throws Exception {
         ReindexerInterface reindexer =
             (ReindexerInterface) beanFactory.getBean(ID_REINDEXER);
 
@@ -252,7 +255,8 @@ public class AdminMain {
             // Get all released Items
             Collection<String> itemHrefs = reindexer.getFilteredItems();
             // Get all released Containers
-            Collection<String> containerHrefs = reindexer.getFilteredContainers();
+            Collection<String> containerHrefs =
+                reindexer.getFilteredContainers();
             // Get all public viewable organizational-units
             Collection<String> orgUnitHrefs =
                 reindexer.getFilteredOrganizationalUnits();
@@ -300,10 +304,6 @@ public class AdminMain {
                 catch (InterruptedException e) {
                 }
             }
-
-        }
-        catch (SystemException e) {
-            log.error(e);
         }
         finally {
             if (reindexer != null) {
