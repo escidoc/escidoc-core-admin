@@ -54,6 +54,7 @@ import de.escidoc.core.admin.business.interfaces.ReindexerInterface;
 import de.escidoc.core.admin.business.interfaces.SmMigrationInterface;
 import de.escidoc.core.common.business.Constants;
 import de.escidoc.core.common.exceptions.system.IntegritySystemException;
+import de.escidoc.core.common.exceptions.system.SystemException;
 import de.escidoc.core.common.util.logger.AppLogger;
 import de.escidoc.core.common.util.string.StringUtility;
 
