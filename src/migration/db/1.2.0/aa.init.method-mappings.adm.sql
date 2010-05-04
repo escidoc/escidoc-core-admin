@@ -37,3 +37,7 @@ INSERT INTO aa.invocation_mappings (id, attribute_id, path, position, attribute_
 INSERT INTO aa.invocation_mappings (id, attribute_id, path, position, attribute_type, mapping_type, multi_value, value, method_mapping)
   VALUES ('escidoc-im-adm-get-repository-info', 'info:escidoc/names:aa:1.0:resource:object-type-new', '', 0, 
           'http://www.w3.org/2001/XMLSchema#string', 3, false, 'none', 'escidoc:mm-adm-get-repository-info');
+
+INSERT INTO aa.invocation_mappings (id, attribute_id, path, position, attribute_type, mapping_type, multi_value, value, method_mapping)
+  VALUES ('escidoc-im-adm-load-examples', 'info:escidoc/names:aa:1.0:resource:object-type-new', '', 0, 
+          'http://www.w3.org/2001/XMLSchema#string', 3, false, 'none', 'escidoc:mm-adm-load-examples');
