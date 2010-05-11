@@ -60,7 +60,8 @@ DELETE FROM aa.method_mappings WHERE id='escidoc:mm-user-group-retrieve-grants';
 
 UPDATE aa.method_mappings SET action_name='info:escidoc/names:aa:1.0:action:retrieve-objects-filtered' WHERE id='escidoc:mm-user-group-revoke-grants';
 
+DELETE FROM aa.invocation_mappings WHERE id='escidoc-im-roles-retrieve-1';
+
 DELETE FROM aa.method_mappings WHERE id='escidoc:mm-roles-retrieve';
 
-DELETE FROM aa.invocation_mappings WHERE id='escidoc-im-roles-retrieve-1';
 
