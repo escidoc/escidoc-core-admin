@@ -42,7 +42,7 @@ CREATE OR REPLACE FUNCTION getAllChildContainers(param_expression TEXT) RETURNS 
   BEGIN\
     IF param_expression IS NOT NULL THEN\
       FOR var_resource_id IN EXECUTE param_expression LOOP\
-        RETURN QUERY SELECT DISTINCT CAST(var_resource_id AS TEXT) FROM list.property\
+        RETURN QUERY SELECT CAST(var_resource_id AS TEXT) FROM list.container\
                      UNION ALL\
                      SELECT * FROM getChildContainers(var_resource_id);\
       END LOOP;\
