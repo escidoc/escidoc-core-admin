@@ -5,6 +5,87 @@ CREATE TABLE list.content_relation (
   primary key (id)
 );
 
+DROP INDEX list.id_local_path_position;
+DROP INDEX list.id_local_path_context_id;
+DROP INDEX list.id_local_path_value;
+DROP INDEX list.local_path_value_position;
+DROP INDEX list.local_path_value_id;
+
+CREATE INDEX id_path_contentmodelid_index
+  ON list.property
+  USING btree
+  (resource_id, local_path, value)
+TABLESPACE @escidoc.database.tablespace.list@
+  WHERE local_path = '/properties/content-model/id'::text;
+
+CREATE INDEX id_path_position
+  ON list.property
+  USING btree
+  (resource_id, local_path, "position")
+TABLESPACE @escidoc.database.tablespace.list@;
+
+CREATE INDEX local_path_public_status_value_index
+  ON list.property
+  USING btree
+  (local_path, value)
+TABLESPACE @escidoc.database.tablespace.list@
+  WHERE local_path = '/properties/public-status'::text;
+
+CREATE INDEX local_path_version_status_value_index
+  ON list.property
+  USING btree
+  (local_path, value)
+TABLESPACE @escidoc.database.tablespace.list@
+  WHERE local_path = '/properties/version/status'::text;
+
+CREATE INDEX path_contentmodeltitle_value_index
+  ON list.property
+  USING btree
+  (local_path, value)
+TABLESPACE @escidoc.database.tablespace.list@
+  WHERE local_path = '/properties/content-model/title'::text;
+
+CREATE INDEX path_contextid_value_index
+  ON list.property
+  USING btree
+  (local_path, value)
+TABLESPACE @escidoc.database.tablespace.list@
+  WHERE local_path = '/properties/context/id'::text;
+
+CREATE INDEX path_createdby_value_index
+  ON list.property
+  USING btree
+  (local_path, value)
+TABLESPACE @escidoc.database.tablespace.list@
+  WHERE local_path = '/properties/created-by/id'::text;
+
+CREATE INDEX path_id_position
+  ON list.property
+  USING btree
+  (local_path, resource_id, "position")
+TABLESPACE @escidoc.database.tablespace.list@;
+
+CREATE INDEX path_parents_value_index
+  ON list.property
+  USING btree
+  (local_path, value, resource_id)
+TABLESPACE @escidoc.database.tablespace.list@
+  WHERE local_path = '/parents/parent/id'::text;
+
+CREATE INDEX path_structmap_container_index
+  ON list.property
+  USING btree
+  (local_path, resource_id)
+TABLESPACE @escidoc.database.tablespace.list@
+  WHERE local_path = '/struct-map/container/id'::text;
+
+CREATE INDEX path_structmap_index
+  ON list.property
+  USING btree
+  (local_path, resource_id)
+TABLESPACE @escidoc.database.tablespace.list@
+  WHERE local_path = '/struct-map/item/id'::text;
+
 CREATE OR REPLACE FUNCTION public.create_plpgsql_language () RETURNS TEXT AS ' CREATE LANGUAGE plpgsql; SELECT ''language plpgsql created''::TEXT; ' LANGUAGE 'sql';
 
 SELECT CASE WHEN
