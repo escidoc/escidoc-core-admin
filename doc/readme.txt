@@ -18,12 +18,14 @@ Index
 1.) Migration of the eSciDocCore database
 -----------------------------------------
 
+Migration to 1.2
+
 There were several changes to the eSciDocCore database between earlier releases and
 1.2. To start the migration process the following tasks are necessary:
 
 	1.) Stop eSciDoc (at least eSciDocCore)
 	2.) Install new Software (see installation document)
-            - install new eSciDocCore
+		- install new eSciDocCore
 	3.) Migration of eSciDocCore database
             - java -jar eSciDocCoreAdmin.jar db-migration
             or
@@ -47,33 +49,45 @@ if you had modified them in the meantime.
 2.) Migration of Fedora Repository 
 ----------------------------------
 
-The migration procedure first copies the folder 
-${FEDORA_HOME}/data/datastreams and backups the folder ${FEDORA_HOME}/data/objects from the current
-Fedora repository. After that all FOXML files are transformed to the requirements of 1.2 and their DC-records are conform to
-the unqualified  DC-schema (http://purl.org/dc/elements/1.1/). Furthermore, the migration procedure
-repairs wrongly encoded characters in the version history of Items amd Containers, 
-caused by bug INFR-792 in the release 1.1.1 and previous releases.. 
+   Fedora 3.0beta1 -> Fedora 3.0
+   eSciDoc 1.0beta3 -> eSciDoc 1.0beta4
+
+The migration procedure first backups the folders 
+${FEDORA_HOME}/data/datastreams and ${FEDORA_HOME}/data/objects from the new
+Fedora repository. Then all datastreams from the existing Fedora repository are
+copied into the new Fedora repository. After that all relevant FOXML files are
+migrated from the existing Fedora to the new Fedora repository. The migration
+may also contain a transformation of the objects itself. 
 
     Prerequisites:
     - Ant in version 1.7.0
+    - Newly installed Fedora 3.0 repository in directory fedora3.home
 	- stopped eSciDoc
-	- stopped Fedora 
+	- stopped old and new Fedora 
 	
     - Usage:
 	    1) Modify admin-tool.properties
-	      - define the location of the current repository in the property fedora-src.home
-	      	e.g. fedora-src.home=/repository/fedora3.3
+	      - define the location of the old repository in the property fedora-src.home
+	      	e.g. fedora-src.home=/repository/fedora30b1 
 	      	or on Windows
-	      	fedora-src.home=C:/repository/fedora3.3
-	   2) Increase the available memory by setting the system property ANT_OPTS.
+	      	fedora-src.home=C:/repository/fedora30b1 
+	      - define the location of the new repository in the property fedora-target.home
+	      	e.g. fedora-target.home=/repository/fedora30
+        
+        2) Increase the available memory by setting the system property ANT_OPTS.
           At least to following values:
           ANT_OPTS=-Xmx1024m -Xms512m -XX:MaxPermSize=256m
 
       	3) The admin-tool.properties has to be placed in the same directory where  
           the admin tool is going to be executed.
-          Execute target foxml-migration-from1.1-to1.2 of ant file build.xml
+          Execute target foxml-migration of ant file build.xml
           
-       	4) Rebuild the Fedora 3.3 resource index and SQL database. 
+       	4) Rebuild the Fedora 3.0 resource index and SQL database. 
+       	   It is assumed that the new Fedora make usage of the same Fedora 
+       	   database like the old Fedora installation. Therefore all tables from
+       	   Fedora database to drop and automatically recreated during the 
+       	   rebuild procedure. This step is not necessary if a new database is 
+       	   used. Connect to your Fedora database and drop all tables.
        	   
           The index and SQL database rebuild is supported by tools from Fedora.
           Call fedora-rebuild script, located in 
@@ -89,6 +103,51 @@ caused by bug INFR-792 in the release 1.1.1 and previous releases..
           and database, or set this to a value higher than the maximum id.
 
 
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Migration of 1.1 -> 1.2
+The migration procedure first copies the folder 
+${FEDORA_HOME}/data/datastreams and backups the folder ${FEDORA_HOME}/data/objects from the current
+Fedora repository. After that all FOXML files are transformed to the requirements of 1.2 and their DC-records are conform to
+the unqualified  DC-schema (http://purl.org/dc/elements/1.1/). Furthermore, the migration procedure
+repairs wrongly encoded charactes in the version history of Items amd Containers, 
+caused by bug INFR-792 in the release 1.1.1 and previous releases.. 
+
+    Prerequisites:
+    - Ant in version 1.7.0
+	- stopped eSciDoc
+	- stopped Fedora 
+	
+    - Usage:
+	    1) Modify admin-tool.properties
+	      - define the location of the current repository in the property fedora-src.home
+	      	e.g. fedora-src.home=/repository/fedora3.2.1 
+	      	or on Windows
+	      	fedora-src.home=C:/repository/fedora3.2.1
+	   2) Increase the available memory by setting the system property ANT_OPTS.
+          At least to following values:
+          ANT_OPTS=-Xmx1024m -Xms512m -XX:MaxPermSize=256m
+
+      	3) The admin-tool.properties has to be placed in the same directory where  
+          the admin tool is going to be executed.
+          Execute target foxml-migration-from1.1-to1.2 of ant file build.xml
+          
+       	4) Rebuild the Fedora 3.2 resource index and SQL database. 
+       	   
+          The index and SQL database rebuild is supported by tools from Fedora.
+          Call fedora-rebuild script, located in 
+          fedora3.home/server/bin, and follow the instructions.
+          (For SQL and index rebuild see also 
+          http://fedora-commons.org/confluence/display/FCR30/
+              Command-Line+Utilities#Command-LineUtilities-rebuild)
+
+        5) Check the highest id value for escidoc in the fedora 3 database, 
+          table public.pidgen. This value should be the highest id that has been 
+          reported during the previous rebuild step. Sometimes, this value is 
+          less than the maximum id. In this case, either retry rebuilding index 
+          and database, or set this to a value higher than the maximum id.
+
+	      	   
+        
 3.) Regenerate cache for filter methods (fast lists)
 ----------------------------------------------------
 
