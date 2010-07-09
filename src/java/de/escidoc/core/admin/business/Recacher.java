@@ -717,6 +717,7 @@ public class Recacher extends DbResourceCache implements RecacherInterface {
      */
     public final void storeResources() throws IOException, ParseException,
         SystemException {
+        setSelfUrl(escidocCoreHandler.getEscidocCoreUrl());
         // dummy call to prevent
         // "org.apache.commons.discovery.DiscoveryException: No implementation
         // defined for org.apache.commons.logging.LogFactory"
