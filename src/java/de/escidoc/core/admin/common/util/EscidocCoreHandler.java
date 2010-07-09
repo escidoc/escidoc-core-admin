@@ -46,6 +46,7 @@ import org.apache.axis.client.Service;
 import org.apache.axis.configuration.SimpleProvider;
 import org.apache.axis.transport.http.HTTPSender;
 import org.apache.axis.transport.http.HTTPTransport;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.httpclient.Cookie;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
@@ -57,7 +58,6 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.ws.axis.security.WSDoAllSender;
 import org.apache.ws.security.handler.WSHandlerConstants;
 
-import sun.misc.BASE64Decoder;
 import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException;
 import de.escidoc.core.common.util.logger.AppLogger;
 import de.escidoc.core.common.util.service.ConnectionUtility;
@@ -69,8 +69,8 @@ import de.escidoc.core.common.util.service.ConnectionUtility;
  */
 public class EscidocCoreHandler {
 
-    private static AppLogger log =
-        new AppLogger(EscidocCoreHandler.class.getName());
+    private static AppLogger log = new AppLogger(
+        EscidocCoreHandler.class.getName());
 
     private final ConnectionUtility connectionUtility = new ConnectionUtility();
 
@@ -78,11 +78,11 @@ public class EscidocCoreHandler {
 
     private static final String DEFAULT_LOGIN = "escidoc";
 
-    private final Pattern loginFormPattern =
-        Pattern.compile("(?s).*?action=\"(.*?)\".*");
+    private final Pattern loginFormPattern = Pattern
+        .compile("(?s).*?action=\"(.*?)\".*");
 
-    private final Pattern userHandlePattern =
-        Pattern.compile("(?s).*?href=\"\\?eSciDocUserHandle=(.*?)\".*");
+    private final Pattern userHandlePattern = Pattern
+        .compile("(?s).*?href=\"\\?eSciDocUserHandle=(.*?)\".*");
 
     private String login = null;
 
@@ -90,8 +90,6 @@ public class EscidocCoreHandler {
 
     private final HashMap<String, Object> wsSecurityHash =
         new HashMap<String, Object>();
-
-    private final BASE64Decoder decoder = new BASE64Decoder();
 
     private static final String COOKIE_LOGIN = "escidocCookie";
 
@@ -346,8 +344,8 @@ public class EscidocCoreHandler {
 
                 StringBuffer response = new StringBuffer();
                 BufferedReader reader =
-                    new BufferedReader(new InputStreamReader(redirect
-                        .getResponseBodyAsStream()));
+                    new BufferedReader(new InputStreamReader(
+                        redirect.getResponseBodyAsStream()));
                 String line = null;
 
                 while ((line = reader.readLine()) != null) {
@@ -359,7 +357,8 @@ public class EscidocCoreHandler {
 
                 if (encodedUserHandle != null) {
                     result =
-                        new String(decoder.decodeBuffer(encodedUserHandle));
+                        new String(Base64.decodeBase64(encodedUserHandle
+                            .getBytes()));
                 }
                 redirect.releaseConnection();
             }
@@ -443,5 +442,14 @@ public class EscidocCoreHandler {
             System.out.println("Couldn't create engine configuration: " + ex);
             return null;
         }
+    }
+
+    /**
+     * Get the eSciDocCore URL.
+     * 
+     * @return eSciDocCore URL
+     */
+    public String getEscidocCoreUrl() {
+        return escidocCoreUrl;
     }
 }
