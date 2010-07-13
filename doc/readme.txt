@@ -27,8 +27,6 @@ There were several changes to the eSciDocCore database between earlier releases 
 	2.) Install new Software (see installation document)
 		- install new eSciDocCore
 	3.) Migration of eSciDocCore database
-            - java -jar eSciDocCoreAdmin.jar db-migration
-            or
             - target "db-migration" of ant file build.xml
 	    The admin-tool.properties must be placed in the directory from that 
 	    the admin tool is executed.
