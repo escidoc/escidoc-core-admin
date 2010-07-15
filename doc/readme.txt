@@ -37,7 +37,7 @@ versions you do it at your own risk and without any support.
 
 Warning:
 
-The migration tool cannot migrate the the XACML policies. If they did change then they
+The migration tool cannot migrate the XACML policies. If they did change then they
 will be overwritten with the new content. Please be sure to do a backup of your policies
 if you had modified them in the meantime.
 
