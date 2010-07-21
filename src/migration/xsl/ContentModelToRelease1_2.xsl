@@ -15,10 +15,33 @@
 		</xsl:template>
 	-->
 	<xsl:variable name="PID" select="/foxml:digitalObject/@PID" />
-	<xsl:variable name="createdDate"
-		select="/foxml:digitalObject/foxml:objectProperties/foxml:property[@NAME='info:fedora/fedora-system:def/model#createdDate']/@VALUE" />
-	<xsl:variable name="lmDate"
-		select="/foxml:digitalObject/foxml:objectProperties/foxml:property[@NAME='info:fedora/fedora-system:def/view#lastModifiedDate']/@VALUE" />
+	<xsl:variable name="createdDate">
+		<xsl:variable name="millis" select="number(substring(/foxml:digitalObject/foxml:objectProperties/foxml:property[@NAME='info:fedora/fedora-system:def/model#createdDate']/@VALUE, 21, 3))"/>
+		<xsl:choose>
+			<xsl:when test="$millis = 999 and /foxml:digitalObject/foxml:objectProperties/foxml:property[@NAME='info:fedora/fedora-system:def/model#createdDate']/@VALUE = /foxml:digitalObject/foxml:objectProperties/foxml:property[@NAME='info:fedora/fedora-system:def/view#lastModifiedDate']/@VALUE">
+				<!-- createdDate and lmDate are the same and have 999 millis, so decrement createdDate -->
+				<xsl:value-of select="substring(/foxml:digitalObject/foxml:objectProperties/foxml:property[@NAME='info:fedora/fedora-system:def/model#createdDate']/@VALUE, 1, 20)"/>
+				<xsl:value-of select="$millis - 1"/>
+				<xsl:text>Z</xsl:text>
+			</xsl:when>
+			<xsl:otherwise>
+				<xsl:value-of select="/foxml:digitalObject/foxml:objectProperties/foxml:property[@NAME='info:fedora/fedora-system:def/model#createdDate']/@VALUE"/>
+			</xsl:otherwise>
+		</xsl:choose>
+	</xsl:variable>
+	<xsl:variable name="lmDate">
+		<xsl:choose>
+			<xsl:when test="/foxml:digitalObject/foxml:objectProperties/foxml:property[@NAME='info:fedora/fedora-system:def/view#lastModifiedDate']/@VALUE = $createdDate">
+				<!-- create new lmDate which is after createdDate -->
+				<xsl:value-of select="substring($createdDate, 1, 20)"/>
+				<xsl:value-of select="number(substring($createdDate, 21, 3)) + 1"/>
+				<xsl:text>Z</xsl:text>
+			</xsl:when>
+			<xsl:otherwise>
+				<xsl:value-of select="/foxml:digitalObject/foxml:objectProperties/foxml:property[@NAME='info:fedora/fedora-system:def/view#lastModifiedDate']/@VALUE"/> 
+			</xsl:otherwise>
+		</xsl:choose>
+	</xsl:variable>
 	<xsl:variable name="label"
 		select="/foxml:digitalObject/foxml:objectProperties/foxml:property[@NAME='info:fedora/fedora-system:def/model#label']/@VALUE" />
 
@@ -304,7 +327,7 @@
 										namespace="http://www.loc.gov/standards/premis/v1">
 										<xsl:value-of select="'Content Model created.'" />
 									</xsl:element>
-									<xsl:element name="premis:linkingAgentIdentifier "
+									<xsl:element name="premis:linkingAgentIdentifier"
 										namespace="http://www.loc.gov/standards/premis/v1">
 										<xsl:attribute name="xlink:href"
 											namespace="http://www.w3.org/1999/xlink" select="'/aa/user-account/escidoc:exuser1'" />
