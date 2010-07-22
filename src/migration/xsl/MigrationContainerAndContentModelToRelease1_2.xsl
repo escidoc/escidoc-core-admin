@@ -21,6 +21,35 @@
 		<xsl:variable name="frameworkRank" select="java:getFrameworkRank($buildNr)" />
 
 		<xsl:for-each select="foxml:digitalObject">
+						
+			<xsl:variable name="createdDate">
+				<xsl:variable name="millis" select="number(substring(/foxml:digitalObject/foxml:objectProperties/foxml:property[@NAME='info:fedora/fedora-system:def/model#createdDate']/@VALUE, 21, 3))"/>
+				<xsl:choose>
+					<xsl:when test="$millis = 999 and /foxml:digitalObject/foxml:objectProperties/foxml:property[@NAME='info:fedora/fedora-system:def/model#createdDate']/@VALUE = /foxml:digitalObject/foxml:objectProperties/foxml:property[@NAME='info:fedora/fedora-system:def/view#lastModifiedDate']/@VALUE">
+						<!-- createdDate and lmDate are the same and have 999 millis, so decrement createdDate -->
+						<xsl:value-of select="substring(/foxml:digitalObject/foxml:objectProperties/foxml:property[@NAME='info:fedora/fedora-system:def/model#createdDate']/@VALUE, 1, 20)"/>
+						<xsl:value-of select="$millis - 1"/>
+						<xsl:text>Z</xsl:text>
+					</xsl:when>
+					<xsl:otherwise>
+						<xsl:value-of select="/foxml:digitalObject/foxml:objectProperties/foxml:property[@NAME='info:fedora/fedora-system:def/model#createdDate']/@VALUE"/>
+					</xsl:otherwise>
+				</xsl:choose>
+			</xsl:variable>
+			<xsl:variable name="lmDate">
+				<xsl:choose>
+					<xsl:when test="/foxml:digitalObject/foxml:objectProperties/foxml:property[@NAME='info:fedora/fedora-system:def/view#lastModifiedDate']/@VALUE = $createdDate">
+						<!-- create new lmDate which is after createdDate -->
+						<xsl:value-of select="substring($createdDate, 1, 20)"/>
+						<xsl:value-of select="number(substring($createdDate, 21, 3)) + 1"/>
+						<xsl:text>Z</xsl:text>
+					</xsl:when>
+					<xsl:otherwise>
+						<xsl:value-of select="/foxml:digitalObject/foxml:objectProperties/foxml:property[@NAME='info:fedora/fedora-system:def/view#lastModifiedDate']/@VALUE"/> 
+					</xsl:otherwise>
+				</xsl:choose>
+			</xsl:variable>
+			
 			<xsl:element name="foxml:digitalObject" namespace="info:fedora/fedora-system:def/foxml#">
 				<!-- alle Attribute und Namespaces ans Root-Element anhängen -->
 				<xsl:namespace name="fedoraxsi"
@@ -42,10 +71,28 @@
 					</xsl:choose>
 				</xsl:for-each>
 
-				<xsl:for-each select="foxml:objectProperties">
-					<xsl:copy-of select="." copy-namespaces="no" />
-
-				</xsl:for-each>
+				<foxml:objectProperties>
+					<xsl:for-each select="foxml:objectProperties/@*">
+						<xsl:copy/>
+					</xsl:for-each>
+					<xsl:for-each select="foxml:objectProperties/foxml:property">
+						<xsl:choose>
+							<xsl:when test="@NAME = 'info:fedora/fedora-system:def/model#createdDate'">
+								<foxml:property NAME="info:fedora/fedora-system:def/model#createdDate">
+									<xsl:attribute name="VALUE"><xsl:value-of select="$createdDate"/></xsl:attribute>
+								</foxml:property>
+							</xsl:when>
+							<xsl:when test="@NAME = 'info:fedora/fedora-system:def/view#lastModifiedDate'">
+								<foxml:property NAME="info:fedora/fedora-system:def/view#lastModifiedDate">
+									<xsl:attribute name="VALUE"><xsl:value-of select="$lmDate"/></xsl:attribute>
+								</foxml:property>
+							</xsl:when>
+							<xsl:otherwise>
+								<xsl:copy-of select="." copy-namespaces="no" />
+							</xsl:otherwise>
+						</xsl:choose>
+					</xsl:for-each>
+				</foxml:objectProperties>
 				<xsl:choose>
 					<xsl:when test="$frameworkRank != '1.2'">
 						<xsl:choose>
@@ -55,7 +102,10 @@
 							</xsl:when>
 							<xsl:when
 								test="$objectType = 'http://escidoc.de/core/01/resources/ContentModel'">
-								<xsl:call-template name="cmTemplate" />
+								<xsl:call-template name="cmTemplate">
+									<xsl:with-param name="createdDate" select="$createdDate"/>
+									<xsl:with-param name="lmDate" select="$lmDate"/>
+								</xsl:call-template>
 							</xsl:when>
 							<xsl:otherwise>
 								<xsl:for-each select="foxml:datastream">
