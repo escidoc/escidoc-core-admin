@@ -31,7 +31,6 @@ package de.escidoc.core.admin;
 import static de.escidoc.core.admin.common.util.spring.SpringConstants.BEAN_REF_FACTORY;
 import static de.escidoc.core.admin.common.util.spring.SpringConstants.ID_APPLICATION_CONTEXT;
 import static de.escidoc.core.admin.common.util.spring.SpringConstants.ID_DATA_BASE_MIGRATION_TOOL;
-import static de.escidoc.core.admin.common.util.spring.SpringConstants.ID_RECACHER;
 import static de.escidoc.core.admin.common.util.spring.SpringConstants.ID_REINDEXER;
 
 import java.lang.reflect.InvocationTargetException;
@@ -49,7 +48,6 @@ import org.springframework.transaction.CannotCreateTransactionException;
 
 import de.escidoc.core.admin.business.FoxmlMigrationTool;
 import de.escidoc.core.admin.business.interfaces.DataBaseMigrationInterface;
-import de.escidoc.core.admin.business.interfaces.RecacherInterface;
 import de.escidoc.core.admin.business.interfaces.ReindexerInterface;
 import de.escidoc.core.admin.business.interfaces.SmMigrationInterface;
 import de.escidoc.core.common.business.Constants;
@@ -79,7 +77,6 @@ public class AdminMain {
     // call parameter name -> method name
     static {
         methods.put("reindex", "reindex");
-        methods.put("recache", "recache");
         methods.put("test", "test");
         methods.put("db-migration", "migrateDataBase");
         methods.put("sm-migration", "migrateSmDataBase");
@@ -268,20 +265,6 @@ public class AdminMain {
 
         log.info("escidocOmUrl=" + escidocOmUrl);
         log.info("escidocSbUrl=" + escidocSbUrl);
-    }
-
-    /**
-     * Clear the item cache, get all items and store them in the item cache.
-     * 
-     * @param args
-     *            The arguments.
-     */
-    private void recache(final String[] args) throws Exception {
-        RecacherInterface recacher =
-            (RecacherInterface) beanFactory.getBean(ID_RECACHER);
-
-        recacher.clearCache();
-        recacher.storeResources();
     }
 
     /**

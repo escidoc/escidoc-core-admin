@@ -4,15 +4,14 @@ eSciDoc Infrastructure Administration Tool
 The Administration Tool supports update of cache, reindex for search, migration 
 of the eSciDocCore database and migration of the Fedora repository. 
  
-Reindex and recache might by necessary without updating eSciDoc. E.g. the used 
-hardware or OS infrastructure has changed. Therefore these tasks are separated 
-into independent sub tasks.
+Reindex might by necessary without updating eSciDoc. E.g. the used hardware
+or OS infrastructure has changed. Therefore these tasks are separated into
+independent sub tasks.
 
 Index
 	1.) Migration of the eSciDocCore database
 	2.) Migration of Fedora Repository
-	3.) Reload of objects to Cache
-	4.) Re-Index for Search
+	3.) Re-Index for filters and search
 
 
 1.) Migration of the eSciDocCore database
@@ -142,45 +141,9 @@ valid DC records.
           less than the maximum id. In this case, either retry rebuilding index 
           and database, or set this to a value higher than the maximum id.
 
-	      	   
-        
-3.) Regenerate cache for filter methods (fast lists)
-----------------------------------------------------
 
-	Use this when 
-	- structure/schema of containers, contexts, items or organizational units changed,
-	- structure of cache database changed
-	
-	Prerequisites for recaching:
-        - Database has been migrated (if necessary)
-        - Fedora has been migrated (if necessary)
-        - eSciDocCore Services including fedora repository are started
-
-	Workflow:
-	- delete all resources from cache database
-	- get all resources from eSciDoc
-	- put these resources into the cache database
-
-	Usage:
-	- modify admin-tool.properties:
-		- escidocOmUrl : URL of OM
-		- fedora.user : Fedora admin user name
-		- fedora.password : Fedora admin password
-		- fedora.url : URL of Fedora
-		- datasource.* : JDBC properties for eSciDoc database
-		- persistentHandle: persistent handle of eSciDoc systemadmin
-		- clearCache: set to false if the cache should not be emptied before adding
-		  objects to it
-        - execute 
-            - java -Xmx1024m -Xms512m -XX:MaxPermSize=1024m -jar eSciDocCoreAdmin.jar recache
-            or
-            - target recache of ant file build.xml
-            The admin-tool.properties must be placed in the directory from that 
-            the admin tool is executed.
-
-
-4.) Regenerate index for search
--------------------------------
+4.) Regenerate index for filters and search
+-------------------------------------------
 
 	Prerequisites for reindexing:
 	- Database has been migrated (if necessary)

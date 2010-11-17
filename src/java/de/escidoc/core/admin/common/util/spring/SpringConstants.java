@@ -30,8 +30,6 @@ package de.escidoc.core.admin.common.util.spring;
 
 public class SpringConstants {
 
-    public static final String ID_RECACHER = "de.escidoc.core.admin.Recacher";
-
     public static final String ID_REINDEXER = "de.escidoc.core.admin.Reindexer";
 
     public static final String ID_DATA_BASE_MIGRATION_TOOL =
