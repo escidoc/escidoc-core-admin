@@ -121,7 +121,7 @@ public class DataBaseMigrationTool extends DbDao
      */
     private static final String DIRECTORY_SCRIPTS = "db-processed";
 
-    SmMigrationInterface smMigration;
+    private SmMigrationInterface smMigration;
     
     /**
      * The logger.
