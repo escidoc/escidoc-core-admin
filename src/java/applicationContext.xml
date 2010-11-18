@@ -28,6 +28,20 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
 		<property name="username" value="${datasource.username}" />
 		<property name="password" value="${datasource.password}" />
 	</bean>
+	<bean id="escidoc.core.business.FedoraUtility" class="de.escidoc.core.common.business.fedora.FedoraUtility">
+        <property name="fedoraUrl">
+            <value>${fedora.url}</value>
+        </property>
+        <property name="fedoraUser">
+            <value>${fedora.user}</value>
+        </property>
+        <property name="fedoraPassword">
+            <value>${fedora.password}</value>
+        </property>
+        <property name="identifierPrefix">
+            <value>${datasource.script.prefix}</value>
+        </property>
+    </bean>
 	<bean id="de.escidoc.core.admin.ReadertxManager"
 		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
 		<property name="dataSource">
@@ -120,5 +134,8 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
 		<property name="indexerMessageQueue">
 			<ref bean="de.escidoc.core.admin.IndexerMessageQueue" />
 		</property>
+		<property name="fedoraUtility">
+            <ref bean="escidoc.core.business.FedoraUtility"/>
+        </property>
 	</bean>
 </beans>

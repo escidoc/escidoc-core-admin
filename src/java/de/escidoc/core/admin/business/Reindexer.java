@@ -28,11 +28,21 @@
  */
 package de.escidoc.core.admin.business;
 
+import static de.escidoc.core.common.business.Constants.CONTAINER_OBJECT_TYPE;
+import static de.escidoc.core.common.business.Constants.CONTENT_MODEL_OBJECT_TYPE;
+import static de.escidoc.core.common.business.Constants.CONTENT_RELATION2_OBJECT_TYPE;
+import static de.escidoc.core.common.business.Constants.CONTEXT_OBJECT_TYPE;
+import static de.escidoc.core.common.business.Constants.ITEM_OBJECT_TYPE;
+import static de.escidoc.core.common.business.Constants.ORGANIZATIONAL_UNIT_OBJECT_TYPE;
+
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -52,8 +62,8 @@ import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
 
 import de.escidoc.core.admin.business.interfaces.ReindexerInterface;
 import de.escidoc.core.admin.common.util.EscidocCoreHandler;
-import de.escidoc.core.admin.common.util.stax.handler.ListHrefHandler;
 import de.escidoc.core.common.business.Constants;
+import de.escidoc.core.common.business.fedora.FedoraUtility;
 import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException;
 import de.escidoc.core.common.exceptions.system.SystemException;
 import de.escidoc.core.common.util.configuration.EscidocConfiguration;
@@ -71,57 +81,56 @@ import de.escidoc.core.common.util.xml.XmlUtility;
  */
 public class Reindexer implements ReindexerInterface {
 
-    private static final String ITEM_FILTER_URL = "/ir/items/filter";
+    /**
+     * Triple store query to get a list of all containers.
+     */
+    private static final String CONTAINER_LIST_QUERY =
+        "/risearch?type=triples&lang=spo&format=N-Triples&query=*%20%3chttp://"
+            + "www.w3.org/1999/02/22-rdf-syntax-ns%23type%3e%20%3c"
+            + CONTAINER_OBJECT_TYPE + "%3e";
 
-    private static final String CONTAINER_FILTER_URL = "/ir/containers/filter";
+    /**
+     * Triple store query to get a list of all Content Models.
+     */
+    private static final String CONTENT_MODEL_LIST_QUERY =
+        "/risearch?type=triples&lang=spo&format=N-Triples&query=*%20%3chttp://"
+            + "www.w3.org/1999/02/22-rdf-syntax-ns%23type%3e%20%3c"
+            + CONTENT_MODEL_OBJECT_TYPE + "%3e";
 
-    private static final String ORG_UNIT_FILTER_URL =
-        "/oum/organizational-units/filter";
+    /**
+     * Triple store query to get a list of all content relations.
+     */
+    private static final String CONTENT_RELATION_LIST_QUERY =
+        "/risearch?type=triples&lang=spo&format=N-Triples&query=*%20%3chttp://"
+            + "www.w3.org/1999/02/22-rdf-syntax-ns%23type%3e%20%3c"
+            + CONTENT_RELATION2_OBJECT_TYPE + "%3e";
+
+    /**
+     * Triple store query to get a list of all contexts.
+     */
+    private static final String CONTEXT_LIST_QUERY =
+        "/risearch?type=triples&lang=spo&format=N-Triples&query=*%20%3chttp://"
+            + "www.w3.org/1999/02/22-rdf-syntax-ns%23type%3e%20%3c"
+            + CONTEXT_OBJECT_TYPE + "%3e";
+
+    /**
+     * Triple store query to get a list of all items.
+     */
+    private static final String ITEM_LIST_QUERY =
+        "/risearch?type=triples&lang=spo&format=N-Triples&query=*%20%3chttp://"
+            + "www.w3.org/1999/02/22-rdf-syntax-ns%23type%3e%20%3c"
+            + ITEM_OBJECT_TYPE + "%3e";
+
+    /**
+     * Triple store query to get a list of all organizational units.
+     */
+    private static final String OU_LIST_QUERY =
+        "/risearch?type=triples&lang=spo&format=N-Triples&query=*%20%3chttp://"
+            + "www.w3.org/1999/02/22-rdf-syntax-ns%23type%3e%20%3c"
+            + ORGANIZATIONAL_UNIT_OBJECT_TYPE + "%3e";
 
     private static final String INDEX_CONFIGURATION_URL =
-                        "/adm/admin/get-index-configuration";
-
-    private static final String ITEM_LIST_ELEMENT_NAME = "item-list";
-
-    private static final String ITEM_ELEMENT_NAME = "item";
-
-    private static final String CONTAINER_LIST_ELEMENT_NAME = "container-list";
-
-    private static final String CONTAINER_ELEMENT_NAME = "container";
-
-    private static final String ORG_UNIT_LIST_ELEMENT_NAME =
-        "organizational-unit-list";
-
-    private static final String ORG_UNIT_ELEMENT_NAME = "organizational-unit";
-
-    private static final String RELEASED_WITHDRAWN_ITEMS_FILTER =
-        "<param>"
-            + "<filter name=\"http://escidoc.de/core/01/properties/public-status\">"
-            + "released"
-            + "</filter>"
-            + "<filter name=\"http://escidoc.de/core/01/properties/public-status\">"
-            + "withdrawn" + "</filter>"
-            + "<limit>0</limit><offset>0</offset></param>";
-
-    private static final String RELEASED_WITHDRAWN_CONTAINERS_FILTER =
-        "<param>"
-            + "<filter name=\"http://escidoc.de/core/01/properties/public-status\">"
-            + "released"
-            + "</filter>"
-            + "<filter name=\"http://escidoc.de/core/01/properties/public-status\">"
-            + "withdrawn" + "</filter>"
-            + "<limit>0</limit><offset>0</offset></param>";
-
-    private static final String OPEN_CLOSED_ORG_UNITS_FILTER =
-        "<param>"
-            + "<filter name=\"http://escidoc.de/core/01/properties/public-status\">"
-            + "opened"
-            + "</filter>"
-            + "<filter name=\"http://escidoc.de/core/01/properties/public-status\">"
-            + "closed" + "</filter>"
-            + "<limit>0</limit><offset>0</offset></param>";
-
-    private static final int FILTER_LIMIT = 1000;
+        "/adm/admin/get-index-configuration";
 
     private static final String FEDORA_ACCESS_DEVIATION_HANDLER_TARGET_NAMESPACE =
         "http://localhost:8080/axis/services/access";
@@ -134,18 +143,9 @@ public class Reindexer implements ReindexerInterface {
     private static final String DATASTREAM_DISSEMINATION_METHOD_NAME =
         "getDatastreamDissemination";
 
-    private static final Pattern LIMIT_PATTERN =
-        Pattern.compile("(.*?<limit>).*?(<\\/limit>.*?)");
+    private HashMap<String, HashMap<String, HashMap<String, Object>>> indexConfiguration =
+        null;
 
-    private static Matcher LIMIT_MATCHER = LIMIT_PATTERN.matcher("");
-
-    private static final Pattern OFFSET_PATTERN =
-        Pattern.compile("(.*?<offset>).*?(<\\/offset>.*?)");
-
-    private static Matcher OFFSET_MATCHER = OFFSET_PATTERN.matcher("");
-
-    HashMap<String, HashMap<String, HashMap<String, Object>>> indexConfiguration = null;
-    
     private static AppLogger log = new AppLogger(Reindexer.class.getName());
 
     private EscidocCoreHandler escidocCoreHandler;
@@ -174,6 +174,8 @@ public class Reindexer implements ReindexerInterface {
      */
     private final String indexName;
 
+    private FedoraUtility fedoraUtility = null;
+
     /**
      * Construct a new Reindexer object.
      * 
@@ -200,8 +202,7 @@ public class Reindexer implements ReindexerInterface {
     public void clearIndex() throws ApplicationServerSystemException {
         if (clearIndex) {
             sendDeleteIndexMessage(Constants.ITEM_OBJECT_TYPE, indexName);
-            sendDeleteIndexMessage(Constants.CONTAINER_OBJECT_TYPE,
-                indexName);
+            sendDeleteIndexMessage(Constants.CONTAINER_OBJECT_TYPE, indexName);
             sendDeleteIndexMessage(Constants.ORGANIZATIONAL_UNIT_OBJECT_TYPE,
                 indexName);
         }
@@ -219,115 +220,60 @@ public class Reindexer implements ReindexerInterface {
 
     /**
      * 
-     * @return Vector item-hrefs
+     * @return Collection of container-hrefs
      * 
      * @throws SystemException
      *             e
-     * @admin
-     * @see de.escidoc.core.admin.business
-     *      .interfaces.ReindexerInterface#getPublicItems()
-     */
-    public Collection<String> getFilteredItems() throws SystemException {
-        return removeExistingIds(getFilteredObjects(
-            RELEASED_WITHDRAWN_ITEMS_FILTER, ITEM_FILTER_URL,
-            ITEM_LIST_ELEMENT_NAME, ITEM_ELEMENT_NAME),
-            Constants.ITEM_OBJECT_TYPE);
-    }
-
-    /**
-     * 
-     * @return Vector container-hrefs
-     * 
-     * @throws SystemException
-     *             e
-     * @admin
-     * @see de.escidoc.core.admin.business
-     *      .interfaces.ReindexerInterface#getPublicContainers()
      */
     public Collection<String> getFilteredContainers() throws SystemException {
-        return removeExistingIds(getFilteredObjects(
-            RELEASED_WITHDRAWN_CONTAINERS_FILTER, CONTAINER_FILTER_URL,
-            CONTAINER_LIST_ELEMENT_NAME, CONTAINER_ELEMENT_NAME),
+        return removeExistingIds(getHrefs(CONTAINER_LIST_QUERY),
             Constants.CONTAINER_OBJECT_TYPE);
     }
 
     /**
      * 
-     * @return Vector org-unit-hrefs
+     * @return Collection of item-hrefs
      * 
      * @throws SystemException
      *             e
-     * @admin
-     * @see de.escidoc.core.admin.business
-     *      .interfaces.ReindexerInterface#getPublicOrganizationalUnits()
+     */
+    public Collection<String> getFilteredItems() throws SystemException {
+        return removeExistingIds(getHrefs(ITEM_LIST_QUERY),
+            Constants.ITEM_OBJECT_TYPE);
+    }
+
+    /**
+     * 
+     * @return Collection of org-unit-hrefs
+     * 
+     * @throws SystemException
+     *             e
      */
     public Collection<String> getFilteredOrganizationalUnits()
         throws SystemException {
-        return removeExistingIds(getFilteredObjects(
-            OPEN_CLOSED_ORG_UNITS_FILTER, ORG_UNIT_FILTER_URL,
-            ORG_UNIT_LIST_ELEMENT_NAME, ORG_UNIT_ELEMENT_NAME),
+        return removeExistingIds(getHrefs(OU_LIST_QUERY),
             Constants.ORGANIZATIONAL_UNIT_OBJECT_TYPE);
     }
 
     /**
-     * Retrieves filtered list of objects (item, container, org-unit), extracts
-     * the hrefs to the objects in the list and returns Vector of hrefs.
+     * Extract the subject from the given triple.
      * 
-     * @param filter
-     *            filterXml
-     * @param filterUrl
-     *            url for filtered list
-     * @param listElementName
-     *            root-element name of the list
-     * @param elementName
-     *            filterXml element name of one list-entry
+     * @param triple
+     *            the triple from which the subject has to be extracted
      * 
-     * @return Vector object-hrefs
-     * 
-     * @throws ApplicationServerSystemException
-     *             e
-     * @admin
+     * @return the subject of the given triple
      */
-    private Vector<String> getFilteredObjects(
-        final String filter, final String filterUrl,
-        final String listElementName, final String elementName)
-        throws ApplicationServerSystemException {
-        Vector<String> hrefs = new Vector<String>();
-        int totalSize = Integer.MAX_VALUE;
-        try {
-            String objectFilter = filter;
-            LIMIT_MATCHER.reset(objectFilter);
-            objectFilter =
-                LIMIT_MATCHER.replaceFirst("$1" + FILTER_LIMIT + "$2");
-            for (int i = 0; i < totalSize; i += FILTER_LIMIT) {
-                OFFSET_MATCHER.reset(objectFilter);
-                objectFilter = OFFSET_MATCHER.replaceAll("$1" + i + "$2");
-                String result =
-                    escidocCoreHandler.postRequestEscidoc(filterUrl,
-                        objectFilter);
+    private String getSubject(final String triple) {
+        String result = null;
 
-                StaxParser sp = new StaxParser();
-                ListHrefHandler handler =
-                    new ListHrefHandler(sp, listElementName, elementName);
-                sp.addHandler(handler);
+        if (triple != null) {
+            int index = triple.indexOf(' ');
 
-                sp.parse(new ByteArrayInputStream(result
-                    .getBytes(XmlUtility.CHARACTER_ENCODING)));
-                hrefs.addAll(handler.getHrefs());
-                if (totalSize == Integer.MAX_VALUE) {
-                    if (handler.getNumberOfRecords() == -1) {
-                        throw new Exception(
-                            "Attribute numberOfRecords not found");
-                    }
-                    totalSize = handler.getNumberOfRecords();
-                }
+            if (index > 0) {
+                result = triple.substring(triple.indexOf('/') + 1, index - 1);
             }
-            return hrefs;
         }
-        catch (Exception e) {
-            log.error(e);
-            throw new ApplicationServerSystemException(e);
-        }
+        return result;
     }
 
     /**
@@ -553,8 +499,7 @@ public class Reindexer implements ReindexerInterface {
             message.setStringProperty(
                 Constants.INDEXER_QUEUE_OBJECT_TYPE_PARAMETER, objectType);
             message.setStringProperty(
-                Constants.INDEXER_QUEUE_PARAMETER_INDEX_NAME,
-                indexName);
+                Constants.INDEXER_QUEUE_PARAMETER_INDEX_NAME, indexName);
             messageProducer.send(message);
         }
         catch (Exception e) {
@@ -592,8 +537,7 @@ public class Reindexer implements ReindexerInterface {
             message.setStringProperty(
                 Constants.INDEXER_QUEUE_OBJECT_TYPE_PARAMETER, objectType);
             message.setStringProperty(
-                Constants.INDEXER_QUEUE_PARAMETER_INDEX_NAME,
-                indexName);
+                Constants.INDEXER_QUEUE_PARAMETER_INDEX_NAME, indexName);
             messageProducer.send(message);
         }
         catch (Exception e) {
@@ -603,11 +547,57 @@ public class Reindexer implements ReindexerInterface {
     }
 
     /**
+     * Get a list of all available resources from Fedora.
+     * 
+     * @param listQuery
+     *            Fedora query to get a list of all resources of the given type
+     * 
+     * @return list of resource hrefs
+     * @throws SystemException
+     *             Thrown if eSciDoc failed to receive a resource.
+     */
+    private Collection<String> getHrefs(final String listQuery)
+        throws SystemException {
+        Collection<String> result = new LinkedList<String>();
+
+        BufferedReader input = null;
+
+        try {
+            input =
+                new BufferedReader(new InputStreamReader(
+                    fedoraUtility.query(listQuery)));
+
+            String line;
+
+            while ((line = input.readLine()) != null) {
+                final String subject = getSubject(line);
+
+                if (subject != null) {
+                    result.add(subject);
+                }
+            }
+        }
+        catch (IOException e) {
+            throw new SystemException(e);
+        }
+        finally {
+            if (input != null) {
+                try {
+                    input.close();
+                }
+                catch (IOException e) {
+                    throw new SystemException(e);
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
      * @return the indexConfiguration
      */
-    public HashMap<String, HashMap<String, HashMap<String, Object>>> 
-                                                getIndexConfiguration() 
-                                    throws ApplicationServerSystemException {
+    public HashMap<String, HashMap<String, HashMap<String, Object>>> getIndexConfiguration()
+        throws ApplicationServerSystemException {
         if (indexConfiguration == null) {
             String indexConfigurationXml =
                 escidocCoreHandler.getRequestEscidoc(INDEX_CONFIGURATION_URL);
@@ -617,8 +607,9 @@ public class Reindexer implements ReindexerInterface {
             sp.addHandler(handler);
             try {
                 sp.parse(new ByteArrayInputStream(indexConfigurationXml
-                        .getBytes(XmlUtility.CHARACTER_ENCODING)));
-            } catch (Exception e) {
+                    .getBytes(XmlUtility.CHARACTER_ENCODING)));
+            }
+            catch (Exception e) {
                 throw new ApplicationServerSystemException(e);
             }
             indexConfiguration = handler.getIndexConfiguration();
@@ -688,6 +679,14 @@ public class Reindexer implements ReindexerInterface {
     public void setEscidocCoreHandler(
         final EscidocCoreHandler escidocCoreHandler) {
         this.escidocCoreHandler = escidocCoreHandler;
+    }
+
+    /**
+     * @param fedoraUtility
+     *            the FedoraUtility to set
+     */
+    public void setFedoraUtility(final FedoraUtility fedoraUtility) {
+        this.fedoraUtility = fedoraUtility;
     }
 
     /**
