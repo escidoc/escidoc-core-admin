@@ -27,9 +27,6 @@
  * All rights reserved.  Use is subject to license terms.
  */package de.escidoc.core.admin.business.interfaces;
 
-import java.util.Collection;
-
-import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException;
 import de.escidoc.core.common.exceptions.system.SystemException;
 
 public interface ReindexerInterface {
@@ -44,98 +41,66 @@ public interface ReindexerInterface {
 
     /**
      * Close Connection to SB-Indexing-Queue.
-     * 
-     * @admin
      */
     void close();
 
     /**
-     * Get all publicly available Items from OM and put hrefs into Vector.
+     * Index all Containers.
      * 
-     * @return Vector item-hrefs
-     * 
-     * @throws SystemException
-     *             Thrown if an internal error occurred.
-     * @admin
-     */
-    Collection<String> getFilteredItems() throws SystemException;
-
-    /**
-     * Get all publicly available Containers from OM and put hrefs into Vector.
-     * 
-     * @return Vector container-hrefs
+     * @return number of Containers
      * 
      * @throws SystemException
      *             Thrown if an internal error occurred.
-     * @admin
      */
-    Collection<String> getFilteredContainers()
-        throws SystemException;
+    int indexContainers() throws SystemException;
 
     /**
-     * Get all publicly available Organizational Units from OUM and put hrefs
-     * into Vector.
+     * Index all Content Models.
      * 
-     * @return Vector org-unit-hrefs
+     * @return number of Content Models
      * 
      * @throws SystemException
      *             Thrown if an internal error occurred.
-     * @admin
      */
-    Collection<String> getFilteredOrganizationalUnits()
-        throws SystemException;
+    int indexContentModels() throws SystemException;
 
     /**
-     * retrieve resource.
+     * Index all Content Relations.
      * 
-     * @param resource
-     *            String resourceIdentifier
-     * @return String resource as xml.
+     * @return number of Content Relations
      * 
-     * @throws ApplicationServerSystemException
-     *             e
-     * @admin
+     * @throws SystemException
+     *             Thrown if an internal error occurred.
      */
-    String retrieveResource(final String resource)
-        throws ApplicationServerSystemException;
+    int indexContentRelations() throws SystemException;
 
     /**
-     * get object from FedoraManagementDeviationHandler.
+     * Index all Contexts.
      * 
-     * @param resource
-     *            String resourceIdentifier
-     * @return Object resource as xml.
+     * @return number of Contexts
      * 
-     * @throws ApplicationServerSystemException
-     *             e
-     * @admin
+     * @throws SystemException
+     *             Thrown if an internal error occurred.
      */
-    Object fedoraExport(final String resource)
-        throws ApplicationServerSystemException;
+    int indexContexts() throws SystemException;
 
     /**
-     * get fulltext from FedoraAccessDeviationHandler.
+     * Index all Items.
      * 
-     * @param resource
-     *            String resourceIdentifier
-     * @return Object resource as Object.
+     * @return number of Items
      * 
-     * @throws ApplicationServerSystemException
-     *             e
-     * @admin
+     * @throws SystemException
+     *             Thrown if an internal error occurred.
      */
-    Object fedoraGetDatastreamDissemination(final String resource)
-        throws ApplicationServerSystemException;
+    int indexItems() throws SystemException;
 
     /**
-     * @param resource
-     *            String resource.
-     * @param objectType
-     *            type of the resource.
+     * Index all Organizational Units.
      * 
-     * @throws ApplicationServerSystemException
-     *             e
+     * @return number of Organizational Units
+     * 
+     * @throws SystemException
+     *             Thrown if an internal error occurred.
      */
-    void sendUpdateIndexMessage(final String resource, final String objectType)
-        throws ApplicationServerSystemException;
+    int indexOrganizationalUnits() throws SystemException;
 }

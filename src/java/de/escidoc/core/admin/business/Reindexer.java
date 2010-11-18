@@ -28,13 +28,6 @@
  */
 package de.escidoc.core.admin.business;
 
-import static de.escidoc.core.common.business.Constants.CONTAINER_OBJECT_TYPE;
-import static de.escidoc.core.common.business.Constants.CONTENT_MODEL_OBJECT_TYPE;
-import static de.escidoc.core.common.business.Constants.CONTENT_RELATION2_OBJECT_TYPE;
-import static de.escidoc.core.common.business.Constants.CONTEXT_OBJECT_TYPE;
-import static de.escidoc.core.common.business.Constants.ITEM_OBJECT_TYPE;
-import static de.escidoc.core.common.business.Constants.ORGANIZATIONAL_UNIT_OBJECT_TYPE;
-
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -64,6 +57,7 @@ import de.escidoc.core.admin.business.interfaces.ReindexerInterface;
 import de.escidoc.core.admin.common.util.EscidocCoreHandler;
 import de.escidoc.core.common.business.Constants;
 import de.escidoc.core.common.business.fedora.FedoraUtility;
+import de.escidoc.core.common.business.fedora.resources.ResourceType;
 import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException;
 import de.escidoc.core.common.exceptions.system.SystemException;
 import de.escidoc.core.common.util.configuration.EscidocConfiguration;
@@ -76,8 +70,6 @@ import de.escidoc.core.common.util.xml.XmlUtility;
  * Provides Methods used for Reindexing.
  * 
  * @spring.bean id="de.escidoc.core.admin.Reindexer"
- * 
- * @admin
  */
 public class Reindexer implements ReindexerInterface {
 
@@ -87,7 +79,7 @@ public class Reindexer implements ReindexerInterface {
     private static final String CONTAINER_LIST_QUERY =
         "/risearch?type=triples&lang=spo&format=N-Triples&query=*%20%3chttp://"
             + "www.w3.org/1999/02/22-rdf-syntax-ns%23type%3e%20%3c"
-            + CONTAINER_OBJECT_TYPE + "%3e";
+            + ResourceType.CONTAINER.getUri() + "%3e";
 
     /**
      * Triple store query to get a list of all Content Models.
@@ -95,7 +87,7 @@ public class Reindexer implements ReindexerInterface {
     private static final String CONTENT_MODEL_LIST_QUERY =
         "/risearch?type=triples&lang=spo&format=N-Triples&query=*%20%3chttp://"
             + "www.w3.org/1999/02/22-rdf-syntax-ns%23type%3e%20%3c"
-            + CONTENT_MODEL_OBJECT_TYPE + "%3e";
+            + ResourceType.CONTENT_MODEL.getUri() + "%3e";
 
     /**
      * Triple store query to get a list of all content relations.
@@ -103,7 +95,7 @@ public class Reindexer implements ReindexerInterface {
     private static final String CONTENT_RELATION_LIST_QUERY =
         "/risearch?type=triples&lang=spo&format=N-Triples&query=*%20%3chttp://"
             + "www.w3.org/1999/02/22-rdf-syntax-ns%23type%3e%20%3c"
-            + CONTENT_RELATION2_OBJECT_TYPE + "%3e";
+            + ResourceType.CONTENT_RELATION.getUri() + "%3e";
 
     /**
      * Triple store query to get a list of all contexts.
@@ -111,7 +103,7 @@ public class Reindexer implements ReindexerInterface {
     private static final String CONTEXT_LIST_QUERY =
         "/risearch?type=triples&lang=spo&format=N-Triples&query=*%20%3chttp://"
             + "www.w3.org/1999/02/22-rdf-syntax-ns%23type%3e%20%3c"
-            + CONTEXT_OBJECT_TYPE + "%3e";
+            + ResourceType.CONTEXT.getUri() + "%3e";
 
     /**
      * Triple store query to get a list of all items.
@@ -119,7 +111,7 @@ public class Reindexer implements ReindexerInterface {
     private static final String ITEM_LIST_QUERY =
         "/risearch?type=triples&lang=spo&format=N-Triples&query=*%20%3chttp://"
             + "www.w3.org/1999/02/22-rdf-syntax-ns%23type%3e%20%3c"
-            + ITEM_OBJECT_TYPE + "%3e";
+            + ResourceType.ITEM.getUri() + "%3e";
 
     /**
      * Triple store query to get a list of all organizational units.
@@ -127,21 +119,10 @@ public class Reindexer implements ReindexerInterface {
     private static final String OU_LIST_QUERY =
         "/risearch?type=triples&lang=spo&format=N-Triples&query=*%20%3chttp://"
             + "www.w3.org/1999/02/22-rdf-syntax-ns%23type%3e%20%3c"
-            + ORGANIZATIONAL_UNIT_OBJECT_TYPE + "%3e";
+            + ResourceType.OU.getUri() + "%3e";
 
     private static final String INDEX_CONFIGURATION_URL =
         "/adm/admin/get-index-configuration";
-
-    private static final String FEDORA_ACCESS_DEVIATION_HANDLER_TARGET_NAMESPACE =
-        "http://localhost:8080/axis/services/access";
-
-    private static final String FEDORA_MANAGEMENT_DEVIATION_HANDLER_TARGET_NAMESPACE =
-        "http://localhost:8080/axis/services/management";
-
-    private static final String EXPORT_METHOD_NAME = "export";
-
-    private static final String DATASTREAM_DISSEMINATION_METHOD_NAME =
-        "getDatastreamDissemination";
 
     private HashMap<String, HashMap<String, HashMap<String, Object>>> indexConfiguration =
         null;
@@ -211,7 +192,6 @@ public class Reindexer implements ReindexerInterface {
     /**
      * Close Connection to SB-Indexing-Queue.
      * 
-     * @admin
      * @see de.escidoc.core.admin.business.interfaces.ReindexerInterface#close()
      */
     public void close() {
@@ -225,9 +205,47 @@ public class Reindexer implements ReindexerInterface {
      * @throws SystemException
      *             e
      */
-    public Collection<String> getFilteredContainers() throws SystemException {
+    private Collection<String> getFilteredContainers() throws SystemException {
         return removeExistingIds(getHrefs(CONTAINER_LIST_QUERY),
-            Constants.CONTAINER_OBJECT_TYPE);
+            ResourceType.CONTAINER);
+    }
+
+    /**
+     * 
+     * @return Collection of content-model-hrefs
+     * 
+     * @throws SystemException
+     *             e
+     */
+    private Collection<String> getFilteredContentModels()
+        throws SystemException {
+        return removeExistingIds(getHrefs(CONTENT_MODEL_LIST_QUERY),
+            ResourceType.CONTENT_MODEL);
+    }
+
+    /**
+     * 
+     * @return Collection of content-relation-hrefs
+     * 
+     * @throws SystemException
+     *             e
+     */
+    private Collection<String> getFilteredContentRelations()
+        throws SystemException {
+        return removeExistingIds(getHrefs(CONTENT_RELATION_LIST_QUERY),
+            ResourceType.CONTENT_RELATION);
+    }
+
+    /**
+     * 
+     * @return Collection of context-hrefs
+     * 
+     * @throws SystemException
+     *             e
+     */
+    private Collection<String> getFilteredContexts() throws SystemException {
+        return removeExistingIds(getHrefs(CONTEXT_LIST_QUERY),
+            ResourceType.CONTEXT);
     }
 
     /**
@@ -237,9 +255,8 @@ public class Reindexer implements ReindexerInterface {
      * @throws SystemException
      *             e
      */
-    public Collection<String> getFilteredItems() throws SystemException {
-        return removeExistingIds(getHrefs(ITEM_LIST_QUERY),
-            Constants.ITEM_OBJECT_TYPE);
+    private Collection<String> getFilteredItems() throws SystemException {
+        return removeExistingIds(getHrefs(ITEM_LIST_QUERY), ResourceType.ITEM);
     }
 
     /**
@@ -249,10 +266,9 @@ public class Reindexer implements ReindexerInterface {
      * @throws SystemException
      *             e
      */
-    public Collection<String> getFilteredOrganizationalUnits()
+    private Collection<String> getFilteredOrganizationalUnits()
         throws SystemException {
-        return removeExistingIds(getHrefs(OU_LIST_QUERY),
-            Constants.ORGANIZATIONAL_UNIT_OBJECT_TYPE);
+        return removeExistingIds(getHrefs(OU_LIST_QUERY), ResourceType.OU);
     }
 
     /**
@@ -277,20 +293,122 @@ public class Reindexer implements ReindexerInterface {
     }
 
     /**
+     * Index all Containers.
+     * 
+     * @return number of Containers
+     * 
+     * @throws SystemException
+     *             Thrown if an internal error occurred.
+     */
+    public int indexContainers() throws SystemException {
+        Collection<String> hrefs = getFilteredContainers();
+
+        for (String href : hrefs) {
+            sendUpdateIndexMessage(href, ResourceType.CONTAINER);
+        }
+        return hrefs.size();
+    }
+
+    /**
+     * Index all Content Models.
+     * 
+     * @return number of Content Models
+     * 
+     * @throws SystemException
+     *             Thrown if an internal error occurred.
+     */
+    public int indexContentModels() throws SystemException {
+        Collection<String> hrefs = getFilteredContentModels();
+
+        for (String href : hrefs) {
+            sendUpdateIndexMessage(href, ResourceType.CONTENT_MODEL);
+        }
+        return hrefs.size();
+    }
+
+    /**
+     * Index all Content Relations.
+     * 
+     * @return number of Content Relations
+     * 
+     * @throws SystemException
+     *             Thrown if an internal error occurred.
+     */
+    public int indexContentRelations() throws SystemException {
+        Collection<String> hrefs = getFilteredContentRelations();
+
+        for (String href : hrefs) {
+            sendUpdateIndexMessage(href, ResourceType.CONTENT_RELATION);
+        }
+        return hrefs.size();
+    }
+
+    /**
+     * Index all Contexts.
+     * 
+     * @return number of Contexts
+     * 
+     * @throws SystemException
+     *             Thrown if an internal error occurred.
+     */
+    public int indexContexts() throws SystemException {
+        Collection<String> hrefs = getFilteredContexts();
+
+        for (String href : hrefs) {
+            sendUpdateIndexMessage(href, ResourceType.CONTEXT);
+        }
+        return hrefs.size();
+    }
+
+    /**
+     * Index all Items.
+     * 
+     * @return number of Items
+     * 
+     * @throws SystemException
+     *             Thrown if an internal error occurred.
+     */
+    public int indexItems() throws SystemException {
+        Collection<String> hrefs = getFilteredItems();
+
+        for (String href : hrefs) {
+            sendUpdateIndexMessage(href, ResourceType.ITEM);
+        }
+        return hrefs.size();
+    }
+
+    /**
+     * Index all Organizational Units.
+     * 
+     * @return number of Organizational Units
+     * 
+     * @throws SystemException
+     *             Thrown if an internal error occurred.
+     */
+    public int indexOrganizationalUnits() throws SystemException {
+        Collection<String> hrefs = getFilteredOrganizationalUnits();
+
+        for (String href : hrefs) {
+            sendUpdateIndexMessage(href, ResourceType.OU);
+        }
+        return hrefs.size();
+    }
+
+    /**
      * Remove all ids from the given list which already exist in the given
      * index.
      * 
      * @param ids
      *            list of resource ids
-     * @param objectType
-     *            String name of the resource (eg Item, Container...).
+     * @param type
+     *            resource type
      * 
      * @return filtered list of resource ids
      * @throws SystemException
      *             Thrown if a framework internal error occurs.
      */
     private Collection<String> removeExistingIds(
-        final Collection<String> ids, final String objectType)
+        final Collection<String> ids, final ResourceType type)
         throws SystemException {
         Collection<String> result = null;
 
@@ -300,35 +418,13 @@ public class Reindexer implements ReindexerInterface {
         else {
             result = new Vector<String>();
             for (String id : ids) {
-                if (!exists(id.substring(id.lastIndexOf('/') + 1), objectType,
-                    indexName)) {
+                if (!exists(id.substring(id.lastIndexOf('/') + 1),
+                    type.getUri(), indexName)) {
                     result.add(id);
                 }
             }
         }
         return result;
-    }
-
-    /**
-     * @param resource
-     *            resource
-     * @return String resourceXml
-     * @throws ApplicationServerSystemException
-     *             e
-     * @admin
-     * @see de.escidoc.core.admin.business
-     *      .interfaces.ReindexerInterface#retrieveResource(String resource)
-     */
-    public String retrieveResource(final String resource)
-        throws ApplicationServerSystemException {
-        try {
-            String result = escidocCoreHandler.getRequestEscidoc(resource);
-            return result;
-        }
-        catch (Exception e) {
-            log.error(e);
-            throw new ApplicationServerSystemException(e);
-        }
     }
 
     /**
@@ -418,65 +514,6 @@ public class Reindexer implements ReindexerInterface {
     }
 
     /**
-     * @param resource
-     *            resource
-     * @return Object fedoraObject
-     * @throws ApplicationServerSystemException
-     *             e
-     * @admin
-     * @see de.escidoc.core.admin.business
-     *      .interfaces.ReindexerInterface#fedoraExport(final String resource)
-     */
-    public Object fedoraExport(final String resource)
-        throws ApplicationServerSystemException {
-        try {
-            Object[] arguments = new Object[3];
-            arguments[0] = resource;
-            arguments[1] = "";
-            arguments[2] = "public";
-            Object result =
-                escidocCoreHandler.soapRequestEscidoc(
-                    FEDORA_MANAGEMENT_DEVIATION_HANDLER_TARGET_NAMESPACE,
-                    EXPORT_METHOD_NAME, arguments);
-            return result;
-        }
-        catch (Exception e) {
-            log.error(e);
-            throw new ApplicationServerSystemException(e);
-        }
-    }
-
-    /**
-     * @param resource
-     *            resource
-     * @return Object fedoraObject
-     * @throws ApplicationServerSystemException
-     *             e
-     * @admin
-     * @see de.escidoc.core.admin.business
-     *      .interfaces.ReindexerInterface#fedoraGetDatastreamDissemination(
-     *      final String resource)
-     */
-    public Object fedoraGetDatastreamDissemination(final String resource)
-        throws ApplicationServerSystemException {
-        try {
-            Object[] arguments = new Object[3];
-            arguments[0] = "";
-            arguments[1] = resource;
-            arguments[2] = "";
-            Object result =
-                escidocCoreHandler.soapRequestEscidoc(
-                    FEDORA_ACCESS_DEVIATION_HANDLER_TARGET_NAMESPACE,
-                    DATASTREAM_DISSEMINATION_METHOD_NAME, arguments);
-            return result;
-        }
-        catch (Exception e) {
-            log.error(e);
-            throw new ApplicationServerSystemException(e);
-        }
-    }
-
-    /**
      * @param objectType
      *            type of the resource.
      * @param indexName
@@ -511,17 +548,16 @@ public class Reindexer implements ReindexerInterface {
     /**
      * @param resource
      *            String resource.
-     * @param objectType
+     * @param type
      *            type of the resource.
      * 
      * @throws ApplicationServerSystemException
      *             e
-     * @admin
      * @see de.escidoc.core.admin.business
      *      .interfaces.ReindexerInterface#sendUpdateIndexMessage(String)
      */
-    public void sendUpdateIndexMessage(
-        final String resource, final String objectType)
+    private void sendUpdateIndexMessage(
+        final String resource, final ResourceType type)
         throws ApplicationServerSystemException {
         try {
             if (queueConnection == null) {
@@ -535,7 +571,7 @@ public class Reindexer implements ReindexerInterface {
             message.setStringProperty(
                 Constants.INDEXER_QUEUE_RESOURCE_PARAMETER, resource);
             message.setStringProperty(
-                Constants.INDEXER_QUEUE_OBJECT_TYPE_PARAMETER, objectType);
+                Constants.INDEXER_QUEUE_OBJECT_TYPE_PARAMETER, type.getUri());
             message.setStringProperty(
                 Constants.INDEXER_QUEUE_PARAMETER_INDEX_NAME, indexName);
             messageProducer.send(message);
@@ -622,7 +658,6 @@ public class Reindexer implements ReindexerInterface {
      *             e create connection to SB-indexing-indexerMessageQueue.
      * 
      *             e
-     * @admin
      */
     private void createQueueConnection() throws Exception {
         this.queueConnection =
@@ -639,8 +674,6 @@ public class Reindexer implements ReindexerInterface {
      * close connection to SB-indexing-indexerMessageQueue.
      * 
      * e
-     * 
-     * @admin
      */
     private void disposeQueueConnection() {
         if (messageProducer != null) {

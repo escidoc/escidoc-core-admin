@@ -35,7 +35,6 @@ import static de.escidoc.core.admin.common.util.spring.SpringConstants.ID_REINDE
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
@@ -50,7 +49,6 @@ import de.escidoc.core.admin.business.FoxmlMigrationTool;
 import de.escidoc.core.admin.business.interfaces.DataBaseMigrationInterface;
 import de.escidoc.core.admin.business.interfaces.ReindexerInterface;
 import de.escidoc.core.admin.business.interfaces.SmMigrationInterface;
-import de.escidoc.core.common.business.Constants;
 import de.escidoc.core.common.exceptions.system.IntegritySystemException;
 import de.escidoc.core.common.exceptions.system.SystemException;
 import de.escidoc.core.common.util.logger.AppLogger;
@@ -66,8 +64,8 @@ public class AdminMain {
     private final BeanFactoryLocator beanFactoryLocator =
         SingletonBeanFactoryLocator.getInstance(BEAN_REF_FACTORY);
 
-    private final BeanFactory beanFactory =
-        beanFactoryLocator.useBeanFactory(ID_APPLICATION_CONTEXT).getFactory();
+    private final BeanFactory beanFactory = beanFactoryLocator.useBeanFactory(
+        ID_APPLICATION_CONTEXT).getFactory();
 
     private static final int REINDEXER_WAIT_TIME = 1000;
 
@@ -209,7 +207,7 @@ public class AdminMain {
         SmMigrationInterface dbm =
             (SmMigrationInterface) beanFactory
                 .getBean("de.escidoc.core.admin.SmMigrationTool");
-        try { 
+        try {
             dbm.migrate();
             log.info("Migration successfully completed.\n");
         }
@@ -279,58 +277,21 @@ public class AdminMain {
             (ReindexerInterface) beanFactory.getBean(ID_REINDEXER);
 
         try {
-            // Get all released Items
-            Collection<String> itemHrefs = reindexer.getFilteredItems();
-            // Get all released Containers
-            Collection<String> containerHrefs =
-                reindexer.getFilteredContainers();
-            // Get all public viewable organizational-units
-            Collection<String> orgUnitHrefs =
-                reindexer.getFilteredOrganizationalUnits();
-
             // Delete index
             reindexer.clearIndex();
 
-            log
-                .info("scheduling " + itemHrefs.size()
-                    + " items for reindexing");
-            log.info("scheduling " + containerHrefs.size()
+            log.info("scheduled " + reindexer.indexContainers()
                 + " containers for reindexing");
-            log.info("scheduling " + orgUnitHrefs.size()
+            log.info("scheduled " + reindexer.indexContentModels()
+                + " content models for reindexing");
+            log.info("scheduled " + reindexer.indexContentRelations()
+                + " content relations for reindexing");
+            log.info("scheduled " + reindexer.indexContexts()
+                + " contexts for reindexing");
+            log.info("scheduled " + reindexer.indexItems()
+                + " items for reindexing");
+            log.info("scheduled " + reindexer.indexOrganizationalUnits()
                 + " organizational-units for reindexing");
-
-            // Reindex released items
-            for (String itemHref : itemHrefs) {
-                reindexer.sendUpdateIndexMessage(itemHref,
-                    Constants.ITEM_OBJECT_TYPE);
-                try {
-                    Thread.sleep(REINDEXER_WAIT_TIME);
-                }
-                catch (InterruptedException e) {
-                }
-            }
-
-            // reindex released containers
-            for (String containerHref : containerHrefs) {
-                reindexer.sendUpdateIndexMessage(containerHref,
-                    Constants.CONTAINER_OBJECT_TYPE);
-                try {
-                    Thread.sleep(REINDEXER_WAIT_TIME);
-                }
-                catch (InterruptedException e) {
-                }
-            }
-
-            // reindex public viewable organizational-units
-            for (String orgUnitHref : orgUnitHrefs) {
-                reindexer.sendUpdateIndexMessage(orgUnitHref,
-                    Constants.ORGANIZATIONAL_UNIT_OBJECT_TYPE);
-                try {
-                    Thread.sleep(REINDEXER_WAIT_TIME);
-                }
-                catch (InterruptedException e) {
-                }
-            }
         }
         finally {
             if (reindexer != null) {
