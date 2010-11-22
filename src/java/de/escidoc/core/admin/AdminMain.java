@@ -276,27 +276,20 @@ public class AdminMain {
         ReindexerInterface reindexer =
             (ReindexerInterface) beanFactory.getBean(ID_REINDEXER);
 
-        try {
-            // Delete index
-            reindexer.clearIndex();
+        // Delete index
+        reindexer.clearIndex();
 
-            log.info("scheduled " + reindexer.indexContainers()
-                + " containers for reindexing");
-            log.info("scheduled " + reindexer.indexContentModels()
-                + " content models for reindexing");
-            log.info("scheduled " + reindexer.indexContentRelations()
-                + " content relations for reindexing");
-            log.info("scheduled " + reindexer.indexContexts()
-                + " contexts for reindexing");
-            log.info("scheduled " + reindexer.indexItems()
-                + " items for reindexing");
-            log.info("scheduled " + reindexer.indexOrganizationalUnits()
-                + " organizational-units for reindexing");
-        }
-        finally {
-            if (reindexer != null) {
-                reindexer.close();
-            }
-        }
+        log.info("scheduled " + reindexer.indexContainers()
+            + " containers for reindexing");
+        log.info("scheduled " + reindexer.indexContentModels()
+            + " content models for reindexing");
+        log.info("scheduled " + reindexer.indexContentRelations()
+            + " content relations for reindexing");
+        log.info("scheduled " + reindexer.indexContexts()
+            + " contexts for reindexing");
+        log.info("scheduled " + reindexer.indexItems()
+            + " items for reindexing");
+        log.info("scheduled " + reindexer.indexOrganizationalUnits()
+            + " organizational-units for reindexing");
     }
 }

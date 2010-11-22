@@ -40,14 +40,6 @@ import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.jms.MessageProducer;
-import javax.jms.ObjectMessage;
-import javax.jms.Queue;
-import javax.jms.QueueConnection;
-import javax.jms.QueueConnectionFactory;
-import javax.jms.QueueSession;
-import javax.jms.Session;
-
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpConnectionManager;
 import org.apache.commons.httpclient.methods.GetMethod;
@@ -65,6 +57,9 @@ import de.escidoc.core.common.util.logger.AppLogger;
 import de.escidoc.core.common.util.stax.StaxParser;
 import de.escidoc.core.common.util.stax.handler.IndexConfigurationStaxHandler;
 import de.escidoc.core.common.util.xml.XmlUtility;
+import de.escidoc.core.index.IndexRequest;
+import de.escidoc.core.index.IndexRequestBuilder;
+import de.escidoc.core.index.IndexService;
 
 /**
  * Provides Methods used for Reindexing.
@@ -127,23 +122,12 @@ public class Reindexer implements ReindexerInterface {
     private HashMap<String, HashMap<String, HashMap<String, Object>>> indexConfiguration =
         null;
 
-    private static AppLogger log = new AppLogger(Reindexer.class.getName());
+    private static final AppLogger LOG = new AppLogger(
+        Reindexer.class.getName());
 
     private EscidocCoreHandler escidocCoreHandler;
 
-    private QueueConnectionFactory queueConnectionFactory;
-
-    private QueueConnection queueConnection = null;
-
-    private QueueSession queueSession;
-
-    private Queue indexerMessageQueue;
-
-    private MessageProducer messageProducer;
-
-    private String queueUser;
-
-    private String queuePassword;
+    private IndexService indexService = null;
 
     /**
      * Property "clearIndex" from configuration file.
@@ -182,20 +166,13 @@ public class Reindexer implements ReindexerInterface {
      */
     public void clearIndex() throws ApplicationServerSystemException {
         if (clearIndex) {
-            sendDeleteIndexMessage(Constants.ITEM_OBJECT_TYPE, indexName);
-            sendDeleteIndexMessage(Constants.CONTAINER_OBJECT_TYPE, indexName);
-            sendDeleteIndexMessage(Constants.ORGANIZATIONAL_UNIT_OBJECT_TYPE,
-                indexName);
+            sendDeleteIndexMessage(ResourceType.CONTAINER, indexName);
+            sendDeleteIndexMessage(ResourceType.CONTENT_MODEL, indexName);
+            sendDeleteIndexMessage(ResourceType.CONTENT_RELATION, indexName);
+            sendDeleteIndexMessage(ResourceType.CONTEXT, indexName);
+            sendDeleteIndexMessage(ResourceType.ITEM, indexName);
+            sendDeleteIndexMessage(ResourceType.OU, indexName);
         }
-    }
-
-    /**
-     * Close Connection to SB-Indexing-Queue.
-     * 
-     * @see de.escidoc.core.admin.business.interfaces.ReindexerInterface#close()
-     */
-    public void close() {
-        disposeQueueConnection();
     }
 
     /**
@@ -514,6 +491,36 @@ public class Reindexer implements ReindexerInterface {
     }
 
     /**
+     * @param resource
+     *            String resource.
+     * @param objectType
+     *            type of the resource.
+     * @param indexName
+     *            name of the index (may be null for "all indexes")
+     * 
+     * @throws ApplicationServerSystemException
+     *             e
+     */
+    private void sendUpdateIndexMessage(
+        final String resource, final ResourceType objectType,
+        final String indexName) throws ApplicationServerSystemException {
+        try {
+            IndexRequest indexRequest =
+                IndexRequestBuilder
+                    .createIndexRequest()
+                    .withAction(
+                        Constants.INDEXER_QUEUE_ACTION_PARAMETER_UPDATE_VALUE)
+                    .withIndexName(indexName).withResource(resource)
+                    .withObjectType(objectType.getUri()).build();
+            this.indexService.index(indexRequest);
+        }
+        catch (Exception e) {
+            LOG.error(e);
+            throw new ApplicationServerSystemException(e);
+        }
+    }
+
+    /**
      * @param objectType
      *            type of the resource.
      * @param indexName
@@ -523,24 +530,18 @@ public class Reindexer implements ReindexerInterface {
      *             e
      */
     private void sendDeleteIndexMessage(
-        final String objectType, final String indexName)
+        final ResourceType objectType, final String indexName)
         throws ApplicationServerSystemException {
         try {
-            if (queueConnection == null) {
-                createQueueConnection();
-            }
-            // Delete Indexes
-            ObjectMessage message = queueSession.createObjectMessage();
-            message.setStringProperty(Constants.INDEXER_QUEUE_ACTION_PARAMETER,
-                Constants.INDEXER_QUEUE_ACTION_PARAMETER_CREATE_EMPTY_VALUE);
-            message.setStringProperty(
-                Constants.INDEXER_QUEUE_OBJECT_TYPE_PARAMETER, objectType);
-            message.setStringProperty(
-                Constants.INDEXER_QUEUE_PARAMETER_INDEX_NAME, indexName);
-            messageProducer.send(message);
+            IndexRequestBuilder
+                .createIndexRequest()
+                .withAction(
+                    Constants.INDEXER_QUEUE_ACTION_PARAMETER_CREATE_EMPTY_VALUE)
+                .withIndexName(indexName).withObjectType(objectType.getUri())
+                .build();
         }
         catch (Exception e) {
-            log.error(e);
+            LOG.error(e);
             throw new ApplicationServerSystemException(e);
         }
     }
@@ -559,27 +560,7 @@ public class Reindexer implements ReindexerInterface {
     private void sendUpdateIndexMessage(
         final String resource, final ResourceType type)
         throws ApplicationServerSystemException {
-        try {
-            if (queueConnection == null) {
-                createQueueConnection();
-            }
-            // Send message to
-            // Queue///////////////////////////////////////////
-            ObjectMessage message = queueSession.createObjectMessage();
-            message.setStringProperty(Constants.INDEXER_QUEUE_ACTION_PARAMETER,
-                Constants.INDEXER_QUEUE_ACTION_PARAMETER_UPDATE_VALUE);
-            message.setStringProperty(
-                Constants.INDEXER_QUEUE_RESOURCE_PARAMETER, resource);
-            message.setStringProperty(
-                Constants.INDEXER_QUEUE_OBJECT_TYPE_PARAMETER, type.getUri());
-            message.setStringProperty(
-                Constants.INDEXER_QUEUE_PARAMETER_INDEX_NAME, indexName);
-            messageProducer.send(message);
-        }
-        catch (Exception e) {
-            log.error(e);
-            throw new ApplicationServerSystemException(e);
-        }
+        sendUpdateIndexMessage(resource, type, indexName);
     }
 
     /**
@@ -654,58 +635,6 @@ public class Reindexer implements ReindexerInterface {
     }
 
     /**
-     * @throws Exception
-     *             e create connection to SB-indexing-indexerMessageQueue.
-     * 
-     *             e
-     */
-    private void createQueueConnection() throws Exception {
-        this.queueConnection =
-            this.queueConnectionFactory.createQueueConnection(queueUser,
-                queuePassword);
-        this.queueSession =
-            this.queueConnection.createQueueSession(false,
-                Session.AUTO_ACKNOWLEDGE);
-        this.messageProducer =
-            queueSession.createProducer(this.indexerMessageQueue);
-    }
-
-    /**
-     * close connection to SB-indexing-indexerMessageQueue.
-     * 
-     * e
-     */
-    private void disposeQueueConnection() {
-        if (messageProducer != null) {
-            try {
-                messageProducer.close();
-            }
-            catch (Exception e1) {
-                log.error(e1);
-            }
-            messageProducer = null;
-        }
-        if (queueSession != null) {
-            try {
-                queueSession.close();
-            }
-            catch (Exception e1) {
-                log.error(e1);
-            }
-            queueSession = null;
-        }
-        if (queueConnection != null) {
-            try {
-                queueConnection.close();
-            }
-            catch (Exception e1) {
-                log.error(e1);
-            }
-            queueConnection = null;
-        }
-    }
-
-    /**
      * @param escidocCoreHandler
      *            the escidocCoreHandler to set
      */
@@ -723,41 +652,12 @@ public class Reindexer implements ReindexerInterface {
     }
 
     /**
-     * @param queueConnectionFactory
-     *            the queueConnectionFactory to set
-     * @throws Exception
-     *             e
+     * 
+     * @param indexService
+     *            index service
+     * @spring.property ref="de.escidoc.core.index.IndexService"
      */
-    public void setQueueConnectionFactory(
-        final QueueConnectionFactory queueConnectionFactory) throws Exception {
-        this.queueConnectionFactory = queueConnectionFactory;
+    public void setIndexService(final IndexService indexService) {
+        this.indexService = indexService;
     }
-
-    /**
-     * @param indexerMessageQueue
-     *            the indexerMessageQueue to set
-     * @throws Exception
-     *             e
-     */
-    public void setIndexerMessageQueue(final Queue indexerMessageQueue)
-        throws Exception {
-        this.indexerMessageQueue = indexerMessageQueue;
-    }
-
-    /**
-     * @param queueUser
-     *            the queueUser to set
-     */
-    public void setQueueUser(final String queueUser) {
-        this.queueUser = queueUser;
-    }
-
-    /**
-     * @param queuePassword
-     *            the queuePassword to set
-     */
-    public void setQueuePassword(final String queuePassword) {
-        this.queuePassword = queuePassword;
-    }
-
 }

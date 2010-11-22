@@ -96,46 +96,17 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
 		<constructor-arg index="0" value="${escidocOmUrl}" />
 		<constructor-arg index="1" value="${persistentHandle}" />
 	</bean>
-	<bean id="de.escidoc.core.admin.QueueConnectionFactory"
-		class="de.escidoc.core.admin.common.util.spring.RemoteJndiLocator"
-		lazy-init="true">
-		<property name="jndiName">
-			<value>ConnectionFactory</value>
-		</property>
-		<property name="jndiUrl">
-			<value>${escidocSbUrl}</value>
-		</property>
-	</bean>
-	<bean id="de.escidoc.core.admin.IndexerMessageQueue"
-		class="de.escidoc.core.admin.common.util.spring.RemoteJndiLocator"
-		lazy-init="true">
-		<property name="jndiName">
-			<value>queue/IndexerMessageQueue</value>
-		</property>
-		<property name="jndiUrl">
-			<value>${escidocSbUrl}</value>
-		</property>
-	</bean>
 	<bean id="de.escidoc.core.admin.Reindexer" class="de.escidoc.core.admin.business.Reindexer">
 		<constructor-arg value="${clearIndex}" />
 		<constructor-arg value="${indexName}" />
-		<property name="queueUser">
-			<value>${indexerQueueUser}</value>
-		</property>
-		<property name="queuePassword">
-			<value>${indexerQueuePassword}</value>
-		</property>
 		<property name="escidocCoreHandler">
 			<ref bean="de.escidoc.core.admin.EscidocCoreHandlerWithSecurity" />
 		</property>
-		<property name="queueConnectionFactory">
-			<ref bean="de.escidoc.core.admin.QueueConnectionFactory" />
-		</property>
-		<property name="indexerMessageQueue">
-			<ref bean="de.escidoc.core.admin.IndexerMessageQueue" />
-		</property>
 		<property name="fedoraUtility">
             <ref bean="escidoc.core.business.FedoraUtility"/>
+        </property>
+        <property name="indexService">
+            <ref bean="de.escidoc.core.index.IndexService"/>
         </property>
 	</bean>
 </beans>

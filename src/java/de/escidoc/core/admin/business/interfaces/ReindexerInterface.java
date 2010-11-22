@@ -40,11 +40,6 @@ public interface ReindexerInterface {
     void clearIndex() throws SystemException;
 
     /**
-     * Close Connection to SB-Indexing-Queue.
-     */
-    void close();
-
-    /**
      * Index all Containers.
      * 
      * @return number of Containers
