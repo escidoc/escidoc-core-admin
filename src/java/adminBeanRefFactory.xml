@@ -6,6 +6,7 @@
       class="org.springframework.context.support.ClassPathXmlApplicationContext">
     <constructor-arg>
       <list>
+        <value>/META-INF/spring/applicationContext-index-service-spec.xml</value>
         <value>applicationContext.xml</value>
       </list>
     </constructor-arg>

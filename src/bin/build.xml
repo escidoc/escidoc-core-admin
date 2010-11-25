@@ -45,6 +45,9 @@
 	<target name="reindex">
 		<java jar="eSciDocCoreAdmin.jar" fork="true">
 			<arg value="reindex" />
+            <jvmarg value="-Dhttp.proxyHost=${proxyHost}"/>
+            <jvmarg value="-Dhttp.proxyPort=${proxyPort}"/>
+            <jvmarg value="-Dhttp.nonProxyHosts=${nonProxyHosts}"/>
 		</java>
 	</target>
 

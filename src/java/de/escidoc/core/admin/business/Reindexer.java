@@ -32,7 +32,6 @@ import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -40,10 +39,12 @@ import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpConnectionManager;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
+import org.apache.http.util.EntityUtils;
 
 import de.escidoc.core.admin.business.interfaces.ReindexerInterface;
 import de.escidoc.core.admin.common.util.EscidocCoreHandler;
@@ -458,27 +459,25 @@ public class Reindexer implements ReindexerInterface {
     private boolean exists(final String id, final String indexName)
         throws SystemException {
         boolean result = false;
-
         try {
-            HttpClient client = new HttpClient();
-            HttpConnectionManager connectionManager =
-                client.getHttpConnectionManager();
-            HttpConnectionManagerParams params = connectionManager.getParams();
+            DefaultHttpClient httpClient = new DefaultHttpClient();
+            HttpParams params = httpClient.getParams();
+            HttpConnectionParams.setConnectionTimeout(params, 5000);
+            HttpGet method =
+                new HttpGet((new StringBuilder())
+                    .append(
+                        EscidocConfiguration.getInstance().get(
+                            "escidoc-core.baseurl")).append("/srw/search/")
+                    .append(indexName).append("?query=PID=").append(id)
+                    .toString());
+            HttpResponse httpResponse = httpClient.execute(method);
 
-            params.setConnectionTimeout(5000);
-
-            GetMethod method =
-                new GetMethod(EscidocConfiguration.getInstance().get(
-                    EscidocConfiguration.ESCIDOC_CORE_BASEURL)
-                    + "/srw/search/" + indexName + "?query=PID=" + id);
-
-            if (client.executeMethod(method) == HttpURLConnection.HTTP_OK) {
+            if (httpResponse.getStatusLine().getStatusCode() == 200) {
                 Pattern numberOfRecordsPattern =
                     Pattern.compile("numberOfRecords>(.*?)<");
                 Matcher m =
-                    numberOfRecordsPattern.matcher(method
-                        .getResponseBodyAsString());
-
+                    numberOfRecordsPattern.matcher(EntityUtils.toString(
+                        httpResponse.getEntity(), "UTF-8"));
                 if (m.find()) {
                     result = Integer.parseInt(m.group(1)) > 0;
                 }
