@@ -53,10 +53,6 @@
 			<classpath refid="build.classpath" />
 			<src path="${java.src.dir}" />
 		</javac>
-		<javac destdir="${java.build.dir}" debug="on">
-			<classpath refid="build.classpath" />
-			<src path="${test.src.dir}" />
-		</javac>
 	</target>
 
 	<!-- Copy -->
@@ -69,9 +65,6 @@
 		</copy>
 		<copy todir="${java.build.dir}">
 			<fileset dir="${etc.dir}" includes="**/escidoc-core.properties" />
-		</copy>
-		<copy todir="${java.build.dir}">
-			<fileset dir="${test.src.dir}" includes="**/*.xml" />
 		</copy>
 		<copy todir="${java.build.dir}">
 			<fileset dir="${java.src.dir}" includes="**/*.xml" />
