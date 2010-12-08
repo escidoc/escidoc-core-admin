@@ -40,6 +40,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.HttpConnectionParams;
@@ -68,6 +69,8 @@ import de.escidoc.core.index.IndexService;
  * @spring.bean id="de.escidoc.core.admin.Reindexer"
  */
 public class Reindexer implements ReindexerInterface {
+
+    private static final int HTTP_CONNECTION_TIMEOUT = 5000;
 
     /**
      * Triple store query to get a list of all containers.
@@ -120,13 +123,15 @@ public class Reindexer implements ReindexerInterface {
     private static final String INDEX_CONFIGURATION_URL =
         "/adm/admin/get-index-configuration";
 
-    private HashMap<String, HashMap<String, HashMap<String, Object>>> indexConfiguration =
-        null;
-
     private static final AppLogger LOG = new AppLogger(
         Reindexer.class.getName());
 
-    private EscidocCoreHandler escidocCoreHandler;
+    private HashMap<String, HashMap<String, HashMap<String, Object>>> indexConfiguration =
+        null;
+
+    private EscidocCoreHandler escidocCoreHandler = null;
+
+    private FedoraUtility fedoraUtility = null;
 
     private IndexService indexService = null;
 
@@ -139,8 +144,6 @@ public class Reindexer implements ReindexerInterface {
      * Property "indexName" from configuration file.
      */
     private final String indexName;
-
-    private FedoraUtility fedoraUtility = null;
 
     /**
      * Construct a new Reindexer object.
@@ -462,7 +465,8 @@ public class Reindexer implements ReindexerInterface {
         try {
             DefaultHttpClient httpClient = new DefaultHttpClient();
             HttpParams params = httpClient.getParams();
-            HttpConnectionParams.setConnectionTimeout(params, 5000);
+            HttpConnectionParams.setConnectionTimeout(params,
+                HTTP_CONNECTION_TIMEOUT);
             HttpGet method =
                 new HttpGet((new StringBuilder())
                     .append(
@@ -472,7 +476,7 @@ public class Reindexer implements ReindexerInterface {
                     .toString());
             HttpResponse httpResponse = httpClient.execute(method);
 
-            if (httpResponse.getStatusLine().getStatusCode() == 200) {
+            if (httpResponse.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
                 Pattern numberOfRecordsPattern =
                     Pattern.compile("numberOfRecords>(.*?)<");
                 Matcher m =
@@ -611,6 +615,10 @@ public class Reindexer implements ReindexerInterface {
 
     /**
      * @return the indexConfiguration
+     * 
+     * @throws ApplicationServerSystemException
+     *             Thrown if the index configuration could not be read from
+     *             eSciDoc.
      */
     public HashMap<String, HashMap<String, HashMap<String, Object>>> getIndexConfiguration()
         throws ApplicationServerSystemException {
