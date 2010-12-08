@@ -225,7 +225,17 @@ INSERT INTO aa.invocation_mappings (id, attribute_id, path, position, attribute_
   'extractObjid:/organizational-unit/parents/parent/@href|/organizational-unit/parents/parent/@objid', 1, 
           'http://www.w3.org/2001/XMLSchema#string', 12, true, '', 'escidoc:mm-oum-update');
 
-DELETE FROM aa.invocation_mappings WHERE id = 'escidoc-im-oum-update-parent-ous-2';
+DELETE FROM aa.invocation_mappings WHERE id = 'escidoc:im-ingest-1';
+INSERT INTO aa.invocation_mappings (id, attribute_id, path, position, attribute_type, mapping_type, multi_value, value, method_mapping)
+  VALUES ('escidoc:im-ingest-1', 'info:escidoc/names:aa:1.0:resource:object-type-new', '', 0, 
+          'http://www.w3.org/2001/XMLSchema#string', 3, false, 'ingest', 'escidoc:mm-ingest');
+
+DELETE FROM aa.invocation_mappings WHERE id = 'escidoc:im-ingest-2';
+INSERT INTO aa.invocation_mappings (id, attribute_id, path, position, attribute_type, mapping_type, multi_value, value, method_mapping)
+  VALUES ('escidoc:im-ingest-2', 'info:escidoc/names:aa:1.0:resource:object-type', '', 0, 
+          'http://www.w3.org/2001/XMLSchema#string', 3, false, 'ingest', 'escidoc:mm-ingest');
+
+          DELETE FROM aa.invocation_mappings WHERE id = 'escidoc-im-oum-update-parent-ous-2';
 INSERT INTO aa.invocation_mappings (id, attribute_id, path, position, attribute_type, mapping_type, multi_value, value, method_mapping)
   VALUES ('escidoc-im-oum-update-parent-ous-2', 'info:escidoc/names:aa:1.0:resource:organizational-unit:parent-new', 
   'extractObjid:/parents/parent/@href|/parents/parent/@objid', 1, 
@@ -290,6 +300,8 @@ DELETE FROM aa.invocation_mappings WHERE id = 'escidoc-im-workflow-instance-retr
 DELETE FROM aa.invocation_mappings WHERE id = 'escidoc-im-workflow-instance-update-1';
 DELETE FROM aa.invocation_mappings WHERE id = 'escidoc-im-workflow-instance-update-2';
 DELETE FROM aa.invocation_mappings WHERE id = 'escidoc-im-roles-retrieve-1';
+DELETE FROM aa.invocation_mappings WHERE id = 'escidoc-im-ingest-item-1';
+
 DELETE FROM aa.method_mappings WHERE id = 'escidoc:mm-roles-retrieve';
 DELETE FROM aa.method_mappings WHERE id = 'escidoc:mm-adm-get-recache-status';
 DELETE FROM aa.method_mappings WHERE id = 'escidoc:mm-adm-recache';
