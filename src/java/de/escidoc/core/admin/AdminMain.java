@@ -67,8 +67,6 @@ public class AdminMain {
     private final BeanFactory beanFactory = beanFactoryLocator.useBeanFactory(
         ID_APPLICATION_CONTEXT).getFactory();
 
-    private static final int REINDEXER_WAIT_TIME = 1000;
-
     private static final Map<String, String> methods =
         new HashMap<String, String>();
 
