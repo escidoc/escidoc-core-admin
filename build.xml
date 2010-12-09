@@ -5,13 +5,15 @@
 	<property file="etc/${user.name}.properties" />
 	<property file="etc/project.properties" />
 
-	<fileset id="libs" dir="${lib.dir}">
-		<include name="**/*.jar" />
-	</fileset>
+	<path id="libs">
+		<fileset dir="${lib.dir}">
+			 <include name="**/*.jar" />
+		</fileset>
+	</path>
 
 	<path id="build.classpath">
 		<pathelement path="${classpath}" />
-		<fileset refid="libs" />
+		<path refid="libs" />
 	</path>
 
 	<target name="dist" depends="define-label, admin-jar">
@@ -23,6 +25,9 @@
 			<fileset dir="${foxml-migration.src.dir}" />
 			<fileset dir="license/" />
 			<fileset file="${dist.build.dir}/${admin.jar.name}" />
+		</copy>
+		<copy todir="${dist.build.dir}/lib" flatten="yes">
+			<fileset dir="${lib.dir}" includes="**/*.jar" />
 		</copy>
 		<zip destfile="${dist.build.dir}/escidoc-core-admin-${build.version}.zip">
 			<zipfileset dir="${dist.build.dir}" prefix="escidoc-core-admin-${build.version}" />
@@ -38,10 +43,7 @@
 	<target name="prepare" description="Creates the output folders">
 		<mkdir dir="${java.build.dir}" />
 		<mkdir dir="${dist.build.dir}" />
-		<mkdir dir="${main.jar.build.dir}" />
 		<mkdir dir="${admin.jar.build.dir}" />
-		<mkdir dir="${admin.jar.main.dir}" />
-		<mkdir dir="${admin.jar.lib.dir}" />
 	</target>
 
 	<target name="build" depends="clean, prepare, compile, copy">
@@ -71,38 +73,33 @@
 		</copy>
 	</target>
 
-	<target name="main-jar" depends="build">
-		<copy todir="${main.jar.build.dir}">
+	<target name="admin-jar" depends="build">
+		<copy todir="${admin.jar.build.dir}">
 			<fileset dir="${java.build.dir}" includes="de/**/*.class" excludes="**/test/**/*.class" />
 		</copy>
-		<delete dir="${main.jar.build.dir}/com" failonerror="false" />
-		<copy todir="${main.jar.build.dir}">
-			<fileset dir="${etc.dir}" includes="**/log4j.*" />
-		</copy>
-		<jar jarfile="${admin.jar.main.dir}/${main.jar.name}" basedir="${main.jar.build.dir}" />
-	</target>
-
-	<target name="admin-jar" depends="main-jar">
 		<copy todir="${admin.jar.build.dir}">
-			<fileset dir="${java.build.dir}" includes="**/*.class" excludes="**/test/**/*.class" />
 			<fileset dir="${etc.dir}" includes="**/log4j.*" />
-
-			<fileset dir="${java.src.dir}" includes="*.xml" />
-
 		</copy>
-		<delete failonerror="false">
-			<fileset dir="${admin.jar.build.dir}/de" excludes="**/EscidocXsltFunctions.class" />
-		</delete>
-		<copy todir="${admin.jar.lib.dir}">
-			<fileset dir="${lib.dir}" includes="**/*" excludes="**/test/**/*" />
+		<copy todir="${admin.jar.build.dir}">
+			<fileset dir="${java.src.dir}" includes="**/*.xml" />
 		</copy>
-		<jar jarfile="${dist.build.dir}/${admin.jar.name}" manifest="${metadata.src.dir}/Manifest.mf">
-			<fileset dir="${admin.jar.build.dir}" includes="**/*" />
+		<pathconvert property="manifest-classpath" pathsep=" ">
+			<mapper>
+				<chainedmapper>
+					<!-- remove absolute path -->
+					<flattenmapper />
+					<!-- add lib/ prefix -->
+					<globmapper from="*" to="lib/*" />
+				</chainedmapper>
+			</mapper>
+			<path refid="libs"/>
+		</pathconvert>
+		<jar jarfile="${dist.build.dir}/${admin.jar.name}" basedir="${admin.jar.build.dir}">
+			<manifest>
+				<attribute name="Main-Class" value="de.escidoc.core.admin.AdminMain"/>
+				<attribute name="Class-Path" value="${manifest-classpath}"/>
+			</manifest>
 		</jar>
-	</target>
-
-	<target name="junit">
-		<ant antfile="${src.bin.dir}/build-junit.xml" target="test-fail" dir="" />
 	</target>
 
 	<!-- 
