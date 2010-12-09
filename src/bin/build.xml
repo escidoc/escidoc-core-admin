@@ -42,7 +42,7 @@
 		</java>
 	</target>
 
-	<target name="reindex">
+	<target name="reindex" description="Reinitialize the search index.">
 		<java jar="eSciDocCoreAdmin.jar" fork="true">
 			<arg value="reindex" />
             <jvmarg value="-Dhttp.proxyHost=${proxyHost}"/>
@@ -69,7 +69,7 @@
 	</target>
 
 
-	<target name="db-migration">
+	<target name="db-migration" description="Migrate the &quot;escidoc-core&quot; database.">
 		<echo>Starting database migration</echo>
 		<filter filtersfile="${admin-tool.properties}" />
 		<copy todir="db-processed" filtering="true">
@@ -105,7 +105,7 @@
 	</target>
 
 
-	<target name="foxml-migration" depends="prepare-foxml-migration">
+	<target name="foxml-migration" depends="prepare-foxml-migration" description="Migrate the FOXML documents.">
 		<echo>Starting migration of fedora repository</echo>
 		<java jar="eSciDocCoreAdmin.jar" fork="true">
 			<arg value="foxml-migration" />
@@ -212,6 +212,5 @@
 		<largecopy fromdir="${datastreams.src.dir}" todir="${data.target.dir}" />
 		<echo>Finished</echo>
 	</target>
-
 
 </project>
