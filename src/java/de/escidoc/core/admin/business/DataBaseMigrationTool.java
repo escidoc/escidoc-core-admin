@@ -98,10 +98,9 @@ public class DataBaseMigrationTool extends DbDao
     /**
      * Database query to get the latest version.
      */
-    private static final String QUERY_LATEST_VERSION =
-        "SELECT * FROM " + VERSION_TABLE_NAME + " WHERE " + COLUMN_DATE
-            + "=(SELECT MAX(" + COLUMN_DATE + ") FROM " + VERSION_TABLE_NAME
-            + ")";
+    private static final String QUERY_LATEST_VERSION = "SELECT * FROM "
+        + VERSION_TABLE_NAME + " WHERE " + COLUMN_DATE + "=(SELECT MAX("
+        + COLUMN_DATE + ") FROM " + VERSION_TABLE_NAME + ")";
 
     /**
      * Database query to get the owner.
@@ -122,12 +121,12 @@ public class DataBaseMigrationTool extends DbDao
     private static final String DIRECTORY_SCRIPTS = "db-processed";
 
     private SmMigrationInterface smMigration;
-    
+
     /**
      * The logger.
      */
-    private static AppLogger log =
-        new AppLogger(DataBaseMigrationTool.class.getName());
+    private static AppLogger log = new AppLogger(
+        DataBaseMigrationTool.class.getName());
 
     /**
      * Database settings.
@@ -302,8 +301,8 @@ public class DataBaseMigrationTool extends DbDao
     private void checkConsistency() throws IntegritySystemException {
         Version dbVersion = getDBVersion();
         String fingerprintFile =
-            "/de/escidoc/core/common/util/db/fingerprints/"
-                + dbVersion.toString() + ".xml";
+            "/META-INF/db/fingerprints/" + dbVersion.toString() + ".xml";
+
         try {
             Fingerprint currentFingerprint = new Fingerprint(getConnection());
             Fingerprint storedFingerprint =
@@ -416,7 +415,8 @@ public class DataBaseMigrationTool extends DbDao
      * Injects the sm migration tool.
      * 
      * @spring.property ref="de.escidoc.core.admin.SmMigrationTool"
-     * @param smMigration smMigrationTool
+     * @param smMigration
+     *            smMigrationTool
      */
     public final void setSmMigrationTool(final SmMigrationInterface smMigration) {
         this.smMigration = smMigration;
