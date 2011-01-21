@@ -28,18 +28,18 @@
  */
 package de.escidoc.core.admin.common.util.stax.handler;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.naming.directory.NoSuchAttributeException;
 
 import de.escidoc.core.admin.common.util.vo.ReportDefinitionRoleVo;
 import de.escidoc.core.admin.common.util.vo.ReportDefinitionVo;
 import de.escidoc.core.common.exceptions.application.missing.MissingAttributeValueException;
-import de.escidoc.core.common.exceptions.system.IntegritySystemException;
-import de.escidoc.core.common.exceptions.system.SystemException;
 import de.escidoc.core.common.util.stax.StaxParser;
+import de.escidoc.core.common.util.string.StringUtility;
 import de.escidoc.core.common.util.xml.XmlUtility;
-import de.escidoc.core.common.util.xml.stax.events.Attribute;
-import de.escidoc.core.common.util.xml.stax.events.EndElement;
+import de.escidoc.core.common.util.xml.stax.events.AbstractElement;
 import de.escidoc.core.common.util.xml.stax.events.StartElement;
 import de.escidoc.core.common.util.xml.stax.handler.DefaultHandler;
 
@@ -57,6 +57,13 @@ public class ReportDefinitionStaxHandler extends DefaultHandler {
     
     private int allowedRolesIndex = 0;
     
+    private static final Pattern PATTERN_GET_ID_FROM_URI_OR_FEDORA_ID = Pattern
+        .compile(".*/([^/>]+)>{0,1}");
+
+    public static final String NAME_OBJID = "objid";
+
+    public static final String NAME_HREF = "href";
+
     /**
      * Cosntructor with StaxParser.
      * 
@@ -80,7 +87,7 @@ public class ReportDefinitionStaxHandler extends DefaultHandler {
      */
     public StartElement startElement(final StartElement element) throws Exception {
         if ("allowed-role".equals(element.getLocalName())) {
-            String objId = XmlUtility.getIdFromStartElement(element);
+            String objId = getIdFromStartElement(element);
             if (objId != null) {
                 allowedRolesIndex++;
                 ReportDefinitionRoleVo reportDefinitionRoleVo = 
@@ -96,11 +103,92 @@ public class ReportDefinitionStaxHandler extends DefaultHandler {
         else if ("report-definition".equals(element.getLocalName())) {
             try {
                 String reportDefinitionId = 
-                    XmlUtility.getIdFromStartElement(element);
+                    getIdFromStartElement(element);
                 reportDefinitionVo.setId(reportDefinitionId);
             } catch (MissingAttributeValueException e) {}
         }
         return element;
+    }
+
+    /**
+     * Extracts the objid from the provided element.<br/>
+     * Either the id is fetched from the attribute objid of the provided
+     * element. If this fails, it is extracted from the attribute href. If this
+     * fials, too, an exception is thrown.
+     * 
+     * @param element
+     *            The element to get the objid from.
+     * @return Returns the objid value.
+     * @throws MissingAttributeValueException
+     *             Thrown if neither an objid nor an href attribute exists.
+     */
+
+    public static String getIdFromStartElement(final StartElement element)
+        throws MissingAttributeValueException {
+
+        try {
+            final String objid;
+            if (element.indexOfAttribute(null, NAME_OBJID) != -1) {
+                objid = element.getAttributeValue(null, NAME_OBJID);
+            }
+            else {
+                objid =
+                    getIdFromURI(element.getAttributeValue(
+                        de.escidoc.core.common.business.Constants.XLINK_NS_URI,
+                        NAME_HREF));
+            }
+            return objid;
+        }
+        catch (final NoSuchAttributeException e) {
+            throwMissingAttributeValueException(element, XmlUtility.NAME_OBJID
+                + "|" + XmlUtility.NAME_HREF);
+            return null;
+        }
+    }
+
+    /**
+     * Get the objid from an URI/Fedora identifier, e.g. from
+     * &lt;info:fedora/escidoc:1&gt;<br/>
+     * If the provided value does not match the expected pattern, it is returned
+     * as provided. Otherwise, the objid is extracted from it and returned.
+     * 
+     * @param uri
+     *            The value to get the objid from
+     * @return Returns the extracted objid or the provided value.
+     */
+    public static String getIdFromURI(final String uri) {
+
+        if (uri == null) {
+            return null;
+        }
+        final Matcher matcher =
+            PATTERN_GET_ID_FROM_URI_OR_FEDORA_ID.matcher(uri);
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+        else {
+            return uri;
+        }
+    }
+
+    /**
+     * Throws an <code>MissingAttributeValueException</code>.
+     * 
+     * @param element
+     *            The element in that the attribute is missing.
+     * @param attributeName
+     *            The name of the missing attribute.
+     * @throws MissingAttributeValueException
+     *             Throws created exception.
+     */
+    public static void throwMissingAttributeValueException(
+        final AbstractElement element, final String attributeName)
+        throws MissingAttributeValueException {
+
+        throw new MissingAttributeValueException(
+            StringUtility.concatenateWithBracketsToString(
+                XmlUtility.ERR_MSG_MISSING_ATTRIBUTE, element.getPath(),
+                attributeName, element.getLocationString()));
     }
 
     /**

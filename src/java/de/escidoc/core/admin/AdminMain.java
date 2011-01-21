@@ -75,7 +75,6 @@ public class AdminMain {
         methods.put("reindex", "reindex");
         methods.put("test", "test");
         methods.put("db-migration", "migrateDataBase");
-        methods.put("sm-migration", "migrateSmDataBase");
         methods.put("foxml-migration", "migrateFoxml");
     }
 
@@ -169,7 +168,7 @@ public class AdminMain {
             log.info("Migration successfully completed.\n");
         }
         catch (IntegritySystemException e) {
-            log.error(e);
+            log.error(e.getMessage());
         }
         catch (CannotCreateTransactionException e) {
             final StringBuffer errorMsg =
@@ -177,7 +176,7 @@ public class AdminMain {
                     "\nFailed to create transaction for database access.",
                     "\nPlease check your database settings in your",
                     " admin-tool.properties file.");
-            log.error(errorMsg, e);
+            log.error(errorMsg);
         }
         catch (Exception e) {
             if (e instanceof InvocationTargetException) {
@@ -186,48 +185,7 @@ public class AdminMain {
                     return;
                 }
             }
-            log.error(e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Migrate the content of the escidoc-core database.
-     * 
-     * @param args
-     *            The arguments.
-     * @see de.escidoc.core.admin.business
-     *      .interfaces.DataBaseMigrationInterface#migrate()
-     */
-    private void migrateSmDataBase(final String[] args) {
-
-        log.info("SM Database migration invoked");
-
-        SmMigrationInterface dbm =
-            (SmMigrationInterface) beanFactory
-                .getBean("de.escidoc.core.admin.SmMigrationTool");
-        try {
-            dbm.migrate();
-            log.info("Migration successfully completed.\n");
-        }
-        catch (SystemException e) {
-            log.error(e);
-        }
-        catch (CannotCreateTransactionException e) {
-            final StringBuffer errorMsg =
-                StringUtility.concatenate(
-                    "\nFailed to create transaction for database access.",
-                    "\nPlease check your database settings in your",
-                    " admin-tool.properties file.");
-            log.error(errorMsg, e);
-        }
-        catch (Exception e) {
-            if (e instanceof InvocationTargetException) {
-                if (e.getCause() != null) {
-                    log.error(e.getCause().getMessage(), e.getCause());
-                    return;
-                }
-            }
-            log.error(e.getMessage(), e);
+            log.error(e.getMessage());
         }
     }
 
