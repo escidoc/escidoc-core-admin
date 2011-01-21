@@ -53,7 +53,7 @@ ALTER TABLE sm.aggregation_definitions ADD COLUMN name VARCHAR (255);
 ALTER TABLE sm.aggregation_definitions ADD COLUMN creator_id VARCHAR (255);
 ALTER TABLE sm.aggregation_definitions ADD COLUMN creation_date timestamp without time zone;
 
-UPDATE sm.aggregation_definitions set name = xpath_string(xml_data, '/*[local-name()="aggregation-definition"]/*[local-name()="name"]');
+UPDATE sm.aggregation_definitions set name = (xpath('/*[local-name()="aggregation-definition"]/*[local-name()="name"]/text()', XMLPARSE(DOCUMENT xml_data)))[1]::text;
 UPDATE sm.aggregation_definitions set creator_id = (select user_id from aa.role_grant where role_id = 'escidoc:role-system-administrator' LIMIT 1);
 UPDATE sm.aggregation_definitions set creation_date = CURRENT_TIMESTAMP;
 
@@ -75,7 +75,7 @@ ALTER TABLE sm.report_definitions ADD COLUMN creation_date timestamp without tim
 ALTER TABLE sm.report_definitions ADD COLUMN modified_by_id VARCHAR (255);
 ALTER TABLE sm.report_definitions ADD COLUMN last_modification_date timestamp without time zone;
 
-UPDATE sm.report_definitions set sql = replace(replace(replace(xpath_string(xml_data, '/*[local-name()="report-definition"]/*[local-name()="sql"]'), E'\n', ' '), E'\t', ' '), E'\r', ' ');
+UPDATE sm.report_definitions set sql = replace(replace(replace((xpath('/*[local-name()="report-definition"]/*[local-name()="sql"]/text()', XMLPARSE(DOCUMENT xml_data)))[1]::text, E'\n', ' '), E'\t', ' '), E'\r', ' ');
 
 UPDATE sm.report_definitions set creator_id = (select user_id from aa.role_grant where role_id = 'escidoc:role-system-administrator' LIMIT 1);
 UPDATE sm.report_definitions set creation_date = CURRENT_TIMESTAMP;
@@ -92,8 +92,8 @@ ALTER TABLE sm.scopes ADD COLUMN creation_date timestamp without time zone;
 ALTER TABLE sm.scopes ADD COLUMN modified_by_id VARCHAR (255);
 ALTER TABLE sm.scopes ADD COLUMN last_modification_date timestamp without time zone;
 
-UPDATE sm.scopes set name = xpath_string(xml_data, '/*[local-name()="scope"]/*[local-name()="name"]');
-UPDATE sm.scopes set scope_type = xpath_string(xml_data, '/*[local-name()="scope"]/*[local-name()="type"]');
+UPDATE sm.scopes set name = (xpath('/*[local-name()="scope"]/*[local-name()="name"]/text()', XMLPARSE(DOCUMENT xml_data)))[1]::text;
+UPDATE sm.scopes set scope_type = (xpath('/*[local-name()="scope"]/*[local-name()="type"]/text()', XMLPARSE(DOCUMENT xml_data)))[1]::text;
 UPDATE sm.scopes set creator_id = (select user_id from aa.role_grant where role_id = 'escidoc:role-system-administrator' LIMIT 1);
 UPDATE sm.scopes set creation_date = CURRENT_TIMESTAMP;
 UPDATE sm.scopes set modified_by_id = (select user_id from aa.role_grant where role_id = 'escidoc:role-system-administrator' LIMIT 1);
