@@ -514,7 +514,8 @@ public class Reindexer implements ReindexerInterface {
                     .withAction(
                         Constants.INDEXER_QUEUE_ACTION_PARAMETER_UPDATE_VALUE)
                     .withIndexName(indexName).withResource(resource)
-                    .withObjectType(objectType.getUri()).build();
+                    .withObjectType(objectType.getUri())
+                    .withIsReindexerCaller(true).build();
             this.indexService.index(indexRequest);
         }
         catch (Exception e) {
@@ -540,7 +541,9 @@ public class Reindexer implements ReindexerInterface {
                 .createIndexRequest()
                 .withAction(
                     Constants.INDEXER_QUEUE_ACTION_PARAMETER_CREATE_EMPTY_VALUE)
-                .withIndexName(indexName).withObjectType(objectType.getUri())
+                .withIndexName(indexName)
+                .withObjectType(objectType.getUri())
+                .withIsReindexerCaller(true)
                 .build();
         }
         catch (Exception e) {
