@@ -40,6 +40,16 @@ public interface ReindexerInterface {
     void clearIndex() throws SystemException;
 
     /**
+     * Index all by calling the Admin-Interface of the core framework.
+     * 
+     * @return Status-String
+     * 
+     * @throws SystemException
+     *             Thrown if an internal error occurred.
+     */
+    String indexViaAdminInterface() throws SystemException;
+    
+    /**
      * Index all Containers.
      * 
      * @return number of Containers

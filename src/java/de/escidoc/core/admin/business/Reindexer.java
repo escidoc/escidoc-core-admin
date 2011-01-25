@@ -123,6 +123,9 @@ public class Reindexer implements ReindexerInterface {
     private static final String INDEX_CONFIGURATION_URL =
         "/adm/admin/get-index-configuration";
 
+    private static final String ADMIN_REINDEXING_URL =
+        "/adm/admin/reindex/";
+
     private static final AppLogger LOG = new AppLogger(
         Reindexer.class.getName());
 
@@ -271,6 +274,19 @@ public class Reindexer implements ReindexerInterface {
             }
         }
         return result;
+    }
+
+    /**
+     * Index all by calling the Admin-Interface of the core framework.
+     * 
+     * @return Status-String
+     * 
+     * @throws SystemException
+     *             Thrown if an internal error occurred.
+     */
+    public String indexViaAdminInterface() throws SystemException {
+    	return escidocCoreHandler.postRequestEscidoc(
+    			ADMIN_REINDEXING_URL + this.clearIndex + "/" + this.indexName, null);
     }
 
     /**

@@ -231,21 +231,23 @@ public class AdminMain {
     private void reindex(final String[] args) throws Exception {
         ReindexerInterface reindexer =
             (ReindexerInterface) beanFactory.getBean(ID_REINDEXER);
+        
+        log.info(reindexer.indexViaAdminInterface());
 
-        // Delete index
-        reindexer.clearIndex();
-
-        log.info("scheduled " + reindexer.indexContainers()
-            + " containers for reindexing");
-        log.info("scheduled " + reindexer.indexContentModels()
-            + " content models for reindexing");
-        log.info("scheduled " + reindexer.indexContentRelations()
-            + " content relations for reindexing");
-        log.info("scheduled " + reindexer.indexContexts()
-            + " contexts for reindexing");
-        log.info("scheduled " + reindexer.indexItems()
-            + " items for reindexing");
-        log.info("scheduled " + reindexer.indexOrganizationalUnits()
-            + " organizational-units for reindexing");
+//        // Delete index
+//        reindexer.clearIndex();
+//
+//        log.info("scheduled " + reindexer.indexContainers()
+//            + " containers for reindexing");
+//        log.info("scheduled " + reindexer.indexContentModels()
+//            + " content models for reindexing");
+//        log.info("scheduled " + reindexer.indexContentRelations()
+//            + " content relations for reindexing");
+//        log.info("scheduled " + reindexer.indexContexts()
+//            + " contexts for reindexing");
+//        log.info("scheduled " + reindexer.indexItems()
+//            + " items for reindexing");
+//        log.info("scheduled " + reindexer.indexOrganizationalUnits()
+//            + " organizational-units for reindexing");
     }
 }

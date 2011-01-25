@@ -97,7 +97,7 @@
 		<jar jarfile="${dist.build.dir}/${admin.jar.name}" basedir="${admin.jar.build.dir}">
 			<manifest>
 				<attribute name="Main-Class" value="de.escidoc.core.admin.AdminMain"/>
-				<attribute name="Class-Path" value="${manifest-classpath}"/>
+				<attribute name="Class-Path" value=". ${manifest-classpath}"/>
 			</manifest>
 		</jar>
 	</target>

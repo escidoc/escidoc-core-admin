@@ -113,4 +113,33 @@ public class EscidocCoreHandler {
         }
         return result;
     }
+    /**
+     * requests escidoc-resource with post-request.
+     * 
+     * <pre>
+     *        execute post-request.
+     * </pre>
+     * 
+     * @param resource
+     *            String resource.
+     * @return String response
+     * 
+     * @throws ApplicationServerSystemException
+     *             e
+     */
+    public String postRequestEscidoc(final String resource, final String body)
+        throws ApplicationServerSystemException {
+        String result = null;
+
+        try {
+            result =
+                connectionUtility.postRequestURLAsString(new URL(escidocCoreUrl
+                    + resource), body, cookie);
+        }
+        catch (Exception e) {
+            LOG.error(e);
+            throw new ApplicationServerSystemException(e);
+        }
+        return result;
+    }
 }
