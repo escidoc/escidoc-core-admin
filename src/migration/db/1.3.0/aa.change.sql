@@ -84,6 +84,8 @@ INSERT INTO aa.actions (id, name) VALUES
 DELETE FROM aa.method_mappings WHERE id = 'escidoc:mm-fedora-deviation-get-datastream-dissimination';
 DELETE FROM aa.invocation_mappings WHERE id = 'escidoc-im-fedora-deviation-get-datastream-dissimination-1';
 DELETE FROM aa.invocation_mappings WHERE id = 'escidoc-im-fedora-deviation-get-datastream-dissimination-2';
+DELETE FROM aa.invocation_mappings WHERE id = 'escidoc-im-item-retrieve-dc-record-content-2';
+DELETE FROM aa.invocation_mappings WHERE id = 'escidoc-im-container-retrieve-dc-record-content-2';
 INSERT INTO aa.method_mappings (id, class_name, method_name, action_name, exec_before, single_resource)
   VALUES ('escidoc:mm-fedora-deviation-get-datastream-dissimination', 'de.escidoc.core.om.service.interfaces.FedoraRestDeviationHandlerInterface', 'getDatastreamDissemination', 
   'info:escidoc/names:aa:1.0:action:fedora-deviation-get-datastream-dissimination', true, true);
