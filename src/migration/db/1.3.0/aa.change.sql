@@ -1,3 +1,6 @@
+INSERT INTO aa.actions (id, name) VALUES
+    ('escidoc:action-load-examples', 'info:escidoc/names:aa:1.0:action:load-examples');
+
 UPDATE aa.method_mappings
 SET class_name = REPLACE(class_name, '.service.', '.service.interfaces.') || 'Interface';
 
