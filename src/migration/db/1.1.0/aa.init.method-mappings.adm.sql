@@ -37,9 +37,16 @@ INSERT INTO aa.method_mappings (id, class_name, method_name, action_name, exec_b
   VALUES ('escidoc:mm-adm-reindex', 'de.escidoc.core.adm.service.AdminHandler', 'reindex', 'info:escidoc/names:aa:1.0:action:reindex',
   true, true);
 
-  /**
+	/**
          * getRepositoryInfo
          */
 INSERT INTO aa.method_mappings (id, class_name, method_name, action_name, exec_before, single_resource)
   VALUES ('escidoc:mm-adm-get-repository-info', 'de.escidoc.core.adm.service.AdminHandler', 'getRepositoryInfo', 'info:escidoc/names:aa:1.0:action:get-repository-info',
   true, true);									
+
+        /**
+         * Load Examples
+         */
+INSERT INTO aa.method_mappings (id, class_name, method_name, action_name, exec_before, single_resource)
+  VALUES ('escidoc:mm-adm-load-examples', 'de.escidoc.core.adm.service.AdminHandler', 'loadExamples', 'info:escidoc/names:aa:1.0:action:load-examples',
+  true, true);
