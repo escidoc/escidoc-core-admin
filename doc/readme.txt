@@ -17,30 +17,8 @@ Index
 1.) Migration of the eSciDocCore database
 -----------------------------------------
 
-Migration to 1.3
-
-There were several changes to the eSciDocCore database between earlier releases and
-1.3. To start the migration process the following tasks are necessary:
-
-	1.) Stop eSciDoc (at least eSciDocCore)
-	2.) Install new Software (see installation document)
-            - install new eSciDocCore
-	3.) Migration of eSciDocCore database
-            - call target "db-migration" of ant file build.xml
-	    The admin-tool.properties must be placed in the directory from that 
-	    the admin tool is executed.
-	4.) Restart eSciDoc
-
-A migration of a running eSciDoc is currently not supported. Furthermore
-migration is only supported between stable releases. The migration between
-developer builds may work but will never be supported. If you migrate non supported
-versions you do it at your own risk and without any support.
-
-Warning:
-
-The migration tool cannot migrate the XACML policies. If they did change then they
-will be overwritten with the new content. Please be sure to do a backup of your policies
-if you had modified them in the meantime.
+Please read https://www.escidoc.org/JSPWiki/en/ESciDocUpgrade1.2.xto1.3 for
+further information.
 
 
 2.) Migration of Fedora Repository 
