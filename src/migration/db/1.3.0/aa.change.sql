@@ -84,6 +84,13 @@ DELETE FROM aa.actions WHERE id = 'escidoc:action-fedora-deviation-replace-in-ca
 INSERT INTO aa.actions (id, name) VALUES
     ('escidoc:action-fedora-deviation-replace-in-cache', 'info:escidoc/names:aa:1.0:action:fedora-deviation-replace-in-cache');
 
+INSERT INTO aa.invocation_mappings (id, attribute_id, path, position, attribute_type, mapping_type, multi_value, value, method_mapping)
+  VALUES ('escidoc-im-aa-evaluate-1', 'info:escidoc/names:aa:1.0:resource:subject-id', '/requests/Request/Subject/Attribute/AttributeValue', 0, 
+          'http://www.w3.org/2001/XMLSchema#string', 2, true, '', 'escidoc:mm-aa-evaluate');
+INSERT INTO aa.invocation_mappings (id, attribute_id, path, position, attribute_type, mapping_type, multi_value, value, method_mapping)
+  VALUES ('escidoc-im-aa-evaluate-2', 'info:escidoc/names:aa:1.0:resource:object-type', '', 0, 
+          'http://www.w3.org/2001/XMLSchema#string', 3, false, 'evaluate', 'escidoc:mm-aa-evaluate');
+
 DELETE FROM aa.method_mappings WHERE id = 'escidoc:mm-fedora-deviation-get-datastream-dissimination';
 DELETE FROM aa.invocation_mappings WHERE id = 'escidoc-im-fedora-deviation-get-datastream-dissimination-1';
 DELETE FROM aa.invocation_mappings WHERE id = 'escidoc-im-fedora-deviation-get-datastream-dissimination-2';
