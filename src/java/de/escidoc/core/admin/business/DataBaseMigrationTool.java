@@ -35,17 +35,11 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.MessageFormat;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.TreeSet;
-import javax.sql.DataSource;
 
-import de.escidoc.core.admin.business.interfaces.DataBaseMigrationInterface;
-import de.escidoc.core.admin.business.interfaces.SmMigrationInterface;
-import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException;
-import de.escidoc.core.common.exceptions.system.IntegritySystemException;
-import de.escidoc.core.common.util.Version;
-import de.escidoc.core.common.util.db.Fingerprint;
-import de.escidoc.core.common.util.logger.AppLogger;
+import javax.sql.DataSource;
 
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Target;
@@ -53,6 +47,15 @@ import org.apache.tools.ant.taskdefs.SQLExec;
 import org.apache.tools.ant.types.FileSet;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
+
+import de.escidoc.core.admin.business.interfaces.AaMigrationInterface;
+import de.escidoc.core.admin.business.interfaces.DataBaseMigrationInterface;
+import de.escidoc.core.admin.business.interfaces.SmMigrationInterface;
+import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException;
+import de.escidoc.core.common.exceptions.system.IntegritySystemException;
+import de.escidoc.core.common.util.Version;
+import de.escidoc.core.common.util.db.Fingerprint;
+import de.escidoc.core.common.util.logger.AppLogger;
 
 /**
  * Provides a method used for migrating the database to the most current
@@ -121,6 +124,8 @@ public class DataBaseMigrationTool extends DbDao
     private static final String DIRECTORY_SCRIPTS = "db-processed";
 
     private SmMigrationInterface smMigration;
+
+    private AaMigrationInterface aaMigration;
 
     /**
      * The logger.
@@ -383,6 +388,9 @@ public class DataBaseMigrationTool extends DbDao
 
                     // do the migration
                     log.info("migrate to " + version + " ...");
+                    if (version.toString().equals("1.3.0")) {
+                        aaMigration.migrate();
+                    }
                     update(version);
                     if (version.toString().equals("1.3.0")) {
                         smMigration.migrate();
@@ -420,6 +428,17 @@ public class DataBaseMigrationTool extends DbDao
      */
     public final void setSmMigrationTool(final SmMigrationInterface smMigration) {
         this.smMigration = smMigration;
+    }
+
+    /**
+     * Injects the aa migration tool.
+     * 
+     * @spring.property ref="de.escidoc.core.admin.AaMigrationTool"
+     * @param aaMigration
+     *            aaMigrationTool
+     */
+    public final void setAaMigrationTool(final AaMigrationInterface aaMigration) {
+        this.aaMigration = aaMigration;
     }
 
     /**

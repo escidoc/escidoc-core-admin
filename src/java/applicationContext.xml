@@ -60,6 +60,30 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
 			</props>
 		</property>
 	</bean>
+    <bean id="de.escidoc.core.admin.SmMigrationTool" class="de.escidoc.core.admin.business.SmMigrationTool">
+        <constructor-arg value="${datasource.driverClassName}" />
+        <constructor-arg value="${datasource.url}" />
+        <constructor-arg value="${datasource.username}" />
+        <constructor-arg value="${datasource.password}" />
+        <constructor-arg value="${datasource.script.prefix}" />
+        <constructor-arg value="${creator_id}" />
+        <property name="myDataSource">
+            <ref bean="de.escidoc.core.admin.DataSource" />
+        </property>
+    </bean>
+
+    <bean id="de.escidoc.core.admin.AaMigrationTool" class="de.escidoc.core.admin.business.AaMigrationTool">
+        <constructor-arg value="${datasource.driverClassName}" />
+        <constructor-arg value="${datasource.url}" />
+        <constructor-arg value="${datasource.username}" />
+        <constructor-arg value="${datasource.password}" />
+        <constructor-arg value="${datasource.script.prefix}" />
+        <constructor-arg value="${creator_id}" />
+        <property name="myDataSource">
+            <ref bean="de.escidoc.core.admin.DataSource" />
+        </property>
+    </bean>
+
 	<bean id="de.escidoc.core.admin.DataBaseMigrationTool" class="de.escidoc.core.admin.business.DataBaseMigrationTool">
 		<constructor-arg value="${datasource.driverClassName}" />
 		<constructor-arg value="${datasource.url}" />
@@ -73,19 +97,10 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
         <property name="smMigrationTool">
             <ref bean="de.escidoc.core.admin.SmMigrationTool" />
         </property>
-	</bean>
-
-    <bean id="de.escidoc.core.admin.SmMigrationTool" class="de.escidoc.core.admin.business.SmMigrationTool">
-        <constructor-arg value="${datasource.driverClassName}" />
-        <constructor-arg value="${datasource.url}" />
-        <constructor-arg value="${datasource.username}" />
-        <constructor-arg value="${datasource.password}" />
-        <constructor-arg value="${datasource.script.prefix}" />
-        <constructor-arg value="${creator_id}" />
-        <property name="myDataSource">
-            <ref bean="de.escidoc.core.admin.DataSource" />
+        <property name="aaMigrationTool">
+            <ref bean="de.escidoc.core.admin.AaMigrationTool" />
         </property>
-    </bean>
+	</bean>
 
 	<!-- REINDEXER -->
 	<bean id="de.escidoc.core.admin.EscidocCoreHandler" class="de.escidoc.core.admin.common.util.EscidocCoreHandler">
