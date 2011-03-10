@@ -127,7 +127,7 @@ public class SmMigrationTool extends DbDao
         + "values (?, ?, ?, ?)";
 
     private final String UPDATE_AGGREGATION_STATISTIC_DATA_SELECTORS = 
-        "insert into sm.aggregation_statistic_data_selectors "
+        "insert into sm.agg_stat_data_selectors "
         + "(id, aggregation_definition_id, selector_type, xpath, list_index) "
         + "values (?, ?, ?, ?, ?)";
 

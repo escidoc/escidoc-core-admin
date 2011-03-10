@@ -39,7 +39,7 @@ CREATE TABLE sm.aggregation_table_fields (
    ON DELETE CASCADE
 );
 
-CREATE TABLE sm.aggregation_statistic_data_selectors ( 
+CREATE TABLE sm.agg_stat_data_selectors ( 
   id VARCHAR(255) unique not null primary key,
   aggregation_definition_id VARCHAR(255) NOT NULL,
   selector_type VARCHAR(50) NOT NULL,
