@@ -32,9 +32,10 @@ import java.net.URL;
 
 import org.apache.http.cookie.Cookie;
 import org.apache.http.impl.cookie.BasicClientCookie;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException;
-import de.escidoc.core.common.util.logger.AppLogger;
 import de.escidoc.core.common.util.service.ConnectionUtility;
 
 /**
@@ -46,8 +47,8 @@ public class EscidocCoreHandler {
 
     private static final String COOKIE_LOGIN = "escidocCookie";
 
-    private static final AppLogger LOG = new AppLogger(
-        EscidocCoreHandler.class.getName());
+    private static final Logger LOG = LoggerFactory
+        .getLogger(EscidocCoreHandler.class);
 
     private final ConnectionUtility connectionUtility = new ConnectionUtility();
 
@@ -108,11 +109,12 @@ public class EscidocCoreHandler {
                     + resource), cookie);
         }
         catch (Exception e) {
-            LOG.error(e);
+            LOG.error(e.getMessage(), e);
             throw new ApplicationServerSystemException(e);
         }
         return result;
     }
+
     /**
      * requests escidoc-resource with post-request.
      * 
@@ -137,7 +139,7 @@ public class EscidocCoreHandler {
                     + resource), body, cookie);
         }
         catch (Exception e) {
-            LOG.error(e);
+            LOG.error(e.getMessage(), e);
             throw new ApplicationServerSystemException(e);
         }
         return result;

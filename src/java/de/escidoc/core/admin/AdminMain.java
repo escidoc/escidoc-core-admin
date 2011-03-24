@@ -40,6 +40,8 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.access.BeanFactoryLocator;
 import org.springframework.beans.factory.access.SingletonBeanFactoryLocator;
@@ -48,18 +50,14 @@ import org.springframework.transaction.CannotCreateTransactionException;
 import de.escidoc.core.admin.business.FoxmlMigrationTool;
 import de.escidoc.core.admin.business.interfaces.DataBaseMigrationInterface;
 import de.escidoc.core.admin.business.interfaces.ReindexerInterface;
-import de.escidoc.core.admin.business.interfaces.SmMigrationInterface;
 import de.escidoc.core.common.exceptions.system.IntegritySystemException;
-import de.escidoc.core.common.exceptions.system.SystemException;
-import de.escidoc.core.common.util.logger.AppLogger;
-import de.escidoc.core.common.util.string.StringUtility;
 
 /**
  * Main Class for the Admin-Tool.
  */
 public class AdminMain {
 
-    private static AppLogger log = new AppLogger(AdminMain.class.getName());
+    private static Logger log = LoggerFactory.getLogger(AdminMain.class);
 
     private final BeanFactoryLocator beanFactoryLocator =
         SingletonBeanFactoryLocator.getInstance(BEAN_REF_FACTORY);
@@ -124,7 +122,7 @@ public class AdminMain {
             }
         }
         catch (Exception e) {
-            log.error(e);
+            log.error(e.getMessage(), e);
             e.printStackTrace();
         }
         System.exit(result);
@@ -171,11 +169,10 @@ public class AdminMain {
             log.error(e.getMessage());
         }
         catch (CannotCreateTransactionException e) {
-            final StringBuffer errorMsg =
-                StringUtility.concatenate(
-                    "\nFailed to create transaction for database access.",
-                    "\nPlease check your database settings in your",
-                    " admin-tool.properties file.");
+            final String errorMsg =
+                "\nFailed to create transaction for database access."
+                    + "\nPlease check your database settings in your"
+                    + " admin-tool.properties file.";
             log.error(errorMsg);
         }
         catch (Exception e) {
@@ -231,23 +228,23 @@ public class AdminMain {
     private void reindex(final String[] args) throws Exception {
         ReindexerInterface reindexer =
             (ReindexerInterface) beanFactory.getBean(ID_REINDEXER);
-        
+
         log.info(reindexer.indexViaAdminInterface());
 
-//        // Delete index
-//        reindexer.clearIndex();
-//
-//        log.info("scheduled " + reindexer.indexContainers()
-//            + " containers for reindexing");
-//        log.info("scheduled " + reindexer.indexContentModels()
-//            + " content models for reindexing");
-//        log.info("scheduled " + reindexer.indexContentRelations()
-//            + " content relations for reindexing");
-//        log.info("scheduled " + reindexer.indexContexts()
-//            + " contexts for reindexing");
-//        log.info("scheduled " + reindexer.indexItems()
-//            + " items for reindexing");
-//        log.info("scheduled " + reindexer.indexOrganizationalUnits()
-//            + " organizational-units for reindexing");
+        // // Delete index
+        // reindexer.clearIndex();
+        //
+        // log.info("scheduled " + reindexer.indexContainers()
+        // + " containers for reindexing");
+        // log.info("scheduled " + reindexer.indexContentModels()
+        // + " content models for reindexing");
+        // log.info("scheduled " + reindexer.indexContentRelations()
+        // + " content relations for reindexing");
+        // log.info("scheduled " + reindexer.indexContexts()
+        // + " contexts for reindexing");
+        // log.info("scheduled " + reindexer.indexItems()
+        // + " items for reindexing");
+        // log.info("scheduled " + reindexer.indexOrganizationalUnits()
+        // + " organizational-units for reindexing");
     }
 }

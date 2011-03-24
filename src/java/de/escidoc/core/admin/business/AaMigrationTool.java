@@ -37,11 +37,12 @@ import javax.sql.DataSource;
 
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Target;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.escidoc.core.admin.business.interfaces.AaMigrationInterface;
 import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException;
 import de.escidoc.core.common.exceptions.system.IntegritySystemException;
-import de.escidoc.core.common.util.logger.AppLogger;
 
 /**
  * Provides a method used for migrating the database to the most current
@@ -52,13 +53,11 @@ import de.escidoc.core.common.util.logger.AppLogger;
  * @spring.bean id="de.escidoc.core.admin.AaMigrationTool"
  * 
  */
-public class AaMigrationTool extends DbDao
-    implements AaMigrationInterface {
+public class AaMigrationTool extends DbDao implements AaMigrationInterface {
     /**
      * The logger.
      */
-    private static AppLogger log =
-        new AppLogger(SmMigrationTool.class.getName());
+    private static Logger log = LoggerFactory.getLogger(AaMigrationTool.class);
 
     /**
      * Database settings.
@@ -72,7 +71,7 @@ public class AaMigrationTool extends DbDao
     private final String password;
 
     private final String scriptPrefix;
-    
+
     private final String creatorId;
 
     /**
@@ -85,48 +84,49 @@ public class AaMigrationTool extends DbDao
     /**
      * Queries.
      */
-    private final String ID_CONTEXT_ADMIN = "escidoc:role-context-administrator";
-    
+    private final String ID_CONTEXT_ADMIN =
+        "escidoc:role-context-administrator";
+
     private final String ID_CONTEXT_MODIFIER = "escidoc:role-context-modifier";
-    
-    private final String ID_USER_ACCOUNT_ADMIN = "escidoc:role-user-account-administrator";
-    
-    private final String ID_USER_ACCOUNT_INSPECTOR = "escidoc:role-user-account-inspector";
-    
-    private final String QUERY_ROLES = 
-                "select id from aa.escidoc_role where "
-    		+ "id = '" + ID_CONTEXT_ADMIN + "' "
-    		+ "or id = '" + ID_CONTEXT_MODIFIER + "' "
-    		+ "or id = '" + ID_USER_ACCOUNT_ADMIN + "' "
-    		+ "or id = '" + ID_USER_ACCOUNT_INSPECTOR + "';";
 
-    private final String UPDATE_ROLES_CONTEXT_ADMIN = 
-            "INSERT INTO aa.escidoc_role "
-    		+ "(id, role_name, description, creator_id, creation_date, modified_by_id, last_modification_date) "
-    		+ "VALUES "
-    		+ "('escidoc:role-context-administrator', 'Context-Administrator', NULL, 'escidoc:exuser1', "
-    		+ "CURRENT_TIMESTAMP, 'escidoc:exuser1', CURRENT_TIMESTAMP);";
+    private final String ID_USER_ACCOUNT_ADMIN =
+        "escidoc:role-user-account-administrator";
 
-    private final String UPDATE_ROLES_CONTEXT_MODIFIER = 
+    private final String ID_USER_ACCOUNT_INSPECTOR =
+        "escidoc:role-user-account-inspector";
+
+    private final String QUERY_ROLES = "select id from aa.escidoc_role where "
+        + "id = '" + ID_CONTEXT_ADMIN + "' " + "or id = '"
+        + ID_CONTEXT_MODIFIER + "' " + "or id = '" + ID_USER_ACCOUNT_ADMIN
+        + "' " + "or id = '" + ID_USER_ACCOUNT_INSPECTOR + "';";
+
+    private final String UPDATE_ROLES_CONTEXT_ADMIN =
         "INSERT INTO aa.escidoc_role "
-    	+ "(id, role_name, description, creator_id, creation_date, modified_by_id, last_modification_date) "
-    	+ "VALUES ('escidoc:role-context-modifier', 'Context-Modifier', NULL, 'escidoc:exuser1', "
-    	+ "CURRENT_TIMESTAMP, 'escidoc:exuser1', CURRENT_TIMESTAMP);";
+            + "(id, role_name, description, creator_id, creation_date, modified_by_id, last_modification_date) "
+            + "VALUES "
+            + "('escidoc:role-context-administrator', 'Context-Administrator', NULL, 'escidoc:exuser1', "
+            + "CURRENT_TIMESTAMP, 'escidoc:exuser1', CURRENT_TIMESTAMP);";
 
-    private final String UPDATE_ROLES_USER_ACCOUNT_ADMIN = 
+    private final String UPDATE_ROLES_CONTEXT_MODIFIER =
         "INSERT INTO aa.escidoc_role "
-    	+ "(id, role_name, description, creator_id, creation_date, modified_by_id, last_modification_date) "
-    	+ "VALUES ('escidoc:role-user-account-administrator', 'User-Account-Administrator', NULL, 'escidoc:exuser1', "
-    	+ "CURRENT_TIMESTAMP, 'escidoc:exuser1', CURRENT_TIMESTAMP);";
+            + "(id, role_name, description, creator_id, creation_date, modified_by_id, last_modification_date) "
+            + "VALUES ('escidoc:role-context-modifier', 'Context-Modifier', NULL, 'escidoc:exuser1', "
+            + "CURRENT_TIMESTAMP, 'escidoc:exuser1', CURRENT_TIMESTAMP);";
 
-    private final String UPDATE_ROLES_USER_ACCOUNT_INSPECTOR = 
-    	"INSERT INTO aa.escidoc_role "
-    	+ "(id, role_name, description, creator_id, creation_date, modified_by_id, last_modification_date) "
-    	+ "VALUES "
-    	+ "('escidoc:role-user-account-inspector', 'User-Account-Inspector', NULL, 'escidoc:exuser1', "
-    	+ "CURRENT_TIMESTAMP, 'escidoc:exuser1', CURRENT_TIMESTAMP);";
+    private final String UPDATE_ROLES_USER_ACCOUNT_ADMIN =
+        "INSERT INTO aa.escidoc_role "
+            + "(id, role_name, description, creator_id, creation_date, modified_by_id, last_modification_date) "
+            + "VALUES ('escidoc:role-user-account-administrator', 'User-Account-Administrator', NULL, 'escidoc:exuser1', "
+            + "CURRENT_TIMESTAMP, 'escidoc:exuser1', CURRENT_TIMESTAMP);";
 
-     /**
+    private final String UPDATE_ROLES_USER_ACCOUNT_INSPECTOR =
+        "INSERT INTO aa.escidoc_role "
+            + "(id, role_name, description, creator_id, creation_date, modified_by_id, last_modification_date) "
+            + "VALUES "
+            + "('escidoc:role-user-account-inspector', 'User-Account-Inspector', NULL, 'escidoc:exuser1', "
+            + "CURRENT_TIMESTAMP, 'escidoc:exuser1', CURRENT_TIMESTAMP);";
+
+    /**
      * Construct a new DataBaseMigrationTool object.
      * 
      * @param driverClassName
@@ -140,8 +140,8 @@ public class AaMigrationTool extends DbDao
      * @param scriptPrefix
      *            prefix for database script names (mainly for MySQL)
      */
-    public AaMigrationTool(final String driverClassName,
-        final String url, final String username, final String password,
+    public AaMigrationTool(final String driverClassName, final String url,
+        final String username, final String password,
         final String scriptPrefix, final String creatorId) {
         this.driverClassName = driverClassName;
         this.url = url;
@@ -164,16 +164,16 @@ public class AaMigrationTool extends DbDao
     public void migrate() throws ApplicationServerSystemException {
         handleRoles();
     }
-    
+
     private void handleRoles() throws ApplicationServerSystemException {
         try {
-        	HashMap<String, String> roles = new HashMap<String, String>();
-        	roles.put(ID_CONTEXT_MODIFIER, UPDATE_ROLES_CONTEXT_MODIFIER);
-        	roles.put(ID_CONTEXT_ADMIN, UPDATE_ROLES_CONTEXT_ADMIN);
-        	roles.put(ID_USER_ACCOUNT_ADMIN, UPDATE_ROLES_USER_ACCOUNT_ADMIN);
-        	roles.put(ID_USER_ACCOUNT_INSPECTOR, UPDATE_ROLES_USER_ACCOUNT_INSPECTOR);
-            List result = getJdbcTemplate().queryForList(
-                                QUERY_ROLES);
+            HashMap<String, String> roles = new HashMap<String, String>();
+            roles.put(ID_CONTEXT_MODIFIER, UPDATE_ROLES_CONTEXT_MODIFIER);
+            roles.put(ID_CONTEXT_ADMIN, UPDATE_ROLES_CONTEXT_ADMIN);
+            roles.put(ID_USER_ACCOUNT_ADMIN, UPDATE_ROLES_USER_ACCOUNT_ADMIN);
+            roles.put(ID_USER_ACCOUNT_INSPECTOR,
+                UPDATE_ROLES_USER_ACCOUNT_INSPECTOR);
+            List result = getJdbcTemplate().queryForList(QUERY_ROLES);
             if (result != null) {
                 for (Iterator iter = result.iterator(); iter.hasNext();) {
                     Map map = (Map) iter.next();
@@ -182,14 +182,15 @@ public class AaMigrationTool extends DbDao
                 }
             }
             for (String roleSql : roles.values()) {
-            	getJdbcTemplate().update(roleSql);
+                getJdbcTemplate().update(roleSql);
             }
-        } catch (Exception e) {
-            log.error(e);
+        }
+        catch (Exception e) {
+            log.error(e.getMessage(), e);
             throw new ApplicationServerSystemException(e);
         }
     }
-    
+
     /**
      * Injects the data source.
      * 

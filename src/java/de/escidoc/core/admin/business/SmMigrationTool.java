@@ -37,6 +37,8 @@ import javax.sql.DataSource;
 
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Target;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.escidoc.core.admin.business.interfaces.SmMigrationInterface;
 import de.escidoc.core.admin.common.util.stax.handler.AggregationDefinitionStaxHandler;
@@ -51,7 +53,6 @@ import de.escidoc.core.admin.common.util.vo.ReportDefinitionRoleVo;
 import de.escidoc.core.admin.common.util.vo.ReportDefinitionVo;
 import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException;
 import de.escidoc.core.common.exceptions.system.IntegritySystemException;
-import de.escidoc.core.common.util.logger.AppLogger;
 import de.escidoc.core.common.util.stax.StaxParser;
 import de.escidoc.core.common.util.xml.XmlUtility;
 
@@ -64,13 +65,11 @@ import de.escidoc.core.common.util.xml.XmlUtility;
  * @spring.bean id="de.escidoc.core.admin.SmMigrationTool"
  * 
  */
-public class SmMigrationTool extends DbDao
-    implements SmMigrationInterface {
+public class SmMigrationTool extends DbDao implements SmMigrationInterface {
     /**
      * The logger.
      */
-    private static AppLogger log =
-        new AppLogger(SmMigrationTool.class.getName());
+    private static Logger log = LoggerFactory.getLogger(SmMigrationTool.class);
 
     /**
      * Database settings.
@@ -84,7 +83,7 @@ public class SmMigrationTool extends DbDao
     private final String password;
 
     private final String scriptPrefix;
-    
+
     private final String creatorId;
 
     /**
@@ -97,49 +96,49 @@ public class SmMigrationTool extends DbDao
     /**
      * Queries.
      */
-    private final String QUERY_AGGREGATION_DEFINITIONS = 
-                "select * from sm.aggregation_definitions;";
+    private final String QUERY_AGGREGATION_DEFINITIONS =
+        "select * from sm.aggregation_definitions;";
 
-    private final String QUERY_REPORT_DEFINITIONS = 
+    private final String QUERY_REPORT_DEFINITIONS =
         "select * from sm.report_definitions;";
 
-    private final String QUERY_ROLE_ID = 
+    private final String QUERY_ROLE_ID =
         "select id from aa.escidoc_role where lower(role_name) = ?;";
 
-    private final String UPDATE_AGGREGATION_TABLES = 
-            "insert into sm.aggregation_tables "
+    private final String UPDATE_AGGREGATION_TABLES =
+        "insert into sm.aggregation_tables "
             + "(id, aggregation_definition_id, name, list_index) "
             + "values (?, ?, ?, ?)";
 
-    private final String UPDATE_AGGREGATION_TABLE_FIELDS = 
+    private final String UPDATE_AGGREGATION_TABLE_FIELDS =
         "insert into sm.aggregation_table_fields "
-        + "(id, aggregation_table_id, field_type_id, name, feed, xpath, data_type, reduce_to, list_index) "
-        + "values (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            + "(id, aggregation_table_id, field_type_id, name, feed, xpath, data_type, reduce_to, list_index) "
+            + "values (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-    private final String UPDATE_AGGREGATION_TABLE_INDEXES = 
+    private final String UPDATE_AGGREGATION_TABLE_INDEXES =
         "insert into sm.aggregation_table_indexes "
-        + "(id, aggregation_table_id, name, list_index) "
-        + "values (?, ?, ?, ?)";
+            + "(id, aggregation_table_id, name, list_index) "
+            + "values (?, ?, ?, ?)";
 
-    private final String UPDATE_AGGREGATION_TABLE_INDEX_FIELDS = 
+    private final String UPDATE_AGGREGATION_TABLE_INDEX_FIELDS =
         "insert into sm.aggregation_table_index_fields "
-        + "(id, aggregation_table_index_id, field, list_index) "
-        + "values (?, ?, ?, ?)";
+            + "(id, aggregation_table_index_id, field, list_index) "
+            + "values (?, ?, ?, ?)";
 
-    private final String UPDATE_AGGREGATION_STATISTIC_DATA_SELECTORS = 
+    private final String UPDATE_AGGREGATION_STATISTIC_DATA_SELECTORS =
         "insert into sm.agg_stat_data_selectors "
-        + "(id, aggregation_definition_id, selector_type, xpath, list_index) "
-        + "values (?, ?, ?, ?, ?)";
+            + "(id, aggregation_definition_id, selector_type, xpath, list_index) "
+            + "values (?, ?, ?, ?, ?)";
 
-    private final String UPDATE_REPORT_DEFINITION_ROLES = 
+    private final String UPDATE_REPORT_DEFINITION_ROLES =
         "insert into sm.report_definition_roles "
-        + "(id, report_definition_id, role_id, list_index) "
-        + "values (?, ?, ?, ?)";
+            + "(id, report_definition_id, role_id, list_index) "
+            + "values (?, ?, ?, ?)";
 
-    private final String DROP_AGGREGATION_DEFINITION_XML_DATA = 
+    private final String DROP_AGGREGATION_DEFINITION_XML_DATA =
         "ALTER TABLE sm.aggregation_definitions DROP COLUMN xml_data";
 
-    private final String DROP_REPORT_DEFINITION_XML_DATA = 
+    private final String DROP_REPORT_DEFINITION_XML_DATA =
         "ALTER TABLE sm.report_definitions DROP COLUMN xml_data";
 
     /**
@@ -156,8 +155,8 @@ public class SmMigrationTool extends DbDao
      * @param scriptPrefix
      *            prefix for database script names (mainly for MySQL)
      */
-    public SmMigrationTool(final String driverClassName,
-        final String url, final String username, final String password,
+    public SmMigrationTool(final String driverClassName, final String url,
+        final String username, final String password,
         final String scriptPrefix, final String creatorId) {
         this.driverClassName = driverClassName;
         this.url = url;
@@ -182,78 +181,85 @@ public class SmMigrationTool extends DbDao
         handleReportDefinitions();
         dropFields();
     }
-    
-    private void handleAggregationDefinitions() throws ApplicationServerSystemException {
+
+    private void handleAggregationDefinitions()
+        throws ApplicationServerSystemException {
         try {
-            List result = getJdbcTemplate().queryForList(
-                                QUERY_AGGREGATION_DEFINITIONS);
+            List result =
+                getJdbcTemplate().queryForList(QUERY_AGGREGATION_DEFINITIONS);
             for (Iterator iter = result.iterator(); iter.hasNext();) {
                 Map map = (Map) iter.next();
                 String xml = (String) map.get("xml_data");
                 StaxParser sp = new StaxParser();
                 AggregationDefinitionStaxHandler handler =
-                        new AggregationDefinitionStaxHandler(sp);
+                    new AggregationDefinitionStaxHandler(sp);
                 sp.addHandler(handler);
 
                 sp.parse(new ByteArrayInputStream(xml
-                        .getBytes(XmlUtility.CHARACTER_ENCODING)));
-                AggregationDefinitionVo aggregationDefinitionVo = 
-                                handler.getAggregationDefinition();
+                    .getBytes(XmlUtility.CHARACTER_ENCODING)));
+                AggregationDefinitionVo aggregationDefinitionVo =
+                    handler.getAggregationDefinition();
                 writeTables(aggregationDefinitionVo);
                 writeStatisticDataSelectors(aggregationDefinitionVo);
             }
-        } catch (Exception e) {
-            log.error(e);
+        }
+        catch (Exception e) {
+            log.error(e.getMessage(), e);
             throw new ApplicationServerSystemException(e);
         }
     }
-    
-    private void handleReportDefinitions() throws ApplicationServerSystemException {
+
+    private void handleReportDefinitions()
+        throws ApplicationServerSystemException {
         try {
-            List result = getJdbcTemplate().queryForList(
-                                QUERY_REPORT_DEFINITIONS);
+            List result =
+                getJdbcTemplate().queryForList(QUERY_REPORT_DEFINITIONS);
             for (Iterator iter = result.iterator(); iter.hasNext();) {
                 Map map = (Map) iter.next();
                 String xml = (String) map.get("xml_data");
                 StaxParser sp = new StaxParser();
                 ReportDefinitionStaxHandler handler =
-                        new ReportDefinitionStaxHandler(sp);
+                    new ReportDefinitionStaxHandler(sp);
                 sp.addHandler(handler);
 
                 sp.parse(new ByteArrayInputStream(xml
-                        .getBytes(XmlUtility.CHARACTER_ENCODING)));
-                ReportDefinitionVo reportDefinitionVo = 
-                                handler.getReportDefinitionVo();
+                    .getBytes(XmlUtility.CHARACTER_ENCODING)));
+                ReportDefinitionVo reportDefinitionVo =
+                    handler.getReportDefinitionVo();
                 writeAllowedRoles(reportDefinitionVo);
             }
-        } catch (Exception e) {
-            log.error(e);
+        }
+        catch (Exception e) {
+            log.error(e.getMessage(), e);
             throw new ApplicationServerSystemException(e);
         }
     }
-    
+
     private void dropFields() throws ApplicationServerSystemException {
         try {
             getJdbcTemplate().execute(DROP_AGGREGATION_DEFINITION_XML_DATA);
             getJdbcTemplate().execute(DROP_REPORT_DEFINITION_XML_DATA);
-        } catch (Exception e) {
-            log.error(e);
+        }
+        catch (Exception e) {
+            log.error(e.getMessage(), e);
             throw new ApplicationServerSystemException(e);
         }
     }
-    
+
     private void writeTables(AggregationDefinitionVo aggregationDefinitionVo) {
         for (AggregationTableVo aggregationTableVo : aggregationDefinitionVo
-                .getAggregationTables()) {
-            getJdbcTemplate().update(UPDATE_AGGREGATION_TABLES,
-                    new Object[] { aggregationTableVo.getId(),
+            .getAggregationTables()) {
+            getJdbcTemplate().update(
+                UPDATE_AGGREGATION_TABLES,
+                new Object[] { aggregationTableVo.getId(),
                     aggregationDefinitionVo.getId(),
                     aggregationTableVo.getName(),
                     aggregationTableVo.getListIndex() });
             for (AggregationTableFieldVo aggregationTableFieldVo : aggregationTableVo
-                    .getAggregationTableFields()) {
-                getJdbcTemplate().update(UPDATE_AGGREGATION_TABLE_FIELDS,
-                        new Object[] { aggregationTableFieldVo.getId(),
+                .getAggregationTableFields()) {
+                getJdbcTemplate().update(
+                    UPDATE_AGGREGATION_TABLE_FIELDS,
+                    new Object[] { aggregationTableFieldVo.getId(),
                         aggregationTableVo.getId(),
                         aggregationTableFieldVo.getFieldTypeId(),
                         aggregationTableFieldVo.getName(),
@@ -265,68 +271,62 @@ public class SmMigrationTool extends DbDao
 
             }
             for (AggregationTableIndexVo aggregationTableIndexVo : aggregationTableVo
-                    .getAggregationTableIndexes()) {
-                getJdbcTemplate().update(UPDATE_AGGREGATION_TABLE_INDEXES,
-                        new Object[] { aggregationTableIndexVo.getId(),
+                .getAggregationTableIndexes()) {
+                getJdbcTemplate().update(
+                    UPDATE_AGGREGATION_TABLE_INDEXES,
+                    new Object[] { aggregationTableIndexVo.getId(),
                         aggregationTableVo.getId(),
                         aggregationTableIndexVo.getName(),
                         aggregationTableIndexVo.getListIndex() });
-                for (AggregationTableIndexFieldVo aggregationTableIndexFieldVo 
-                        : aggregationTableIndexVo.getAggregationTableIndexFields()) {
-                    getJdbcTemplate().update(UPDATE_AGGREGATION_TABLE_INDEX_FIELDS,
+                for (AggregationTableIndexFieldVo aggregationTableIndexFieldVo : aggregationTableIndexVo
+                    .getAggregationTableIndexFields()) {
+                    getJdbcTemplate().update(
+                        UPDATE_AGGREGATION_TABLE_INDEX_FIELDS,
                         new Object[] { aggregationTableIndexFieldVo.getId(),
-                        aggregationTableIndexVo.getId(),
-                        aggregationTableIndexFieldVo.getField(),
-                        aggregationTableIndexFieldVo.getListIndex() });
+                            aggregationTableIndexVo.getId(),
+                            aggregationTableIndexFieldVo.getField(),
+                            aggregationTableIndexFieldVo.getListIndex() });
                 }
 
             }
         }
     }
-    
+
     private void writeStatisticDataSelectors(
-            AggregationDefinitionVo aggregationDefinitionVo) {
+        AggregationDefinitionVo aggregationDefinitionVo) {
         for (AggregationStatisticDataSelectorVo aggregationStatisticDataSelectorVo : aggregationDefinitionVo
-                .getAggregationStatisticDataSelectors()) {
-            getJdbcTemplate()
-                    .update(
-                            UPDATE_AGGREGATION_STATISTIC_DATA_SELECTORS,
-                            new Object[] {
-                                    aggregationStatisticDataSelectorVo.getId(),
-                                    aggregationDefinitionVo.getId(),
-                                    aggregationStatisticDataSelectorVo
-                                            .getSelectorType(),
-                                    aggregationStatisticDataSelectorVo
-                                            .getXpath(),
-                                    aggregationStatisticDataSelectorVo
-                                            .getListIndex() });
+            .getAggregationStatisticDataSelectors()) {
+            getJdbcTemplate().update(
+                UPDATE_AGGREGATION_STATISTIC_DATA_SELECTORS,
+                new Object[] { aggregationStatisticDataSelectorVo.getId(),
+                    aggregationDefinitionVo.getId(),
+                    aggregationStatisticDataSelectorVo.getSelectorType(),
+                    aggregationStatisticDataSelectorVo.getXpath(),
+                    aggregationStatisticDataSelectorVo.getListIndex() });
         }
     }
-    
-    private void writeAllowedRoles(
-            ReportDefinitionVo reportDefinitionVo) {
+
+    private void writeAllowedRoles(ReportDefinitionVo reportDefinitionVo) {
         for (ReportDefinitionRoleVo reportDefinitionRoleVo : reportDefinitionVo
-                .getReportDefinitionRoles()) {
+            .getReportDefinitionRoles()) {
             String roleId = reportDefinitionRoleVo.getRoleId();
             try {
-                List result = getJdbcTemplate().queryForList(
-                        QUERY_ROLE_ID,
-                        new Object[] {roleId.toLowerCase()});
+                List result =
+                    getJdbcTemplate().queryForList(QUERY_ROLE_ID,
+                        new Object[] { roleId.toLowerCase() });
                 if (result != null && !result.isEmpty()) {
                     Map map = (Map) result.iterator().next();
                     roleId = (String) map.get("id");
                 }
-            } catch (Exception e) {}
-            
-            getJdbcTemplate()
-                    .update(
-                    UPDATE_REPORT_DEFINITION_ROLES,
-                    new Object[] {
-                    reportDefinitionRoleVo.getId(),
-                    reportDefinitionVo.getId(),
-                    roleId,
-                    reportDefinitionRoleVo
-                    .getListIndex() });
+            }
+            catch (Exception e) {
+            }
+
+            getJdbcTemplate().update(
+                UPDATE_REPORT_DEFINITION_ROLES,
+                new Object[] { reportDefinitionRoleVo.getId(),
+                    reportDefinitionVo.getId(), roleId,
+                    reportDefinitionRoleVo.getListIndex() });
         }
     }
 

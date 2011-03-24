@@ -28,8 +28,6 @@
  */
 package de.escidoc.core.admin.business;
 
-import de.escidoc.core.common.util.logger.AppLogger;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -47,6 +45,9 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This tool does XSL transformation on a set of files. It is a replacement for
@@ -79,8 +80,8 @@ public class FoxmlMigrationTool {
     /**
      * The logger.
      */
-    private static AppLogger log =
-        new AppLogger(FoxmlMigrationTool.class.getName());
+    private static Logger log = LoggerFactory
+        .getLogger(FoxmlMigrationTool.class);
 
     private final String srcDirectory;
 
@@ -134,9 +135,10 @@ public class FoxmlMigrationTool {
     /**
      * Create the complete path for the target Foxml file from the source Foxml
      * file.
-     *
-     * @param srcPath path to the source Foxml file
-     *
+     * 
+     * @param srcPath
+     *            path to the source Foxml file
+     * 
      * @return path to the target Foxml file
      */
     private File getDestPath(final String srcPath) {
@@ -147,14 +149,16 @@ public class FoxmlMigrationTool {
     /**
      * Scan a directory recursively and start the XSL transformation for every
      * file.
-     *
-     * @param dirName name of the directory to scan
-     *
-     * @throws Exception thrown if the XSL transformation failed
+     * 
+     * @param dirName
+     *            name of the directory to scan
+     * 
+     * @throws Exception
+     *             thrown if the XSL transformation failed
      */
     private void scanDir(final String dirName) throws Exception {
         File directory = new File(dirName);
-        String [] files = directory.list();
+        String[] files = directory.list();
 
         if (files != null) {
             for (String f : files) {

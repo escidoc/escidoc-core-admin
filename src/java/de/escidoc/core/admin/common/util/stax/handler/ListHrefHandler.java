@@ -30,8 +30,10 @@ package de.escidoc.core.admin.common.util.stax.handler;
 
 import java.util.Vector;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import de.escidoc.core.common.exceptions.application.missing.MissingAttributeValueException;
-import de.escidoc.core.common.util.logger.AppLogger;
 import de.escidoc.core.common.util.stax.StaxParser;
 import de.escidoc.core.common.util.xml.stax.events.Attribute;
 import de.escidoc.core.common.util.xml.stax.events.StartElement;
@@ -49,17 +51,16 @@ public class ListHrefHandler extends DefaultHandler {
     public static final String XLINK_URI = "http://www.w3.org/1999/xlink";
 
     private StaxParser parser;
-    
+
     private String listName;
-    
+
     private String listElementName;
 
     private Vector<String> hrefs = new Vector<String>();
 
     private int numberOfRecords = -1;
 
-    private static AppLogger log =
-        new AppLogger(ListHrefHandler.class.getName());
+    private static Logger log = LoggerFactory.getLogger(ListHrefHandler.class);
 
     /**
      * initialize handler with StaxParser.
@@ -73,9 +74,8 @@ public class ListHrefHandler extends DefaultHandler {
      * 
      * @admin
      */
-    public ListHrefHandler(final StaxParser parser,
-                                final String listName,
-                                final String listElementName) {
+    public ListHrefHandler(final StaxParser parser, final String listName,
+        final String listElementName) {
         this.parser = parser;
         this.listName = listName;
         this.listElementName = listElementName;
@@ -88,7 +88,8 @@ public class ListHrefHandler extends DefaultHandler {
      * @param element
      *            StartElement.
      * @return StartElement element
-     * @throws MissingAttributeValueException e
+     * @throws MissingAttributeValueException
+     *             e
      * 
      * @admin
      */
@@ -101,13 +102,13 @@ public class ListHrefHandler extends DefaultHandler {
         String currentPath = parser.getCurPath();
 
         if (listPath.equals(currentPath)) {
-            int indexOfNumberOfRecords = element.indexOfAttribute(
-                                            null, "number-of-records");
+            int indexOfNumberOfRecords =
+                element.indexOfAttribute(null, "number-of-records");
             if (indexOfNumberOfRecords != (-1)) {
-                Attribute recordNumberAttribute = 
+                Attribute recordNumberAttribute =
                     element.getAttribute(indexOfNumberOfRecords);
-                numberOfRecords = Integer.parseInt(
-                        recordNumberAttribute.getValue());
+                numberOfRecords =
+                    Integer.parseInt(recordNumberAttribute.getValue());
             }
         }
         if (listElementRefPath.equals(currentPath)) {

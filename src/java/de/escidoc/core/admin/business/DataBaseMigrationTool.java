@@ -35,7 +35,6 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.MessageFormat;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.TreeSet;
 
@@ -45,6 +44,8 @@ import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Target;
 import org.apache.tools.ant.taskdefs.SQLExec;
 import org.apache.tools.ant.types.FileSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 
@@ -55,7 +56,6 @@ import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException
 import de.escidoc.core.common.exceptions.system.IntegritySystemException;
 import de.escidoc.core.common.util.Version;
 import de.escidoc.core.common.util.db.Fingerprint;
-import de.escidoc.core.common.util.logger.AppLogger;
 
 /**
  * Provides a method used for migrating the database to the most current
@@ -130,8 +130,8 @@ public class DataBaseMigrationTool extends DbDao
     /**
      * The logger.
      */
-    private static AppLogger log = new AppLogger(
-        DataBaseMigrationTool.class.getName());
+    private static Logger log = LoggerFactory
+        .getLogger(DataBaseMigrationTool.class);
 
     /**
      * Database settings.

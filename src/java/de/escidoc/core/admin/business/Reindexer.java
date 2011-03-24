@@ -46,6 +46,8 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.util.EntityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.escidoc.core.admin.business.interfaces.ReindexerInterface;
 import de.escidoc.core.admin.common.util.EscidocCoreHandler;
@@ -55,7 +57,6 @@ import de.escidoc.core.common.business.fedora.resources.ResourceType;
 import de.escidoc.core.common.exceptions.system.ApplicationServerSystemException;
 import de.escidoc.core.common.exceptions.system.SystemException;
 import de.escidoc.core.common.util.configuration.EscidocConfiguration;
-import de.escidoc.core.common.util.logger.AppLogger;
 import de.escidoc.core.common.util.stax.StaxParser;
 import de.escidoc.core.common.util.stax.handler.IndexConfigurationStaxHandler;
 import de.escidoc.core.common.util.xml.XmlUtility;
@@ -123,11 +124,9 @@ public class Reindexer implements ReindexerInterface {
     private static final String INDEX_CONFIGURATION_URL =
         "/adm/admin/get-index-configuration";
 
-    private static final String ADMIN_REINDEXING_URL =
-        "/adm/admin/reindex/";
+    private static final String ADMIN_REINDEXING_URL = "/adm/admin/reindex/";
 
-    private static final AppLogger LOG = new AppLogger(
-        Reindexer.class.getName());
+    private static final Logger LOG = LoggerFactory.getLogger(Reindexer.class);
 
     private HashMap<String, HashMap<String, HashMap<String, Object>>> indexConfiguration =
         null;
@@ -285,8 +284,8 @@ public class Reindexer implements ReindexerInterface {
      *             Thrown if an internal error occurred.
      */
     public String indexViaAdminInterface() throws SystemException {
-    	return escidocCoreHandler.postRequestEscidoc(
-    			ADMIN_REINDEXING_URL + this.clearIndex + "/" + this.indexName, null);
+        return escidocCoreHandler.postRequestEscidoc(ADMIN_REINDEXING_URL
+            + this.clearIndex + "/" + this.indexName, null);
     }
 
     /**
@@ -535,7 +534,7 @@ public class Reindexer implements ReindexerInterface {
             this.indexService.index(indexRequest);
         }
         catch (Exception e) {
-            LOG.error(e);
+            LOG.error(e.getMessage(), e);
             throw new ApplicationServerSystemException(e);
         }
     }
@@ -557,13 +556,11 @@ public class Reindexer implements ReindexerInterface {
                 .createIndexRequest()
                 .withAction(
                     Constants.INDEXER_QUEUE_ACTION_PARAMETER_CREATE_EMPTY_VALUE)
-                .withIndexName(indexName)
-                .withObjectType(objectType.getUri())
-                .withIsReindexerCaller(true)
-                .build();
+                .withIndexName(indexName).withObjectType(objectType.getUri())
+                .withIsReindexerCaller(true).build();
         }
         catch (Exception e) {
-            LOG.error(e);
+            LOG.error(e.getMessage(), e);
             throw new ApplicationServerSystemException(e);
         }
     }

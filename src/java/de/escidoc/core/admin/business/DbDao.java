@@ -3,10 +3,11 @@ package de.escidoc.core.admin.business;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.support.JdbcDaoSupport;
 
 import de.escidoc.core.admin.business.interfaces.DbDaoInterface;
-import de.escidoc.core.common.util.logger.AppLogger;
 import de.escidoc.core.common.util.string.StringUtility;
 
 /**
@@ -20,7 +21,7 @@ public abstract class DbDao extends JdbcDaoSupport implements DbDaoInterface {
     /**
      * The logger.
      */
-    private static AppLogger log = new AppLogger(DbDao.class.getName());
+    private static Logger log = LoggerFactory.getLogger(DbDao.class);
 
     /**
      * The url to the used database.
@@ -39,9 +40,7 @@ public abstract class DbDao extends JdbcDaoSupport implements DbDaoInterface {
         InputStream resource =
             getClass().getClassLoader().getResourceAsStream(scriptName);
         if (resource == null) {
-            throw new IOException(StringUtility
-                .concatenateWithBracketsToString("Resource not found",
-                    scriptName));
+            throw new IOException("Resource \"" + scriptName + "\" not found");
         }
         executeSqlScript(resource);
     }

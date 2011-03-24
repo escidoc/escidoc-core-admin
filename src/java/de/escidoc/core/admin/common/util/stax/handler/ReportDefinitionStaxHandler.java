@@ -37,7 +37,6 @@ import de.escidoc.core.admin.common.util.vo.ReportDefinitionRoleVo;
 import de.escidoc.core.admin.common.util.vo.ReportDefinitionVo;
 import de.escidoc.core.common.exceptions.application.missing.MissingAttributeValueException;
 import de.escidoc.core.common.util.stax.StaxParser;
-import de.escidoc.core.common.util.string.StringUtility;
 import de.escidoc.core.common.util.xml.XmlUtility;
 import de.escidoc.core.common.util.xml.stax.events.AbstractElement;
 import de.escidoc.core.common.util.xml.stax.events.StartElement;
@@ -54,9 +53,9 @@ public class ReportDefinitionStaxHandler extends DefaultHandler {
     private ReportDefinitionVo reportDefinitionVo = new ReportDefinitionVo();
 
     private StaxParser parser;
-    
+
     private int allowedRolesIndex = 0;
-    
+
     private static final Pattern PATTERN_GET_ID_FROM_URI_OR_FEDORA_ID = Pattern
         .compile(".*/([^/>]+)>{0,1}");
 
@@ -79,33 +78,37 @@ public class ReportDefinitionStaxHandler extends DefaultHandler {
     /**
      * Handle startElement event.
      * 
-     * @param element startElement
+     * @param element
+     *            startElement
      * @return StartElement startElement
-     * @throws Exception e
+     * @throws Exception
+     *             e
      * 
      * @sm
      */
-    public StartElement startElement(final StartElement element) throws Exception {
+    public StartElement startElement(final StartElement element)
+        throws Exception {
         if ("allowed-role".equals(element.getLocalName())) {
             String objId = getIdFromStartElement(element);
             if (objId != null) {
                 allowedRolesIndex++;
-                ReportDefinitionRoleVo reportDefinitionRoleVo = 
-                                        new ReportDefinitionRoleVo();
-                reportDefinitionRoleVo.setId(
-                        reportDefinitionVo.getId() + "role" + allowedRolesIndex);
+                ReportDefinitionRoleVo reportDefinitionRoleVo =
+                    new ReportDefinitionRoleVo();
+                reportDefinitionRoleVo.setId(reportDefinitionVo.getId()
+                    + "role" + allowedRolesIndex);
                 reportDefinitionRoleVo.setRoleId(objId);
                 reportDefinitionRoleVo.setListIndex(allowedRolesIndex);
-                reportDefinitionVo.getReportDefinitionRoles()
-                                    .add(reportDefinitionRoleVo);
+                reportDefinitionVo.getReportDefinitionRoles().add(
+                    reportDefinitionRoleVo);
             }
         }
         else if ("report-definition".equals(element.getLocalName())) {
             try {
-                String reportDefinitionId = 
-                    getIdFromStartElement(element);
+                String reportDefinitionId = getIdFromStartElement(element);
                 reportDefinitionVo.setId(reportDefinitionId);
-            } catch (MissingAttributeValueException e) {}
+            }
+            catch (MissingAttributeValueException e) {
+            }
         }
         return element;
     }
@@ -186,9 +189,8 @@ public class ReportDefinitionStaxHandler extends DefaultHandler {
         throws MissingAttributeValueException {
 
         throw new MissingAttributeValueException(
-            StringUtility.concatenateWithBracketsToString(
-                XmlUtility.ERR_MSG_MISSING_ATTRIBUTE, element.getPath(),
-                attributeName, element.getLocationString()));
+            XmlUtility.ERR_MSG_MISSING_ATTRIBUTE + " \"" + element.getPath()
+                + attributeName + element.getLocationString() + "\"");
     }
 
     /**
