@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="eSciDoc infrastructure admin tool - main build file" default="dist" basedir=".">
+<project name="eSciDoc infrastructure admin tool - main build file" default="dist" basedir="." xmlns:artifact="antlib:org.apache.maven.artifact.ant">
 
 	<property environment="env" />
 	<property file="etc/${user.name}.properties" />
 	<property file="etc/project.properties" />
+
+        <!-- properties for deployment to Artifactory -->
+        <property name="artifactory.url" value="https://www.escidoc.org/artifactory/libs-snapshots-local" />
+        <!-- user name and password must be given from the command line via -Dusername=... -Dpassword=... -->
+        <property name="artifactory.user" value="${username}" />
+        <property name="artifactory.password" value="${password}" />
 
 	<path id="libs">
 		<fileset dir="${lib.dir}">
@@ -143,5 +149,26 @@
 			</else>
 		</if>
 	</target>
+
+        <target name="deploy" depends="dist" description="Deploy zip file to local repository and Artifactory">
+                <artifact:pom id="memorypom" groupId="org.escidoc.core" artifactId="migration-tool" version="${build.version}" name="eSciDoc Migration Tool" />
+
+                <!-- The install and deploy tasks cannot use the in-memory-POM directly so we have to write it into a file first. -->
+                <artifact:writepom pomRefId="memorypom" file="${dist.build.dir}/escidoc-core-admin-${build.version}.pom" />
+                <artifact:pom id="filepom" file="${dist.build.dir}/escidoc-core-admin-${build.version}.pom" />
+
+                <!-- install into local repository -->
+                <artifact:install file="${dist.build.dir}/escidoc-core-admin-${build.version}.zip">
+                        <pom refid="filepom" />
+                </artifact:install>
+
+                <!-- copy to Artifactory -->
+                <artifact:deploy file="${dist.build.dir}/escidoc-core-admin-${build.version}.zip">
+                        <remoteRepository url="${artifactory.url}">
+                                <authentication username="${artifactory.user}" password="${artifactory.password}" />
+                        </remoteRepository>
+                        <pom refid="filepom" />
+                </artifact:deploy>
+        </target>
 
 </project>
