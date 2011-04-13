@@ -151,7 +151,7 @@
 	</target>
 
         <target name="deploy" depends="dist" description="Deploy zip file to local repository and Artifactory">
-                <artifact:pom id="memorypom" groupId="org.escidoc.core" artifactId="migration-tool" version="${build.version}" name="eSciDoc Migration Tool" />
+                <artifact:pom id="memorypom" groupId="org.escidoc.core" artifactId="migration-tool" version="${build.version}" name="eSciDoc Migration Tool" packaging="zip" />
 
                 <!-- The install and deploy tasks cannot use the in-memory-POM directly so we have to write it into a file first. -->
                 <artifact:writepom pomRefId="memorypom" file="${dist.build.dir}/escidoc-core-admin-${build.version}.pom" />
