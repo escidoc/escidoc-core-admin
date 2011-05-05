@@ -1,3 +1,100 @@
+    /**
+     * Role Audience
+     */
+INSERT INTO aa.escidoc_role
+    (id, role_name, creator_id, creation_date, modified_by_id, last_modification_date)
+    (SELECT  'escidoc:role-audience' AS id,
+             'Audience' AS role_name,
+             '@creator_id@' AS creator_id,
+             CURRENT_TIMESTAMP AS creation_date,
+             '@creator_id@' AS modified_by_id,
+             CURRENT_TIMESTAMP AS last_modification_date WHERE NOT EXISTS (SELECT 1 FROM aa.escidoc_role WHERE id='escidoc:role-audience'));
+    
+        /** 
+         * Role Audience Scope
+         */  
+INSERT INTO aa.scope_def 
+    (id, role_id, object_type, attribute_id)
+    (SELECT 'escidoc:scope-def-role-audience' AS id,
+            'escidoc:role-audience' AS role_id,
+            'component' AS object_type, 
+            'info:escidoc/names:aa:1.0:resource:component-id' AS attribute_id WHERE NOT EXISTS (SELECT 1 FROM aa.scope_def WHERE id='escidoc:scope-def-role-audience'));
+
+        /**
+         * Role Audience Policies
+         */
+            /**
+             * An Audience is allowed to retrieve content of components of released items 
+             * if visibility of component is 'audience'.
+             */
+INSERT INTO aa.escidoc_policies
+  (id, role_id, xml)
+  (SELECT 'escidoc:audience-policy-1' AS id,
+          'escidoc:role-audience' AS role_id,
+          '<Policy PolicyId="Audience-policy" RuleCombiningAlgId="urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:ordered-permit-overrides">
+  <Target>
+    <Subjects>
+      <AnySubject/>
+    </Subjects>
+
+    <Resources>
+      <AnyResource/>
+    </Resources>
+    <Actions>
+      <Action>
+        <ActionMatch MatchId="info:escidoc/names:aa:1.0:function:string-contains">
+          <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">info:escidoc/names:aa:1.0:action:retrieve-content</AttributeValue>
+          <ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" DataType="http://www.w3.org/2001/XMLSchema#string"/>
+
+        </ActionMatch>
+      </Action>
+    </Actions>
+  </Target>
+  <Rule RuleId="Audience-policy-rule-0" Effect="Permit">
+    <Target>
+      <Subjects>
+        <AnySubject/>
+      </Subjects>
+
+      <Resources>
+        <AnyResource/>
+      </Resources>
+      <Actions>
+        <Action>
+          <ActionMatch MatchId="info:escidoc/names:aa:1.0:function:string-contains">
+            <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">info:escidoc/names:aa:1.0:action:retrieve-content</AttributeValue>
+            <ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" DataType="http://www.w3.org/2001/XMLSchema#string"/>
+
+          </ActionMatch>
+        </Action>
+      </Actions>
+    </Target>
+    <Condition FunctionId="urn:oasis:names:tc:xacml:1.0:function:and">
+      <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:not">
+        <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+          <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-one-and-only">
+            <ResourceAttributeDesignator AttributeId="info:escidoc/names:aa:1.0:resource:component:item:public-status" DataType="http://www.w3.org/2001/XMLSchema#string"/>
+
+          </Apply>
+          <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">withdrawn</AttributeValue>
+        </Apply>
+      </Apply>
+      <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+        <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-one-and-only">
+          <ResourceAttributeDesignator AttributeId="info:escidoc/names:aa:1.0:resource:component:visibility" DataType="http://www.w3.org/2001/XMLSchema#string"/>
+        </Apply>
+        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">audience</AttributeValue>
+      </Apply>
+
+      <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+        <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-one-and-only">
+          <ResourceAttributeDesignator AttributeId="info:escidoc/names:aa:1.0:resource:component:item:version-status" DataType="http://www.w3.org/2001/XMLSchema#string"/>
+        </Apply>
+        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">released</AttributeValue>
+      </Apply>
+    </Condition>
+  </Rule>
+</Policy>' AS xml WHERE NOT EXISTS (SELECT 1 FROM aa.escidoc_policies WHERE id='escidoc:audience-policy-1'));
 DROP INDEX IF EXISTS aa.user_login_data_idx;
 CREATE INDEX user_login_data_idx
 ON aa.user_login_data (handle);
@@ -408,7 +505,7 @@ DELETE FROM aa.actions WHERE id='escidoc:action-recache';
 INSERT INTO aa.escidoc_role
     (id, role_name, creator_id, creation_date, modified_by_id, last_modification_date)
      VALUES
-    ('escidoc:role-ou-administrator', 'OU-Administrator', 'escidoc:exuser1', CURRENT_TIMESTAMP, 'escidoc:exuser1',
+    ('escidoc:role-ou-administrator', 'OU-Administrator', '@creator_id@', CURRENT_TIMESTAMP, '@creator_id@',
     CURRENT_TIMESTAMP);
     
         /** 

@@ -5,7 +5,7 @@ INSERT INTO aa.escidoc_role
     (id, role_name, creator_id, creation_date, modified_by_id, last_modification_date)
      VALUES
     ('escidoc:role-collaborator-modifier-container-update-direct-members', 
-    'Collaborator-Modifier-Container-update-direct-members', 'escidoc:user42', CURRENT_TIMESTAMP, 'escidoc:user42',
+    'Collaborator-Modifier-Container-update-direct-members', '@creator_id@', CURRENT_TIMESTAMP, '@creator_id@',
     CURRENT_TIMESTAMP);
     
         /** 
