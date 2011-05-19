@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet version="2.0"
-	xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:fedoraxsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:fedoraxsi="http://www.w3.org/2001/XMLSchema-instance" fedoraxsi:schemaLocation="info:fedora/fedora-system:def/foxml# http://www.fedora.info/definitions/1/0/foxml1-0.xsd"
 	xmlns:foxml="info:fedora/fedora-system:def/foxml#"
 	xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-	fedoraxsi:schemaLocation="info:fedora/fedora-system:def/foxml# http://www.fedora.info/definitions/1/0/foxml1-0.xsd">
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
-	<xsl:import href="ContentModel-INFR-942.xsl" />
+	<xsl:include href="ContentModel-INFR-942.xsl" />
+	<xsl:include href="Context-INFR-1121.xsl" />
 
 	<xsl:variable name="objectType"
 		select="/foxml:digitalObject/foxml:datastream/foxml:datastreamVersion/foxml:xmlContent/rdf:RDF/rdf:Description/rdf:type/@rdf:resource" />
@@ -32,13 +32,12 @@
                                         </xsl:choose>
 				</xsl:for-each>
 
-				<xsl:for-each select="foxml:objectProperties">
-					<xsl:copy-of select="." copy-namespaces="no" />
-				</xsl:for-each>
-
 				<xsl:choose>
 					<xsl:when test="$objectType = 'http://escidoc.de/core/01/resources/ContentModel'">
-						<xsl:call-template name="cmTemplate" />
+						<xsl:call-template name="contentModelTemplate" />
+					</xsl:when>
+					<xsl:when test="$objectType = 'http://escidoc.de/core/01/resources/Context'">
+						<xsl:call-template name="contextTemplate" />
 					</xsl:when>
 					<xsl:otherwise>
 						<xsl:for-each select="foxml:datastream">
@@ -50,5 +49,14 @@
 			</xsl:element>
 		</xsl:for-each>
 	</xsl:template>
+
+        <xsl:template match="*">
+                <xsl:copy copy-namespaces="no">
+                        <xsl:for-each select="@*">
+                                <xsl:copy />
+                        </xsl:for-each>
+                        <xsl:apply-templates />
+                </xsl:copy>
+        </xsl:template>
 
 </xsl:stylesheet>

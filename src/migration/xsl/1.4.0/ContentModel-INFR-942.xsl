@@ -1,13 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet version="2.0"
 	xmlns:escidocVersions="http://www.escidoc.de/schemas/versionhistory/0.3"
-	xmlns:foxml="info:fedora/fedora-system:def/foxml#"
 	xmlns:premis="http://www.loc.gov/standards/premis/v1"
 	xmlns:xlink="http://www.w3.org/1999/xlink"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-
-	<xsl:output encoding="UTF-8" method="xml" />
 
 	<xsl:variable name="CONTENT_MODEL_HREF">/cmm/content-model/</xsl:variable>
 	<xsl:variable name="ITEM_HREF">/ir/item/</xsl:variable>
@@ -36,16 +32,7 @@
 		</xsl:element>
 	</xsl:template>
 
-        <xsl:template match="*">
-                <xsl:copy copy-namespaces="no">
-                        <xsl:for-each select="@*">
-                                <xsl:copy />
-                        </xsl:for-each>
-                        <xsl:apply-templates />
-                </xsl:copy>
-        </xsl:template>
-
-	<xsl:template name="cmTemplate">
+	<xsl:template name="contentModelTemplate">
 		<xsl:apply-templates />
 	</xsl:template>
 
