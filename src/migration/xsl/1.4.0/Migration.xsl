@@ -19,14 +19,14 @@
 			<xsl:element name="foxml:digitalObject" namespace="info:fedora/fedora-system:def/foxml#">
 
 				<xsl:for-each select="@*">
-					<xsl:variable name="name" select="name()" />
+					<xsl:variable name="name" select="name()"/>
                                         <xsl:choose>
                                                 <xsl:when test="$name = 'xsi:schemaLocation'">
                                                         <xsl:attribute name="fedoraxsi:schemaLocation" namespace="http://www.w3.org/2001/XMLSchema-instance" select="." />
                                                 </xsl:when>
                                                 <xsl:otherwise>
                                                         <xsl:attribute name="{$name}">
-								<xsl:value-of select="." />
+								<xsl:value-of select="."/>
 							</xsl:attribute>
                                                 </xsl:otherwise>
                                         </xsl:choose>
@@ -34,14 +34,14 @@
 
 				<xsl:choose>
 					<xsl:when test="$objectType = 'http://escidoc.de/core/01/resources/ContentModel'">
-						<xsl:call-template name="contentModelTemplate" />
+						<xsl:call-template name="contentModelTemplate"/>
 					</xsl:when>
 					<xsl:when test="$objectType = 'http://escidoc.de/core/01/resources/Context'">
-						<xsl:call-template name="contextTemplate" />
+						<xsl:call-template name="contextTemplate"/>
 					</xsl:when>
 					<xsl:otherwise>
 						<xsl:for-each select="foxml:datastream">
-							<xsl:copy-of select="." copy-namespaces="no" />
+							<xsl:copy-of select="." copy-namespaces="no"/>
 						</xsl:for-each>
 					</xsl:otherwise>
 				</xsl:choose>
@@ -49,14 +49,5 @@
 			</xsl:element>
 		</xsl:for-each>
 	</xsl:template>
-
-        <xsl:template match="*">
-                <xsl:copy copy-namespaces="no">
-                        <xsl:for-each select="@*">
-                                <xsl:copy />
-                        </xsl:for-each>
-                        <xsl:apply-templates />
-                </xsl:copy>
-        </xsl:template>
 
 </xsl:stylesheet>
