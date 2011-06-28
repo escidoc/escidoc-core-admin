@@ -122,7 +122,7 @@
 			<arg value="${foxml.dir}.old" />
 			<arg value="${foxml.dir}" />
 			<arg value="${datastreams.dir}" />
-			<arg value="xsl/1.4.0/Migration.xsl" />
+			<arg value="foxml/1.4.0/Migration.xsl" />
 			<sysproperty key="javax.xml.transform.TransformerFactory" value="net.sf.saxon.TransformerFactoryImpl" />
 			<classpath>
 				<path refid="build.classpath" />
