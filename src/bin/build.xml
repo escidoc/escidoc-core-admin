@@ -1,6 +1,8 @@
 <?xml version="1.0"?>
 <project name="eSciDocCore Admin Tools" default="reindex" basedir=".">
 
+        <taskdef resource="net/sf/antcontrib/antlib.xml" />
+
         <property environment="env" />
 	<property name="admin-tool.properties" value="admin-tool.properties" />
 	<property file="${admin-tool.properties}" />
@@ -137,6 +139,61 @@
 		<antcall target="restore-fedora" />
 		<fail if="foxml-migration-failed" message="The FoXML migration failed. Please correct the problem and run it again." />
 		<echo>Finished</echo>
+	</target>
+
+	<!--
+	Migration for files in the eSciDoc installation path, e.g. configuration files.
+	Currently only XSL transformation is supported.
+
+	Example:
+		core/1.4.0/jboss/server/default/conf/escidoc-login.xml.xsl
+
+		The base directory is always "core". The following subdirectory specifies the eSciDocCore version for which the migration will be executed.
+		The following subdirectories correspond to the directory structure in eSciDoc (installed with the installer).
+		The file has an extra suffix which describes which type of migration should be used (.xsl in this example).
+		It is allowed to use a prefix to run the migration in a defined sequence of files, e.g.
+
+		core/1.4.0/jboss/server/default/conf/1-login-config.xml.xsl
+		core/1.4.0/jboss/server/default/conf/2-escidoc-login.xml.xsl
+
+		means to migrate login-config.xml before escidoc-login.xml.
+	-->
+	<target name="core-migration">
+		<for param="migrationFileWithPrefix">
+			<path>
+				<sort>
+					<fileset dir="core/1.4.0"/>
+				</sort>
+			</path>
+			<sequential>
+				<dirname property="migrationDir" file="@{migrationFileWithPrefix}"/>
+				<var name="relativePath" unset="true"/>
+				<pathconvert property="relativePath">
+					<path location="@{migrationFileWithPrefix}"/>
+					<map from="${basedir}/core/1.4.0" to="${escidoc.dir}"/>
+				</pathconvert>
+				<dirname property="inDir" file="${relativePath}"/>
+				<pathconvert property="migrationFile">
+					<path location="@{migrationFileWithPrefix}"/>
+					<mapper>
+						<chainedmapper>
+							<flattenmapper/>
+							<regexpmapper from="^[0-9]*-?(.*)" to="\1"/>
+						</chainedmapper>
+					</mapper>
+				</pathconvert>
+				<propertyregex property="suffix" input="@{migrationFileWithPrefix}" regexp=".*\.([a-z]*)$" select="\1" casesensitive="false" />
+				<switch value="${suffix}">
+					<case value="xsl">
+						<basename property="inFile" file="${migrationFile}" suffix=".${suffix}"/>
+						<xslt in="${inDir}/${inFile}" out="output.xml" style="@{migrationFileWithPrefix}" force="true"/>
+					</case>
+					<default>
+						<echo message="There is no migration for file type ${suffix}." />
+					</default>
+				</switch>
+			</sequential>
+		</for>
 	</target>
 
 </project>
