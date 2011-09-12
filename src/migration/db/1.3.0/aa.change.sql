@@ -278,7 +278,7 @@ INSERT INTO aa.invocation_mappings (id, attribute_id, path, position, attribute_
   
 DELETE FROM aa.method_mappings WHERE id = 'escidoc:mm-aa-init-handle-expiry-timestamp';
 INSERT INTO aa.method_mappings (id, class_name, method_name, action_name, exec_before, single_resource, resource_not_found_exception)
-  VALUES ('escidoc:mm-aa-init-handle-expiry-timestamp', 'de.escidoc.core.aa.service.UserManagementWrapper', 'initHandleExpiryTimestamp', 
+  VALUES ('escidoc:mm-aa-init-handle-expiry-timestamp', 'de.escidoc.core.aa.service.interfaces.UserManagementWrapperInterface', 'initHandleExpiryTimestamp', 
   'info:escidoc/names:aa:1.0:action:initHandleExpiryTimestamp', true, true,
   'de.escidoc.core.common.exceptions.application.notfound.UserAccountNotFoundException');
 
@@ -291,7 +291,7 @@ DELETE FROM aa.invocation_mappings WHERE id = 'escidoc-im-current-user-account-r
 DELETE FROM aa.method_mappings WHERE id = 'escidoc:mm-current-user-account-retrieve';
 
 INSERT INTO aa.method_mappings (id, class_name, method_name, action_name, exec_before, single_resource, resource_not_found_exception)
-  VALUES ('escidoc:mm-current-user-account-retrieve', 'de.escidoc.core.aa.service.UserAccountHandler', 'retrieveCurrentUser', 
+  VALUES ('escidoc:mm-current-user-account-retrieve', 'de.escidoc.core.aa.service.interfaces.UserAccountHandlerInterface', 'retrieveCurrentUser', 
   'info:escidoc/names:aa:1.0:action:retrieve-current-user-account', true, true,
   'de.escidoc.core.common.exceptions.application.notfound.UserAccountNotFoundException');
 INSERT INTO aa.invocation_mappings (id, attribute_id, path, position, attribute_type, mapping_type, multi_value, value, method_mapping)
