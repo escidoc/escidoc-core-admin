@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd"
+	default-autowire="no" default-lazy-init="true">
+	<bean id="de.escidoc.core.admin.PropertyPlaceholderConfigurer"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath:admin-tool.properties</value>
+				<value>file:admin-tool.properties</value>
+			</list>
+		</property>
+		<property name="ignoreResourceNotFound" value="true" />
+	</bean>
+	<bean id="de.escidoc.core.admin.ReaderDataSource" class="org.apache.commons.dbcp.BasicDataSource">
+		<property name="driverClassName" value="${datasource.driverClassName}" />
+		<property name="url" value="${datasource.url}" />
+		<property name="username" value="${datasource.username}" />
+		<property name="password" value="${datasource.password}" />
+	</bean>
+	<bean id="de.escidoc.core.admin.DataSource" class="org.apache.commons.dbcp.BasicDataSource">
+		<property name="driverClassName" value="${datasource.driverClassName}" />
+		<property name="url" value="${datasource.url}" />
+		<property name="username" value="${datasource.username}" />
+		<property name="password" value="${datasource.password}" />
+	</bean>
+	<bean id="escidoc.core.business.FedoraUtility" class="de.escidoc.core.common.business.fedora.FedoraUtility">
+        <property name="fedoraUrl">
+            <value>${fedora.url}</value>
+        </property>
+        <property name="fedoraUser">
+            <value>${fedora.user}</value>
+        </property>
+        <property name="fedoraPassword">
+            <value>${fedora.password}</value>
+        </property>
+        <property name="identifierPrefix">
+            <value>${datasource.script.prefix}</value>
+        </property>
+    </bean>
+	<bean id="de.escidoc.core.admin.ReadertxManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource">
+			<ref bean="de.escidoc.core.admin.ReaderDataSource" />
+		</property>
+	</bean>
+	<bean id="de.escidoc.core.admin.ReadertxProxyTemplate"
+		class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean"
+		abstract="true" lazy-init="true">
+		<property name="transactionManager">
+			<ref bean="de.escidoc.core.admin.ReadertxManager" />
+		</property>
+		<property name="transactionAttributes">
+			<props>
+				<prop key="*">PROPAGATION_REQUIRED</prop>
+			</props>
+		</property>
+	</bean>
+    <bean id="de.escidoc.core.admin.SmMigrationTool" class="de.escidoc.core.admin.business.SmMigrationTool">
+        <constructor-arg value="${datasource.driverClassName}" />
+        <constructor-arg value="${datasource.url}" />
+        <constructor-arg value="${datasource.username}" />
+        <constructor-arg value="${datasource.password}" />
+        <constructor-arg value="${datasource.script.prefix}" />
+        <constructor-arg value="${creator_id}" />
+        <property name="myDataSource">
+            <ref bean="de.escidoc.core.admin.DataSource" />
+        </property>
+    </bean>
+
+    <bean id="de.escidoc.core.admin.AaMigrationTool" class="de.escidoc.core.admin.business.AaMigrationTool">
+        <constructor-arg value="${datasource.driverClassName}" />
+        <constructor-arg value="${datasource.url}" />
+        <constructor-arg value="${datasource.username}" />
+        <constructor-arg value="${datasource.password}" />
+        <constructor-arg value="${datasource.script.prefix}" />
+        <constructor-arg value="${creator_id}" />
+        <property name="myDataSource">
+            <ref bean="de.escidoc.core.admin.DataSource" />
+        </property>
+    </bean>
+
+	<bean id="de.escidoc.core.admin.DataBaseMigrationTool" class="de.escidoc.core.admin.business.DataBaseMigrationTool">
+		<constructor-arg value="${datasource.driverClassName}" />
+		<constructor-arg value="${datasource.url}" />
+		<constructor-arg value="${datasource.username}" />
+		<constructor-arg value="${datasource.password}" />
+		<constructor-arg value="${datasource.script.prefix}" />
+		<constructor-arg value="${creator_id}" />
+		<property name="myDataSource">
+			<ref bean="de.escidoc.core.admin.DataSource" />
+		</property>
+        <property name="smMigrationTool">
+            <ref bean="de.escidoc.core.admin.SmMigrationTool" />
+        </property>
+        <property name="aaMigrationTool">
+            <ref bean="de.escidoc.core.admin.AaMigrationTool" />
+        </property>
+	</bean>
+
+	<!-- REINDEXER -->
+	<bean id="de.escidoc.core.admin.EscidocCoreHandler" class="de.escidoc.core.admin.common.util.EscidocCoreHandler">
+		<constructor-arg value="${escidocUrl}" />
+	</bean>
+	<bean id="de.escidoc.core.admin.EscidocCoreHandlerWithSecurity"
+		class="de.escidoc.core.admin.common.util.EscidocCoreHandler">
+		<constructor-arg index="0" value="${escidocUrl}" />
+		<constructor-arg index="1" value="${persistentHandle}" />
+	</bean>
+    <bean id="jmsConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+        <property name="brokerURL" value="tcp://localhost:61616"/>
+    </bean>
+	<bean id="de.escidoc.core.admin.Reindexer" class="de.escidoc.core.admin.business.Reindexer">
+		<constructor-arg value="${clearIndex}" />
+		<constructor-arg value="${indexName}" />
+		<property name="escidocCoreHandler">
+			<ref bean="de.escidoc.core.admin.EscidocCoreHandlerWithSecurity" />
+		</property>
+		<property name="fedoraUtility">
+            <ref bean="escidoc.core.business.FedoraUtility"/>
+        </property>
+        <property name="indexService">
+            <ref bean="de.escidoc.core.index.IndexService"/>
+        </property>
+	</bean>
+</beans>

@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+
+<beans>
+  <bean id="de.escidoc.core.admin.context"
+      class="org.springframework.context.support.ClassPathXmlApplicationContext">
+    <constructor-arg>
+      <list>
+        <value>/META-INF/spring/applicationContext-index-service-spec.xml</value>
+        <value>applicationContext.xml</value>
+      </list>
+    </constructor-arg>
+  </bean>
+    
+</beans>

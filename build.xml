@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="eSciDoc infrastructure admin tool - main build file" default="dist" basedir="." xmlns:artifact="antlib:org.apache.maven.artifact.ant">
+
+	<property environment="env" />
+	<property file="etc/${user.name}.properties" />
+	<property file="etc/project.properties" />
+
+        <!-- properties for deployment to Artifactory -->
+        <property name="artifactory.url" value="https://www.escidoc.org/artifactory/libs-snapshots-local" />
+        <!-- user name and password must be given from the command line via -Dusername=... -Dpassword=... -->
+        <property name="artifactory.user" value="${username}" />
+        <property name="artifactory.password" value="${password}" />
+
+	<path id="libs">
+		<fileset dir="${lib.dir}">
+			 <include name="**/*.jar" />
+		</fileset>
+	</path>
+
+	<path id="build.classpath">
+		<pathelement path="${classpath}" />
+		<path refid="libs" />
+	</path>
+
+	<target name="dist" depends="define-label, admin-jar">
+		<copy todir="${dist.build.dir}" failonerror="false">
+			<fileset dir="${bin.src.dir}" includes="**/*" />
+			<fileset dir="${doc.src.dir}" includes="**/*" />
+			<fileset dir="${etc.dir}" includes="admin-tool.properties" />
+			<fileset dir="${etc.dir}" includes="escidoc-core.properties" />
+			<fileset dir="${foxml-migration.src.dir}" />
+			<fileset dir="license/" />
+			<fileset file="${dist.build.dir}/${admin.jar.name}" />
+		</copy>
+		<copy todir="${dist.build.dir}/lib" flatten="yes">
+			<fileset dir="${lib.dir}" includes="**/*.jar" />
+		</copy>
+		<zip destfile="${dist.build.dir}/escidoc-core-admin-${build.version}.zip">
+			<zipfileset dir="${dist.build.dir}" prefix="escidoc-core-admin-${build.version}" />
+		</zip>
+	</target>
+
+	<!-- Cleans the output folders -->
+	<target name="clean" description="Cleans the output folders">
+		<delete dir="${build.dir}" />
+	</target>
+
+	<!-- Creates the output folders -->
+	<target name="prepare" description="Creates the output folders">
+		<mkdir dir="${java.build.dir}" />
+		<mkdir dir="${dist.build.dir}" />
+		<mkdir dir="${admin.jar.build.dir}" />
+	</target>
+
+	<target name="build" depends="clean, prepare, compile, copy">
+	</target>
+
+	<!-- Compile -->
+	<target name="compile" depends="prepare" description="Compile java classes">
+		<javac destdir="${java.build.dir}" debug="on">
+			<classpath refid="build.classpath" />
+			<src path="${java.src.dir}" />
+		</javac>
+	</target>
+
+	<!-- Copy -->
+	<target name="copy" description="copy metadata-files">
+		<copy todir="${java.build.dir}">
+			<fileset dir="${etc.dir}" includes="**/log4j.*" />
+		</copy>
+		<copy todir="${java.build.dir}">
+			<fileset dir="${etc.dir}" includes="**/admin-tool.properties" />
+		</copy>
+		<copy todir="${java.build.dir}">
+			<fileset dir="${etc.dir}" includes="**/escidoc-core.properties" />
+		</copy>
+		<copy todir="${java.build.dir}">
+			<fileset dir="${java.src.dir}" includes="**/*.xml" />
+		</copy>
+	</target>
+
+	<target name="admin-jar" depends="build">
+		<copy todir="${admin.jar.build.dir}">
+			<fileset dir="${java.build.dir}" includes="de/**/*.class" excludes="**/test/**/*.class" />
+		</copy>
+		<copy todir="${admin.jar.build.dir}">
+			<fileset dir="${etc.dir}" includes="**/log4j.*" />
+		</copy>
+		<copy todir="${admin.jar.build.dir}">
+			<fileset dir="${java.src.dir}" includes="**/*.xml" />
+		</copy>
+		<pathconvert property="manifest-classpath" pathsep=" ">
+			<mapper>
+				<chainedmapper>
+					<!-- remove absolute path -->
+					<flattenmapper />
+					<!-- add lib/ prefix -->
+					<globmapper from="*" to="lib/*" />
+				</chainedmapper>
+			</mapper>
+			<path refid="libs"/>
+		</pathconvert>
+		<jar jarfile="${dist.build.dir}/${admin.jar.name}" basedir="${admin.jar.build.dir}">
+			<manifest>
+				<attribute name="Main-Class" value="de.escidoc.core.admin.AdminMain"/>
+				<attribute name="Class-Path" value=". ${manifest-classpath}"/>
+			</manifest>
+		</jar>
+	</target>
+
+	<!-- 
+		Compute build.version properties (which contains version number 
+		and/or build number).
+		The build.version property consist usally of version number and build
+		numer (e.g. 1.1-build23). But this value could be over written by
+		RELEASE_LABEL property. If RELEASE_LABEL is defined, than is this 
+		value the only used label. 
+		If you want to define a release build, which has only the version 
+		number in the label, than define RELEASE_LABEL=1.x.
+		If build number and version number undefined, than is are this 
+		values set to HEAD.
+		Use ${build.version} as version label in further scripts. 
+	 -->
+	<target name="define-label">
+		<taskdef resource="net/sf/antcontrib/antcontrib.properties">
+			<classpath>
+				<pathelement location="lib/ant/ant-contrib-1.0b1.jar" />
+			</classpath>
+		</taskdef>
+		<if>
+			<isset property="RELEASE_LABEL" />
+			<then>
+				<echo>Using ${RELEASE_LABEL} as label</echo>
+				<property name="build.version" value="${RELEASE_LABEL}" />
+			</then>
+			<else>
+				<if>
+					<isset property="env.BUILD_NUMBER" />
+					<then>
+						<echo>Using ${env.BUILD_NUMBER} as build number</echo>
+						<property name="label-suffix" value="-${env.BUILD_NUMBER}" />
+					</then>
+					<else>
+						<echo>Using default value for build number</echo>
+						<property name="label-suffix" value="-SNAPSHOT" />
+					</else>
+				</if>
+				<property name="build.version" value="${version}${label-suffix}" />
+			</else>
+		</if>
+	</target>
+
+        <target name="deploy" depends="dist" description="Deploy zip file to local repository and Artifactory">
+                <artifact:pom id="memorypom" groupId="org.escidoc.core" artifactId="migration-tool" version="${build.version}" name="eSciDoc Migration Tool" packaging="zip" />
+
+                <!-- The install and deploy tasks cannot use the in-memory-POM directly so we have to write it into a file first. -->
+                <artifact:writepom pomRefId="memorypom" file="${dist.build.dir}/escidoc-core-admin-${build.version}.pom" />
+                <artifact:pom id="filepom" file="${dist.build.dir}/escidoc-core-admin-${build.version}.pom" />
+
+                <!-- install into local repository -->
+                <artifact:install file="${dist.build.dir}/escidoc-core-admin-${build.version}.zip">
+                        <pom refid="filepom" />
+                </artifact:install>
+
+                <!-- copy to Artifactory -->
+                <artifact:deploy file="${dist.build.dir}/escidoc-core-admin-${build.version}.zip">
+                        <remoteRepository url="${artifactory.url}">
+                                <authentication username="${artifactory.user}" password="${artifactory.password}" />
+                        </remoteRepository>
+                        <pom refid="filepom" />
+                </artifact:deploy>
+        </target>
+
+</project>
