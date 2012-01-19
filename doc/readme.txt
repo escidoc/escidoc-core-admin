@@ -21,6 +21,14 @@ Please read https://www.escidoc.org/JSPWiki/en/ESciDocUpgrade1.2.xto1.3 for
 further information.
 
 
+NOTE: In version 1.3 of the eSciDoc-Core Framework, the names of the aggregation-tables have changed 
+because of Oracle-Support. Oracle doesnt allow tablenames starting with a "_".
+So if installing a new version 1.3 of the eSciDoc-Core Framework, you will get aggregation-tables 
+with names not starting with a "_".
+If you upgrade your eSciDoc-Core Framework from version 1.2 to version 1.3 
+and migrate the database, the aggregation-tables are not renamed because then we also 
+would have to process all the sqls of your report-definitions.
+
 2.) Migration of Fedora Repository 
 ----------------------------------
 
