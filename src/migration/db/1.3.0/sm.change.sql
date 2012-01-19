@@ -60,10 +60,6 @@ UPDATE sm.aggregation_definitions set creation_date = CURRENT_TIMESTAMP;
 UPDATE sm.aggregation_definitions SET name = 'noname' WHERE NAME IS NULL;
 ALTER TABLE sm.aggregation_definitions ALTER COLUMN name SET NOT NULL;
 
-ALTER TABLE sm._escidocaggdef1_object_statistics RENAME TO escidocaggdef1_object_stats;
-ALTER TABLE sm._escidocaggdef1_request_statistics RENAME TO escidocaggdef1_request_stats;
-ALTER TABLE sm._escidocaggdef2_error_statistics RENAME TO escidocaggdef2_error_stats;
-
 CREATE TABLE sm.report_definition_roles ( 
   id VARCHAR(255) unique not null primary key,
   report_definition_id VARCHAR(255) NOT NULL,
