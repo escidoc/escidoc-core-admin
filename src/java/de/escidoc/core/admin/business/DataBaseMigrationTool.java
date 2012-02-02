@@ -102,8 +102,8 @@ public class DataBaseMigrationTool extends DbDao
      * Database query to get the latest version.
      */
     private static final String QUERY_LATEST_VERSION = "SELECT * FROM "
-        + VERSION_TABLE_NAME + " WHERE " + COLUMN_DATE + "=(SELECT MAX("
-        + COLUMN_DATE + ") FROM " + VERSION_TABLE_NAME + ")";
+        + VERSION_TABLE_NAME + " WHERE \"" + COLUMN_DATE + "\"=(SELECT MAX(\""
+        + COLUMN_DATE + "\") FROM " + VERSION_TABLE_NAME + ")";
 
     /**
      * Database query to get the owner.
@@ -289,7 +289,9 @@ public class DataBaseMigrationTool extends DbDao
 
         if (updates != null) {
             for (File update : updates) {
-                result.add(new Version(update.getName()));
+            	if (!update.getName().startsWith(".")) {
+                    result.add(new Version(update.getName()));
+            	}
             }
         }
         return result;
@@ -343,20 +345,22 @@ public class DataBaseMigrationTool extends DbDao
      */
     public void migrate() throws IntegritySystemException {
         // check database owner
-        try {
-            final String owner = getDBOwner();
+    	if (scriptPrefix != null && scriptPrefix.equals("postgres")) {
+            try {
+                final String owner = getDBOwner();
 
-            if (!owner.equals(username)) {
-                throw new IntegritySystemException(
-                    "The configured database user \"" + username
-                        + "\" differs from the database owner \"" + owner
-                        + "\".");
+                if (!owner.equals(username)) {
+                    throw new IntegritySystemException(
+                        "The configured database user \"" + username
+                            + "\" differs from the database owner \"" + owner
+                            + "\".");
+                }
             }
-        }
-        catch (Exception e) {
-            throw new IntegritySystemException(
-                "could not check the database consistency", e);
-        }
+            catch (Exception e) {
+                throw new IntegritySystemException(
+                    "could not check the database consistency", e);
+            }
+    	}
 
         // check if the creator exists
         try {
