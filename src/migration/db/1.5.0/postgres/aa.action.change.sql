@@ -66,7 +66,7 @@ INSERT INTO aa.invocation_mappings
              0 AS position,
              'http://www.w3.org/2001/XMLSchema#string' AS attribute_type,
              0 AS mapping_type,
-             0 AS multi_value,
+             'f' AS multi_value,
              '' AS value,
              'escidoc:mm-user-account-create-preference' AS method_mapping
 			WHERE NOT EXISTS (SELECT 1 FROM aa.invocation_mappings WHERE id='escidoc-im-user-account-create-preference-2'));
@@ -82,7 +82,7 @@ INSERT INTO aa.invocation_mappings
              0 AS position,
              'http://www.w3.org/2001/XMLSchema#string' AS attribute_type,
              0 AS mapping_type,
-             0 AS multi_value,
+             'f' AS multi_value,
              '' AS value,
              'escidoc:mm-user-account-delete-preference' AS method_mapping
 			WHERE NOT EXISTS (SELECT 1 FROM aa.invocation_mappings WHERE id='escidoc-im-user-account-delete-preference-2'));
@@ -110,7 +110,7 @@ INSERT INTO aa.invocation_mappings
              0 AS position,
              'http://www.w3.org/2001/XMLSchema#string' AS attribute_type,
              0 AS mapping_type,
-             0 AS multi_value,
+             'f' AS multi_value,
              '' AS value,
              'escidoc:mm-user-account-create-attribute' AS method_mapping
 			WHERE NOT EXISTS (SELECT 1 FROM aa.invocation_mappings WHERE id='escidoc-im-user-account-create-attribute-2'));
