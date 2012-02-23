@@ -459,6 +459,13 @@ public class DataBaseMigrationTool extends DbDao
             new File(new File(DIRECTORY_SCRIPTS, version.toString()),
                 scriptPrefix);
         SQLExec sqlExec = new SQLExec();
+    	if (scriptPrefix != null && scriptPrefix.equals("oracle")) {
+            sqlExec.setKeepformat(true);
+            SQLExec.DelimiterType t = new SQLExec.DelimiterType();
+            t.setValue("row");
+            sqlExec.setDelimiterType(t);
+            sqlExec.setDelimiter("/");
+    	}
         String[] scripts = sqlDir.list(new FilenameFilter() {
             public boolean accept(final File dir, final String name) {
                 return (name != null) && (name.endsWith(".sql"));
