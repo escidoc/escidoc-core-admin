@@ -170,10 +170,12 @@ END;
 /
 
 UPDATE aa.method_mappings SET action_name = 'info:escidoc/names:aa:1.0:action:update-password' 
-WHERE id = 'escidoc:mm-user-account-update-password';
+WHERE id = 'escidoc:mm-user-account-update-password'
+/
 
 UPDATE aa.method_mappings SET action_name = 'info:escidoc/names:aa:1.0:action:create-user-account-preference' 
-WHERE id = 'escidoc:mm-user-account-create-preference';
+WHERE id = 'escidoc:mm-user-account-create-preference'
+/
 
 DECLARE l_is_matching_row NUMBER;
 BEGIN
@@ -196,7 +198,8 @@ END;
 /
 
 UPDATE aa.method_mappings SET action_name = 'info:escidoc/names:aa:1.0:action:delete-user-account-preference' 
-WHERE id = 'escidoc:mm-user-account-delete-preference';
+WHERE id = 'escidoc:mm-user-account-delete-preference'
+/
 
 DECLARE l_is_matching_row NUMBER;
 BEGIN
@@ -219,19 +222,24 @@ END;
 /
 
 UPDATE aa.method_mappings SET action_name = 'info:escidoc/names:aa:1.0:action:retrieve-user-account-preference' 
-WHERE id = 'escidoc:mm-user-account-preferences-retrieve';
+WHERE id = 'escidoc:mm-user-account-preferences-retrieve'
+/
 
 UPDATE aa.method_mappings SET action_name = 'info:escidoc/names:aa:1.0:action:retrieve-user-account-preference' 
-WHERE id = 'escidoc:mm-user-account-preference-retrieve';
+WHERE id = 'escidoc:mm-user-account-preference-retrieve'
+/
 
 UPDATE aa.method_mappings SET action_name = 'info:escidoc/names:aa:1.0:action:update-user-account-preference' 
-WHERE id = 'escidoc:mm-user-account-preference-update';
+WHERE id = 'escidoc:mm-user-account-preference-update'
+/
 
 UPDATE aa.method_mappings SET action_name = 'info:escidoc/names:aa:1.0:action:update-user-account-preference' 
-WHERE id = 'escidoc:mm-user-account-preferences-update';
+WHERE id = 'escidoc:mm-user-account-preferences-update'
+/
 
 UPDATE aa.method_mappings SET action_name = 'info:escidoc/names:aa:1.0:action:create-user-account-attribute' 
-WHERE id = 'escidoc:mm-user-account-create-attribute';
+WHERE id = 'escidoc:mm-user-account-create-attribute'
+/
 
 DECLARE l_is_matching_row NUMBER;
 BEGIN
@@ -254,19 +262,24 @@ END;
 /
 
 UPDATE aa.method_mappings SET action_name = 'info:escidoc/names:aa:1.0:action:retrieve-user-account-attribute' 
-WHERE id = 'escidoc:mm-user-account-attributes-retrieve';
+WHERE id = 'escidoc:mm-user-account-attributes-retrieve'
+/
 
 UPDATE aa.method_mappings SET action_name = 'info:escidoc/names:aa:1.0:action:retrieve-user-account-attribute' 
-WHERE id = 'escidoc:mm-user-account-named-attributes-retrieve';
+WHERE id = 'escidoc:mm-user-account-named-attributes-retrieve'
+/
 
 UPDATE aa.method_mappings SET action_name = 'info:escidoc/names:aa:1.0:action:retrieve-user-account-attribute' 
-WHERE id = 'escidoc:mm-user-account-attribute-retrieve';
+WHERE id = 'escidoc:mm-user-account-attribute-retrieve'
+/
 
 UPDATE aa.method_mappings SET action_name = 'info:escidoc/names:aa:1.0:action:update-user-account-attribute' 
-WHERE id = 'escidoc:mm-user-account-attribute-update';
+WHERE id = 'escidoc:mm-user-account-attribute-update'
+/
 
 UPDATE aa.method_mappings SET action_name = 'info:escidoc/names:aa:1.0:action:delete-user-account-attribute' 
-WHERE id = 'escidoc:mm-user-account-attribute-delete';
+WHERE id = 'escidoc:mm-user-account-attribute-delete'
+/
 
 DECLARE
   TMP_CLOB CLOB := NULL;
