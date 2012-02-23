@@ -1,3 +1,4 @@
+DECLARE l_is_matching_row NUMBER;
 BEGIN
     SELECT count (*)
     INTO   l_is_matching_row
@@ -16,6 +17,7 @@ EXCEPTION
 END;
 /
 
+DECLARE l_is_matching_row NUMBER;
 BEGIN
     SELECT count (*)
     INTO   l_is_matching_row
@@ -34,6 +36,7 @@ EXCEPTION
 END;
 /
 
+DECLARE l_is_matching_row NUMBER;
 BEGIN
     SELECT count (*)
     INTO   l_is_matching_row
@@ -52,6 +55,7 @@ EXCEPTION
 END;
 /
 
+DECLARE l_is_matching_row NUMBER;
 BEGIN
     SELECT count (*)
     INTO   l_is_matching_row
@@ -70,6 +74,7 @@ EXCEPTION
 END;
 /
 
+DECLARE l_is_matching_row NUMBER;
 BEGIN
     SELECT count (*)
     INTO   l_is_matching_row
@@ -88,6 +93,7 @@ EXCEPTION
 END;
 /
 
+DECLARE l_is_matching_row NUMBER;
 BEGIN
     SELECT count (*)
     INTO   l_is_matching_row
@@ -106,6 +112,7 @@ EXCEPTION
 END;
 /
 
+DECLARE l_is_matching_row NUMBER;
 BEGIN
     SELECT count (*)
     INTO   l_is_matching_row
@@ -124,6 +131,7 @@ EXCEPTION
 END;
 /
 
+DECLARE l_is_matching_row NUMBER;
 BEGIN
     SELECT count (*)
     INTO   l_is_matching_row
@@ -142,6 +150,7 @@ EXCEPTION
 END;
 /
 
+DECLARE l_is_matching_row NUMBER;
 BEGIN
     SELECT count (*)
     INTO   l_is_matching_row
@@ -166,6 +175,7 @@ WHERE id = 'escidoc:mm-user-account-update-password';
 UPDATE aa.method_mappings SET action_name = 'info:escidoc/names:aa:1.0:action:create-user-account-preference' 
 WHERE id = 'escidoc:mm-user-account-create-preference';
 
+DECLARE l_is_matching_row NUMBER;
 BEGIN
     SELECT count (*)
     INTO   l_is_matching_row
@@ -188,6 +198,7 @@ END;
 UPDATE aa.method_mappings SET action_name = 'info:escidoc/names:aa:1.0:action:delete-user-account-preference' 
 WHERE id = 'escidoc:mm-user-account-delete-preference';
 
+DECLARE l_is_matching_row NUMBER;
 BEGIN
     SELECT count (*)
     INTO   l_is_matching_row
@@ -222,6 +233,7 @@ WHERE id = 'escidoc:mm-user-account-preferences-update';
 UPDATE aa.method_mappings SET action_name = 'info:escidoc/names:aa:1.0:action:create-user-account-attribute' 
 WHERE id = 'escidoc:mm-user-account-create-attribute';
 
+DECLARE l_is_matching_row NUMBER;
 BEGIN
     SELECT count (*)
     INTO   l_is_matching_row
