@@ -307,8 +307,14 @@ public class DataBaseMigrationTool extends DbDao
      */
     private void checkConsistency() throws IntegritySystemException {
         Version dbVersion = getDBVersion();
+        String dbSystem = null;
+        if (scriptPrefix != null && scriptPrefix.equals("postgres")) {
+        	dbSystem = "PostgreSQL";
+        } else {
+        	dbSystem = "Oracle";
+        }
         String fingerprintFile =
-            "/META-INF/db/fingerprints/" + dbVersion.toString() + ".xml";
+            "/META-INF/db/fingerprints/" + dbSystem + "/" + dbVersion.toString() + ".xml";
 
         try {
             Fingerprint currentFingerprint = new Fingerprint(getConnection());
