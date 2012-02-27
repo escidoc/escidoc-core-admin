@@ -87,6 +87,9 @@
 			<fileset dir="${etc.dir}" includes="**/log4j.*" />
 		</copy>
 		<copy todir="${admin.jar.build.dir}">
+			<fileset dir="${etc.dir}" includes="**/META-INF/**/*" />
+		</copy>
+		<copy todir="${admin.jar.build.dir}">
 			<fileset dir="${java.src.dir}" includes="**/*.xml" />
 		</copy>
 		<pathconvert property="manifest-classpath" pathsep=" ">
@@ -99,6 +102,9 @@
 				</chainedmapper>
 			</mapper>
 			<path refid="libs"/>
+			<path>
+				<pathelement location="lib/ojdbc.jar" />
+			</path>
 		</pathconvert>
 		<jar jarfile="${dist.build.dir}/${admin.jar.name}" basedir="${admin.jar.build.dir}">
 			<manifest>
