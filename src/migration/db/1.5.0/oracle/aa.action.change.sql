@@ -281,6 +281,13 @@ UPDATE aa.method_mappings SET action_name = 'info:escidoc/names:aa:1.0:action:de
 WHERE id = 'escidoc:mm-user-account-attribute-delete'
 /
 
+INSERT INTO aa.scope_def 
+(id, role_id, object_type, attribute_id) 
+VALUES 
+('escidoc:rlc-scope-def-administrator-role', 'escidoc:role-administrator', 'role', 
+null)
+/
+
 DECLARE
   TMP_CLOB CLOB := NULL;
   SRC_CHUNK CLOB;
@@ -305,6 +312,7 @@ BEGIN
             info:escidoc/names:aa:1.0:action:retrieve-context 
             info:escidoc/names:aa:1.0:action:close-context 
             info:escidoc/names:aa:1.0:action:open-context 
+            info:escidoc/names:aa:1.0:action:retrieve-role 
             info:escidoc/names:aa:1.0:action:create-grant 
             info:escidoc/names:aa:1.0:action:revoke-grant 
             info:escidoc/names:aa:1.0:action:retrieve-grant 

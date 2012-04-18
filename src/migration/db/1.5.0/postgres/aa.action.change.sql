@@ -130,6 +130,12 @@ UPDATE aa.method_mappings SET action_name = 'info:escidoc/names:aa:1.0:action:up
 UPDATE aa.method_mappings SET action_name = 'info:escidoc/names:aa:1.0:action:delete-user-account-attribute' 
 	WHERE id = 'escidoc:mm-user-account-attribute-delete';
 
+INSERT INTO aa.scope_def 
+    (id, role_id, object_type, attribute_id)
+     VALUES
+    ('escidoc:rlc-scope-def-administrator-role', 'escidoc:role-administrator', 'role', 
+     null);
+
 UPDATE aa.escidoc_policies SET xml = '<Policy PolicyId="Administrator-policy" RuleCombiningAlgId="urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:ordered-permit-overrides">
   <Target>
     <Subjects>
@@ -147,6 +153,7 @@ UPDATE aa.escidoc_policies SET xml = '<Policy PolicyId="Administrator-policy" Ru
             info:escidoc/names:aa:1.0:action:retrieve-context 
             info:escidoc/names:aa:1.0:action:close-context 
             info:escidoc/names:aa:1.0:action:open-context 
+            info:escidoc/names:aa:1.0:action:retrieve-role  
             info:escidoc/names:aa:1.0:action:create-grant 
             info:escidoc/names:aa:1.0:action:revoke-grant 
             info:escidoc/names:aa:1.0:action:retrieve-grant 
