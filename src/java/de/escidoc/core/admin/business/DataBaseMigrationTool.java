@@ -333,11 +333,11 @@ public class DataBaseMigrationTool extends DbDao
         }
         catch (IOException e) {
             throw new IntegritySystemException(
-                "could not check the database consistency", e);
+                "could not check the database consistency " + e.getMessage(), e);
         }
         catch (SQLException e) {
             throw new IntegritySystemException(
-                "could not check the database consistency", e);
+                "could not check the database consistency " + e.getMessage(), e);
         }
     }
 
